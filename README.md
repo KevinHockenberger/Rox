@@ -1,2 +1,2 @@
 # Rox
-Simple If Then Else GUI
+Simple If-Then-Else GUI
