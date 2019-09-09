@@ -5,8 +5,96 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Rox"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
-        
-    </Grid>
+        Title="Rox" Height="440" Width="480" WindowStyle="None" Loaded="Window_Loaded" 
+        Initialized="Window_Initialized" Closing="Window_Closing" Icon="include/ite.ico">
+
+    <Window.Resources>
+        <Style TargetType="{x:Type local:MainWindow}">
+            <Setter Property="FontFamily" Value="arial" />
+            <Setter Property="FontSize" Value="18"></Setter>
+            <Setter Property="Background" Value="#FF292929"></Setter>
+            <Setter Property="Foreground" Value="White"></Setter>
+        </Style>
+        <Style TargetType="{x:Type Button}">
+            <Setter Property="Background" Value="#FF292929"></Setter>
+            <Setter Property="Foreground" Value="White"></Setter>
+        </Style>
+    </Window.Resources>
+
+    <DockPanel Margin="0">
+        <Grid Height="35" DockPanel.Dock="Top">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="35"/>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="35"/>
+                <ColumnDefinition Width="35"/>
+            </Grid.ColumnDefinitions>
+            <Border MouseDown="_MouseDown" Grid.Column="1" BorderThickness="1" CornerRadius="2" BorderBrush="White">
+                <Grid>
+                    <DockPanel>
+                        <TextBlock x:Name="txtName" Text="Rox" VerticalAlignment="Center" Margin="10,0,0,0" DockPanel.Dock="Left" />
+                        <TextBlock/>
+                        <TextBlock x:Name="txtVer" FontSize="12" FontStyle="Italic" Text="1.0.0" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0" />
+                        <Border BorderThickness="1,0" CornerRadius="2" BorderBrush="#FF97B3CB" Margin="10,0">
+                            <TextBlock x:Name="txtTitle" Margin="5,0" Text="" Padding="6"/>
+                        </Border>
+                    </DockPanel>
+                </Grid>
+            </Border>
+            <Border BorderBrush="White" BorderThickness="1" CornerRadius="2">
+                <Button Template="{DynamicResource ButtonBaseControlTemplate}" x:Name="btnMenu" Click="toggleMenu">
+                        <Canvas Width="30" Height="30">
+                            <Canvas.Background>
+                                <ImageBrush ImageSource="include/ite.ico"/>
+                            </Canvas.Background>
+                        </Canvas>
+                </Button>
+            </Border>
+            <Border Grid.Column="2" BorderBrush="White" BorderThickness="1" CornerRadius="2">
+                <Button Template="{DynamicResource ButtonBaseControlTemplate}" x:Name="btnMinimize" Content="_" Click="btnMinimize_Click" Foreground="lightgray" VerticalContentAlignment="Stretch" HorizontalContentAlignment="Center"/>
+            </Border>
+            <Border Grid.Column="3" BorderBrush="White" BorderThickness="1" CornerRadius="2">
+                <Button Template="{DynamicResource ButtonBaseControlTemplate}" x:Name="btnClose" Content="X" Click="btnClose_Click" Foreground="Red" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+            </Border>
+        </Grid>
+        <Grid DockPanel.Dock="Bottom" >
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <Grid x:Name="gridMenu" >
+                <Border x:Name="brdrRun" Background="#FF292929">
+                    <Button x:Name="btnToggleRun" Template="{DynamicResource ButtonBaseControlTemplate}" Height="120" VerticalAlignment="Top" Click="toggleRun" Margin="2" Width="60" >
+                        <TextBlock x:Name="txtblkRunDefault" TextAlignment="Center">load<LineBreak/>file
+                        </TextBlock>
+                    </Button>
+                </Border>
+
+            </Grid>
+            <Grid x:Name="gridFiles" Margin="2,2,0,2" Width="150" Grid.Column="1">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="110"/>
+                        <RowDefinition/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Button Template="{DynamicResource ButtonBaseControlTemplate}" x:Name="btnLoadFile" Foreground="White" Height="40" VerticalAlignment="Top" Click="btnLoadFile_Click" Margin="2" Background="#FF5A5A5A" BorderBrush="White" BorderThickness="2" >
+                        <TextBlock x:Name="btnLoadFileText" TextTrimming="CharacterEllipsis" Text="load"/>
+                    </Button>
+                    <Label Content="recent:" Grid.Row="1" Foreground="White" />
+                    <ListBox x:Name="listRecentFiles" Grid.Row="1" Background="#FF343434" Margin="2,26,2,2" Foreground="White" SelectionChanged="Files_SelectionChanged" GotFocus="Files_GotFocus" LostFocus="Files_LostFocus" />
+                    <ListBox x:Name="listFiles" Background="#FF343434" Margin="2" Foreground="White" SelectionChanged="Files_SelectionChanged" GotFocus="Files_GotFocus" Grid.Row="2" LostFocus="Files_LostFocus"/>
+                    <Button x:Name="btnSaveAs" VerticalAlignment="Bottom" Grid.Row="3" Margin="2" Click="btnSaveAs_Click">
+                        <TextBlock TextTrimming="CharacterEllipsis" Text="save as"/>
+                    </Button>
+                </Grid>
+            </Grid>
+
+            <Grid Grid.Column="1">
+            </Grid>
+        </Grid>
+    </DockPanel>
+
 </Window>
