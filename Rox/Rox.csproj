@@ -107,5 +107,23 @@
   <ItemGroup>
     <Resource Include="ite.ico" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="include\continue.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="include\condition.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="include\Bandersnatch.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="include\mode.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="include\once.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="include\add.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

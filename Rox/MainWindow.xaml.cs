@@ -1,18 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.Reflection;
 
 namespace Rox
 {
@@ -21,6 +13,42 @@ namespace Rox
     /// </summary>
     public partial class MainWindow : Window
     {
+        enum NodeTypes
+        {
+            General = 0,
+            Mode = 1,
+            Condition = 2,
+            Timer = 3
+        }
+        class ExpandedTreeNode : TreeViewItem
+        {
+            internal NodeTypes NodeType { get; set; }
+            internal readonly string HelperText;
+            internal ExpandedTreeNode(NodeTypes nodeType)
+            {
+                NodeType = nodeType;
+                Selected += (sender,eventargs)=>{ };
+                switch(nodeType)
+                {
+                    case NodeTypes.Mode:
+                        HelperText = "Mode. Add items into [Initialize] and\\or [Continuous].";
+                        return;
+                    case NodeTypes.Condition:
+                        HelperText = "If-Then-Else conditional statement.";
+                        return;
+                    case NodeTypes.Timer:
+                        HelperText = "Timer.";
+                        return;
+                    default:
+                        HelperText = "General node. Any additional node can be added here.";
+                        return;
+                }
+            }
+            
+        }
+        //class ModeTreenode : ExpandedTreeNode
+        //{
+        //}
         System.Threading.Timer closeMnu;
         private bool? _running;
         public bool? Running
@@ -75,6 +103,7 @@ namespace Rox
             closeMnu = new System.Threading.Timer(new System.Threading.TimerCallback(closeMenu), null, 10000, System.Threading.Timeout.Infinite);
             PopulateFilelist();
             //System.Threading.Thread.Sleep(12000); // << to test splash screen
+            resetForm(true);
         }
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
@@ -136,7 +165,8 @@ namespace Rox
         }
         private void closeFiles()
         {
-            Dispatcher.Invoke(() => {
+            Dispatcher.Invoke(() =>
+            {
                 gridMenu.Visibility = Visibility.Collapsed;
                 gridFiles.Visibility = Visibility.Collapsed;
                 btnLoadFileText.Text = "select file";
@@ -222,6 +252,82 @@ namespace Rox
         }
         private void SetDefaultGuiElements()
         {
+            tree.Items.Clear();
+            tree.Items.Add(new ExpandedTreeNode(NodeTypes.General)
+            {
+                Header = new StackPanel()
+                {
+                    Orientation = Orientation.Horizontal,
+                    Children = {
+                        new Image() {Width=20,Height=20,Source= new BitmapImage(new Uri(@"pack://application:,,,/include/once.png", UriKind.Absolute)) },
+                        new Label() { Foreground = Brushes.White, Content = "1st scan" }
+                    }
+                }
+            });
+            tree.Items.Add(new ExpandedTreeNode(NodeTypes.Mode)
+            {
+                Foreground = Brushes.White,
+                IsExpanded = true,
+                Header = new StackPanel()
+                {
+                    Orientation = Orientation.Horizontal,
+                    Children = {
+                        new Image() {Width=20,Height=20,Source= new BitmapImage(new Uri(@"pack://application:,,,/include/mode.png", UriKind.Absolute)) },
+                        new Label() { Foreground = Brushes.White, Content = "Stop" }
+                    }
+                },
+                Items = {
+                    new ExpandedTreeNode(NodeTypes.General) {
+                    Header = new StackPanel()
+                    {
+                    Orientation =Orientation.Horizontal,
+                    Children = {
+                        new Image() {Width=20,Height=20,Source= new BitmapImage(new Uri(@"pack://application:,,,/include/once.png", UriKind.Absolute)) },
+                        new Label() { Foreground = Brushes.White, Content = "Initialize" }
+                    }
+                  } },
+                    new ExpandedTreeNode(NodeTypes.General) {
+                    Header = new StackPanel()
+                    {
+                    Orientation =Orientation.Horizontal,
+                    Children = {
+                        new Image() {Width=20,Height=20,Source= new BitmapImage(new Uri(@"pack://application:,,,/include/continue.png", UriKind.Absolute)) },
+                        new Label() { Foreground = Brushes.White, Content = "Continuous" }
+                    }
+                  } } }
+            });
+            tree.Items.Add(new ExpandedTreeNode(NodeTypes.Mode)
+            {
+                Foreground = Brushes.White,
+                IsExpanded = true,
+                Header = new StackPanel()
+                {
+                    Orientation = Orientation.Horizontal,
+                    Children = {
+                        new Image() {Width=20,Height=20,Source= new BitmapImage(new Uri(@"pack://application:,,,/include/mode.png", UriKind.Absolute)) },
+                        new Label() { Foreground = Brushes.White, Content = "Auto" }
+                    }
+                },
+                Items = {
+                    new ExpandedTreeNode(NodeTypes.General) {
+                    Header = new StackPanel()
+                    {
+                    Orientation =Orientation.Horizontal,
+                    Children = {
+                        new Image() {Width=20,Height=20,Source= new BitmapImage(new Uri(@"pack://application:,,,/include/once.png", UriKind.Absolute)) },
+                        new Label() { Foreground = Brushes.White, Content = "Initialize" }
+                    }
+                  } },
+                    new ExpandedTreeNode(NodeTypes.General) {
+                    Header = new StackPanel()
+                    {
+                    Orientation =Orientation.Horizontal,
+                    Children = {
+                        new Image() {Width=20,Height=20,Source= new BitmapImage(new Uri(@"pack://application:,,,/include/continue.png", UriKind.Absolute)) },
+                        new Label() { Foreground = Brushes.White, Content = "Continuous" }
+                    }
+                  } } }
+            });
         }
         private void btnLoadFile_Click(object sender, RoutedEventArgs e)
         {

@@ -19,6 +19,14 @@
             <Setter Property="Background" Value="#FF292929"></Setter>
             <Setter Property="Foreground" Value="White"></Setter>
         </Style>
+        <Style TargetType="{x:Type TreeView}">
+            <Setter Property="Background" Value="#FF292929"></Setter>
+            <Setter Property="Foreground" Value="White"></Setter>
+        </Style>
+        <Style TargetType="{x:Type TreeViewItem}">
+            <Setter Property="Background" Value="#FF292929"></Setter>
+            <Setter Property="Foreground" Value="White"></Setter>
+        </Style>
     </Window.Resources>
 
     <DockPanel Margin="0">
@@ -43,11 +51,11 @@
             </Border>
             <Border BorderBrush="White" BorderThickness="1" CornerRadius="2">
                 <Button Template="{DynamicResource ButtonBaseControlTemplate}" x:Name="btnMenu" Click="toggleMenu">
-                        <Canvas Width="30" Height="30">
-                            <Canvas.Background>
-                                <ImageBrush ImageSource="include/ite.ico"/>
-                            </Canvas.Background>
-                        </Canvas>
+                    <Canvas Width="30" Height="30">
+                        <Canvas.Background>
+                            <ImageBrush ImageSource="include/ite.ico"/>
+                        </Canvas.Background>
+                    </Canvas>
                 </Button>
             </Border>
             <Border Grid.Column="2" BorderBrush="White" BorderThickness="1" CornerRadius="2">
@@ -70,7 +78,6 @@
                         </TextBlock>
                     </Button>
                 </Border>
-
             </Grid>
             <Grid x:Name="gridFiles" Margin="2,2,0,2" Width="150" Grid.Column="1">
                 <Grid>
@@ -91,10 +98,104 @@
                     </Button>
                 </Grid>
             </Grid>
-
-            <Grid Grid.Column="1">
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <StackPanel Margin="2" Orientation="Horizontal">
+                    <Button Template="{DynamicResource ButtonBaseControlTemplate}" Padding="5,1" >
+                        <StackPanel Orientation="Horizontal">
+                            <Canvas Width="26" Height="26">
+                                <Canvas.Background>
+                                    <ImageBrush ImageSource="include/mode.png"/>
+                                </Canvas.Background>
+                            </Canvas>
+                            <Label Foreground="White">Mode</Label>
+                        </StackPanel>
+                    </Button>
+                    <Button Template="{DynamicResource ButtonBaseControlTemplate}" Padding="5,1" Margin="-1,0,0,0" >
+                        <StackPanel Orientation="Horizontal">
+                            <Canvas Width="26" Height="26">
+                                <Canvas.Background>
+                                    <ImageBrush ImageSource="include/bandersnatch.png"/>
+                                </Canvas.Background>
+                            </Canvas>
+                            <Label Foreground="White">Condition</Label>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+                <Grid Grid.Row="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition Width="5"/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <Grid>
+                        <TreeView x:Name="tree" Margin="0" >
+                            <TreeViewItem Header="1st scan" IsExpanded="True"/>
+                            <TreeViewItem IsExpanded="True">
+                                <TreeViewItem.Header>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Image Source="include/mode.png" Width="20" Height="20"/>
+                                        <TextBlock Text="Stop" Margin="5,0,0,0" />
+                                    </StackPanel>
+                                </TreeViewItem.Header>
+                                <TreeViewItem Header="Initialize" IsExpanded="True"/>
+                                <TreeViewItem IsExpanded="True">
+                                    <TreeViewItem.Header>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Image Source="include/continue.png" Width="20" Height="20"/>
+                                            <TextBlock Text="Loop" Margin="5,0,0,0" />
+                                        </StackPanel>
+                                    </TreeViewItem.Header>
+                                </TreeViewItem>
+                            </TreeViewItem>
+                            <TreeViewItem IsExpanded="True">
+                                <TreeViewItem.Header>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Image Source="include/mode.png" Width="20" Height="20"/>
+                                        <TextBlock Text="Auto" Margin="5,0,0,0" />
+                                    </StackPanel>
+                                </TreeViewItem.Header>
+                                <TreeViewItem Header="Initialize" IsExpanded="True"/>
+                                <TreeViewItem IsExpanded="True">
+                                    <TreeViewItem.Header>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Image Source="include/continue.png" Width="20" Height="20"/>
+                                            <TextBlock Text="Loop" Margin="5,0,0,0" />
+                                        </StackPanel>
+                                    </TreeViewItem.Header>
+                                </TreeViewItem>
+                            </TreeViewItem>
+                        </TreeView>
+                    </Grid>
+                    <GridSplitter Grid.Column="1" Width="5" Background="#FF555555" HorizontalAlignment="Center" />
+                    <DockPanel Grid.Column="2">
+                        <StackPanel DockPanel.Dock="Top">
+                            <Button Template="{DynamicResource ButtonBaseControlTemplate}" Padding="5,1" >
+                                <StackPanel Orientation="Horizontal">
+                                    <Canvas Width="26" Height="26">
+                                        <Canvas.Background>
+                                            <ImageBrush ImageSource="include/add.png"/>
+                                        </Canvas.Background>
+                                    </Canvas>
+                                    <Label Foreground="White">Add</Label>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                        <Grid DockPanel.Dock="Bottom">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition/>
+                            </Grid.RowDefinitions>
+                            <TextBlock x:Name="txtSelectedNodeInfo" FontSize="12" Padding="5" >helper</TextBlock>
+                        </Grid>
+                    </DockPanel>
+                </Grid>
             </Grid>
         </Grid>
     </DockPanel>
-
 </Window>
