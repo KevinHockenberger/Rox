@@ -70,8 +70,15 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="NodeParamsWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="NodeParamsWindow.xaml.cs">
+      <DependentUpon>NodeParamsWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -124,6 +131,12 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="include\add.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="include\X.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="include\check.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -104,7 +104,7 @@
                     <RowDefinition/>
                 </Grid.RowDefinitions>
                 <StackPanel Margin="2" Orientation="Horizontal">
-                    <Button Template="{DynamicResource ButtonBaseControlTemplate}" Padding="5,1" >
+                    <Button Template="{DynamicResource ButtonBaseControlTemplate}" Padding="5,1" Click="AddMode_Click" >
                         <StackPanel Orientation="Horizontal">
                             <Canvas Width="26" Height="26">
                                 <Canvas.Background>
@@ -132,43 +132,7 @@
                         <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
                     <Grid>
-                        <TreeView x:Name="tree" Margin="0" >
-                            <TreeViewItem Header="1st scan" IsExpanded="True"/>
-                            <TreeViewItem IsExpanded="True">
-                                <TreeViewItem.Header>
-                                    <StackPanel Orientation="Horizontal">
-                                        <Image Source="include/mode.png" Width="20" Height="20"/>
-                                        <TextBlock Text="Stop" Margin="5,0,0,0" />
-                                    </StackPanel>
-                                </TreeViewItem.Header>
-                                <TreeViewItem Header="Initialize" IsExpanded="True"/>
-                                <TreeViewItem IsExpanded="True">
-                                    <TreeViewItem.Header>
-                                        <StackPanel Orientation="Horizontal">
-                                            <Image Source="include/continue.png" Width="20" Height="20"/>
-                                            <TextBlock Text="Loop" Margin="5,0,0,0" />
-                                        </StackPanel>
-                                    </TreeViewItem.Header>
-                                </TreeViewItem>
-                            </TreeViewItem>
-                            <TreeViewItem IsExpanded="True">
-                                <TreeViewItem.Header>
-                                    <StackPanel Orientation="Horizontal">
-                                        <Image Source="include/mode.png" Width="20" Height="20"/>
-                                        <TextBlock Text="Auto" Margin="5,0,0,0" />
-                                    </StackPanel>
-                                </TreeViewItem.Header>
-                                <TreeViewItem Header="Initialize" IsExpanded="True"/>
-                                <TreeViewItem IsExpanded="True">
-                                    <TreeViewItem.Header>
-                                        <StackPanel Orientation="Horizontal">
-                                            <Image Source="include/continue.png" Width="20" Height="20"/>
-                                            <TextBlock Text="Loop" Margin="5,0,0,0" />
-                                        </StackPanel>
-                                    </TreeViewItem.Header>
-                                </TreeViewItem>
-                            </TreeViewItem>
-                        </TreeView>
+                        <TreeView x:Name="tree" Margin="0" />
                     </Grid>
                     <GridSplitter Grid.Column="1" Width="5" Background="#FF555555" HorizontalAlignment="Center" />
                     <DockPanel Grid.Column="2">
@@ -191,7 +155,7 @@
                             <Grid.RowDefinitions>
                                 <RowDefinition/>
                             </Grid.RowDefinitions>
-                            <TextBlock x:Name="txtSelectedNodeInfo" FontSize="12" Padding="5" >helper</TextBlock>
+                            <TextBlock x:Name="txtSelectedNodeInfo" FontSize="12" Padding="5" TextWrapping="Wrap" >helper</TextBlock>
                         </Grid>
                     </DockPanel>
                 </Grid>

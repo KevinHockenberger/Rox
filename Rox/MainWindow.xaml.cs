@@ -20,35 +20,48 @@ namespace Rox
             Condition = 2,
             Timer = 3
         }
-        class ExpandedTreeNode : TreeViewItem
+        class IfeRoutedEventArgs : RoutedEventArgs
         {
+            public NodeTypes nodeType;
+            public string NodeInfo;
+        }
+        class IfeTreeNode : TreeViewItem
+        {
+            public event EventHandler<IfeRoutedEventArgs> NodeSelected;
+            public virtual void OnSelected(IfeRoutedEventArgs e){NodeSelected?.Invoke(this, e);}
             internal NodeTypes NodeType { get; set; }
             internal readonly string HelperText;
-            internal ExpandedTreeNode(NodeTypes nodeType)
+            public string NodeText { get; set; }
+            public int uId { get; set; }
+            internal IfeTreeNode(string name, NodeTypes nodeType)
             {
+                NodeText = name;
                 NodeType = nodeType;
-                Selected += (sender,eventargs)=>{ };
-                switch(nodeType)
+                switch (nodeType)
                 {
                     case NodeTypes.Mode:
-                        HelperText = "Mode. Add items into [Initialize] and\\or [Continuous].";
-                        return;
+                        HelperText = name + " Mode.\r" +
+                            "  \u2022 Items can only be added to [Initialize] and\\or [Continuous]. \r" +
+                            "  \u2022 The Initialize sequence will only run one time when the mode is first started. \r" +
+                            "  \u2022 The Continuous sequence will run repeatedly until the mode is no longer active.";
+                        break;
                     case NodeTypes.Condition:
                         HelperText = "If-Then-Else conditional statement.";
-                        return;
+                        break;
                     case NodeTypes.Timer:
                         HelperText = "Timer.";
-                        return;
+                        break;
                     default:
-                        HelperText = "General node. Any additional node can be added here.";
-                        return;
+                        HelperText = name + " general node.\r" +
+                            "  \u2022 Most items are allowed here.";
+                        break;
                 }
+                Selected += (sender,eventargs) => {
+                    OnSelected(new IfeRoutedEventArgs() { nodeType = nodeType, NodeInfo= HelperText });
+                    eventargs.Handled = true;
+                };
             }
-            
         }
-        //class ModeTreenode : ExpandedTreeNode
-        //{
-        //}
         System.Threading.Timer closeMnu;
         private bool? _running;
         public bool? Running
@@ -243,8 +256,8 @@ namespace Rox
             {
                 listFiles.SelectedItem = null;
                 listRecentFiles.SelectedItem = null;
+                SetDefaultGuiElements();
             }
-            SetDefaultGuiElements();
         }
         private void UpdateHeader(string s)
         {
@@ -253,18 +266,29 @@ namespace Rox
         private void SetDefaultGuiElements()
         {
             tree.Items.Clear();
-            tree.Items.Add(new ExpandedTreeNode(NodeTypes.General)
+            tree.Items.Add(GetGeneralNode("1st scan"));
+            tree.Items.Add(GetModeNode("Stop"));
+            tree.Items.Add(GetModeNode("Auto"));
+        }
+        private IfeTreeNode GetGeneralNode(string nodeName)
+        {
+            var ret = new IfeTreeNode(nodeName, NodeTypes.General)
             {
                 Header = new StackPanel()
                 {
                     Orientation = Orientation.Horizontal,
                     Children = {
                         new Image() {Width=20,Height=20,Source= new BitmapImage(new Uri(@"pack://application:,,,/include/once.png", UriKind.Absolute)) },
-                        new Label() { Foreground = Brushes.White, Content = "1st scan" }
+                        new Label() { Foreground = Brushes.White, Content = nodeName }
                     }
                 }
-            });
-            tree.Items.Add(new ExpandedTreeNode(NodeTypes.Mode)
+            };
+            ret.NodeSelected += new EventHandler<IfeRoutedEventArgs>(NodeSelectedEvent);
+            return ret;
+        }
+        private IfeTreeNode GetModeNode(string modeName)
+        {
+            var ret = new IfeTreeNode(modeName, NodeTypes.Mode)
             {
                 Foreground = Brushes.White,
                 IsExpanded = true,
@@ -273,11 +297,11 @@ namespace Rox
                     Orientation = Orientation.Horizontal,
                     Children = {
                         new Image() {Width=20,Height=20,Source= new BitmapImage(new Uri(@"pack://application:,,,/include/mode.png", UriKind.Absolute)) },
-                        new Label() { Foreground = Brushes.White, Content = "Stop" }
+                        new Label() { Foreground = Brushes.White, Content = modeName }
                     }
                 },
                 Items = {
-                    new ExpandedTreeNode(NodeTypes.General) {
+                    new IfeTreeNode("Initialize", NodeTypes.General) {
                     Header = new StackPanel()
                     {
                     Orientation =Orientation.Horizontal,
@@ -286,7 +310,7 @@ namespace Rox
                         new Label() { Foreground = Brushes.White, Content = "Initialize" }
                     }
                   } },
-                    new ExpandedTreeNode(NodeTypes.General) {
+                    new IfeTreeNode("Continuous", NodeTypes.General) {
                     Header = new StackPanel()
                     {
                     Orientation =Orientation.Horizontal,
@@ -295,39 +319,13 @@ namespace Rox
                         new Label() { Foreground = Brushes.White, Content = "Continuous" }
                     }
                   } } }
-            });
-            tree.Items.Add(new ExpandedTreeNode(NodeTypes.Mode)
+            };
+            ret.NodeSelected += new EventHandler<IfeRoutedEventArgs>(NodeSelectedEvent);
+            foreach (var item in ret.Items)
             {
-                Foreground = Brushes.White,
-                IsExpanded = true,
-                Header = new StackPanel()
-                {
-                    Orientation = Orientation.Horizontal,
-                    Children = {
-                        new Image() {Width=20,Height=20,Source= new BitmapImage(new Uri(@"pack://application:,,,/include/mode.png", UriKind.Absolute)) },
-                        new Label() { Foreground = Brushes.White, Content = "Auto" }
-                    }
-                },
-                Items = {
-                    new ExpandedTreeNode(NodeTypes.General) {
-                    Header = new StackPanel()
-                    {
-                    Orientation =Orientation.Horizontal,
-                    Children = {
-                        new Image() {Width=20,Height=20,Source= new BitmapImage(new Uri(@"pack://application:,,,/include/once.png", UriKind.Absolute)) },
-                        new Label() { Foreground = Brushes.White, Content = "Initialize" }
-                    }
-                  } },
-                    new ExpandedTreeNode(NodeTypes.General) {
-                    Header = new StackPanel()
-                    {
-                    Orientation =Orientation.Horizontal,
-                    Children = {
-                        new Image() {Width=20,Height=20,Source= new BitmapImage(new Uri(@"pack://application:,,,/include/continue.png", UriKind.Absolute)) },
-                        new Label() { Foreground = Brushes.White, Content = "Continuous" }
-                    }
-                  } } }
-            });
+                ((IfeTreeNode)item).NodeSelected+=new EventHandler<IfeRoutedEventArgs>(NodeSelectedEvent);
+            }
+            return ret;
         }
         private void btnLoadFile_Click(object sender, RoutedEventArgs e)
         {
@@ -379,6 +377,46 @@ namespace Rox
             //{
             //    listRecentFiles.SelectedItem = listRecentFiles.Items[0];
             //}
+        }
+        private void NodeSelectedEvent(object sender, IfeRoutedEventArgs eventArgs)
+        {
+            //Dispatcher.Invoke(() => {
+            SetHelperText(eventArgs.NodeInfo);
+            SetAvailableAddButtons(eventArgs.nodeType);
+            //});
+        }
+        private void SetHelperText(string t)
+        {
+            txtSelectedNodeInfo.Text = t;
+        }
+        private void SetAvailableAddButtons(NodeTypes t)
+        {
+            switch (t)
+            {
+                case NodeTypes.General:
+                    break;
+                case NodeTypes.Mode:
+                    break;
+                case NodeTypes.Condition:
+                    break;
+                case NodeTypes.Timer:
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private void AddMode_Click(object sender, RoutedEventArgs e)
+        {
+            NodeParamsWindow f = new NodeParamsWindow(null);
+            if(f.ShowDialog() == true)
+            {
+                Console.WriteLine(f.NodeName);
+                if (!string.IsNullOrWhiteSpace(f.NodeName))
+                {
+                    tree.Items.Add(GetModeNode(f.NodeName));
+                }
+            }
         }
     }
 }
