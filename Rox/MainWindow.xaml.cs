@@ -8,33 +8,34 @@ using System.Windows.Media.Imaging;
 
 namespace Rox
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
-    public partial class MainWindow : Window
-    {
-        enum NodeTypes
+        public enum NodeTypes
         {
             General = 0,
             Mode = 1,
             Condition = 2,
             Timer = 3
         }
-        class IfeRoutedEventArgs : RoutedEventArgs
+        public class IfeRoutedEventArgs : RoutedEventArgs
         {
             public NodeTypes nodeType;
             public string NodeInfo;
         }
-        class IfeTreeNode : TreeViewItem
+        public class IfeTreeNode : TreeViewItem
         {
             public event EventHandler<IfeRoutedEventArgs> NodeSelected;
-            public virtual void OnSelected(IfeRoutedEventArgs e){NodeSelected?.Invoke(this, e);}
+            public virtual void OnSelected(IfeRoutedEventArgs e) { NodeSelected?.Invoke(this, e); }
             internal NodeTypes NodeType { get; set; }
             internal readonly string HelperText;
             public string NodeText { get; set; }
             public int uId { get; set; }
-            internal IfeTreeNode(string name, NodeTypes nodeType)
+            //static IfeTreeNode()
+            //{
+            //    DefaultStyleKeyProperty.OverrideMetadata(typeof(IfeTreeNode), new FrameworkPropertyMetadata(typeof(IfeTreeNode)));
+            //}
+            public IfeTreeNode() { }
+            public IfeTreeNode(string name, NodeTypes nodeType)
             {
+
                 NodeText = name;
                 NodeType = nodeType;
                 switch (nodeType)
@@ -56,12 +57,21 @@ namespace Rox
                             "  \u2022 Most items are allowed here.";
                         break;
                 }
-                Selected += (sender,eventargs) => {
-                    OnSelected(new IfeRoutedEventArgs() { nodeType = nodeType, NodeInfo= HelperText });
+                Selected += (sender, eventargs) =>
+                {
+                    OnSelected(new IfeRoutedEventArgs() { nodeType = nodeType, NodeInfo = HelperText });
                     eventargs.Handled = true;
                 };
+                //Style = (Style)FindResource("TreeViewItem");
+                //SetResourceReference(StyleProperty, typeof(IfeTreeNode));
             }
         }
+    /// <summary>
+    /// Interaction logic for MainWindow.xaml
+    /// </summary>
+    public partial class MainWindow : Window
+    {
+
         System.Threading.Timer closeMnu;
         private bool? _running;
         public bool? Running
@@ -267,6 +277,8 @@ namespace Rox
         {
             tree.Items.Clear();
             tree.Items.Add(GetGeneralNode("1st scan"));
+            tree.Items.Add(GetBasicNode("Stop"));
+            tree.Items.Add(GetBasicNode("Auto"));
             tree.Items.Add(GetModeNode("Stop"));
             tree.Items.Add(GetModeNode("Auto"));
         }
@@ -293,9 +305,9 @@ namespace Rox
                 Foreground = Brushes.White,
                 IsExpanded = true,
                 Header = new StackPanel()
-                {
-                    Orientation = Orientation.Horizontal,
-                    Children = {
+                    {
+                        Orientation = Orientation.Horizontal,
+                        Children = {
                         new Image() {Width=20,Height=20,Source= new BitmapImage(new Uri(@"pack://application:,,,/include/mode.png", UriKind.Absolute)) },
                         new Label() { Foreground = Brushes.White, Content = modeName }
                     }
@@ -323,8 +335,13 @@ namespace Rox
             ret.NodeSelected += new EventHandler<IfeRoutedEventArgs>(NodeSelectedEvent);
             foreach (var item in ret.Items)
             {
-                ((IfeTreeNode)item).NodeSelected+=new EventHandler<IfeRoutedEventArgs>(NodeSelectedEvent);
+                ((IfeTreeNode)item).NodeSelected += new EventHandler<IfeRoutedEventArgs>(NodeSelectedEvent);
             }
+            return ret;
+        }
+        private TreeViewItem GetBasicNode(string modeName)
+        {
+            var ret = new TreeViewItem() { Header = "abc", Items = { new TreeViewItem() { Header = "123" } } };
             return ret;
         }
         private void btnLoadFile_Click(object sender, RoutedEventArgs e)
@@ -409,7 +426,7 @@ namespace Rox
         private void AddMode_Click(object sender, RoutedEventArgs e)
         {
             NodeParamsWindow f = new NodeParamsWindow(null);
-            if(f.ShowDialog() == true)
+            if (f.ShowDialog() == true)
             {
                 Console.WriteLine(f.NodeName);
                 if (!string.IsNullOrWhiteSpace(f.NodeName))
