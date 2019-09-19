@@ -4,13 +4,10 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Rox"
-        xmlns:m="clr-namespace:Rox"
         mc:Ignorable="d"
-        Title="Rox" Height="440" Width="480" WindowStyle="None" Loaded="Window_Loaded" 
+        Title="Rox" Height="467" Width="529" WindowStyle="None" Loaded="Window_Loaded" 
         Initialized="Window_Initialized" Closing="Window_Closing" Icon="include/ite.ico"
-        
         >
-
     <Window.Resources>
         <Style TargetType="{x:Type local:MainWindow}">
             <Setter Property="FontFamily" Value="arial" />
@@ -29,123 +26,11 @@
 
 
 
-        <Style TargetType="TreeViewItem">
-            <!---->
-            <Setter Property="Background" Value="#FF292929"></Setter>
-            <Setter Property="Foreground" Value="White"></Setter>
-            
-            <Setter Property="HeaderTemplate">
-                <Setter.Value>
-                    <DataTemplate>
-                        <Border>
-                            <TextBlock Text="{Binding}"/>
-                            <Border.Style>
-                                <Style TargetType="{x:Type Border}">
-                                    <Style.Resources>
-                                        <SolidColorBrush x:Key="hoverBrush" Opacity=".5" 
-                                         Color="{DynamicResource {x:Static SystemColors.HotTrackColorKey}}"/>
-                                    </Style.Resources>
-                                    <Setter Property="BorderThickness" Value="1"/>
-                                    <Setter Property="BorderBrush" Value="Transparent"/>
-                                    <Style.Triggers>
-                                        <MultiDataTrigger>
-                                            <MultiDataTrigger.Conditions>
-                                                <Condition Binding="{Binding RelativeSource={RelativeSource Self},
-                                                  Path=IsMouseOver}" Value="True"/>
-                                                <Condition Binding="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem},
-                                                  Path=IsSelected}" Value="False"/>
-                                            </MultiDataTrigger.Conditions>
-                                            <Setter Property="Background" Value="{DynamicResource hoverBrush}"/>
-                                            <Setter Property="BorderBrush" Value="#ffa5d7f0"/>
-                                        </MultiDataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Border.Style>
-                        </Border>
-                    </DataTemplate>
-                </Setter.Value>
-            </Setter>            
-            
-        </Style>
-        <Style TargetType="local:IfeTreeNode" BasedOn="{StaticResource {x:Type TreeViewItem}}">
-            <Setter Property="HeaderTemplate">
-                <Setter.Value>
-                    <DataTemplate>
-                    <Border>
-                        <Border.Style>
-                                <Style TargetType="{x:Type Border}">
-                                    <Style.Resources>
-                                        <SolidColorBrush x:Key="hoverBrush" Opacity=".5" 
-                                         Color="{DynamicResource {x:Static SystemColors.HotTrackColorKey}}"/>
-                                    </Style.Resources>
-                                    <Setter Property="BorderThickness" Value="1"/>
-                                    <Setter Property="BorderBrush" Value="Transparent"/>
-                                    <Style.Triggers>
-                                        <MultiDataTrigger>
-                                            <MultiDataTrigger.Conditions>
-                                                <Condition Binding="{Binding RelativeSource={RelativeSource Self},
-                                                  Path=IsMouseOver}" Value="True"/>
-                                                <Condition Binding="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem},
-                                                  Path=IsSelected}" Value="False"/>
-                                            </MultiDataTrigger.Conditions>
-                                            <Setter Property="Background" Value="{DynamicResource hoverBrush}"/>
-                                            <Setter Property="BorderBrush" Value="#ffa5d7f0"/>
-                                        </MultiDataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Border.Style>
-                        <StackPanel>
-                <Image Source="{Binding}" />
-                        <Label Content="{Binding}" Padding="0"/>
-                        </StackPanel>
-                    </Border>
-                    </DataTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-        <!--<Style TargetType="{m:IfeTreeNode}">
-            -->
-            <!----><!--
-            <Setter Property="Background" Value="#FF292929"></Setter>
-            <Setter Property="Foreground" Value="White"></Setter>
-            
-            <Setter Property="HeaderTemplate">
-                <Setter.Value>
-                    <DataTemplate>
-                        <Border>
-                            <TextBlock Text="{Binding}"/>
-                            <Border.Style>
-                                <Style TargetType="{x:Type Border}">
-                                    <Style.Resources>
-                                        <SolidColorBrush x:Key="hoverBrush" Opacity=".5" 
-                                         Color="{DynamicResource {x:Static SystemColors.HotTrackColorKey}}"/>
-                                    </Style.Resources>
-                                    <Setter Property="BorderThickness" Value="1"/>
-                                    <Setter Property="BorderBrush" Value="Transparent"/>
-                                    <Style.Triggers>
-                                        <MultiDataTrigger>
-                                            <MultiDataTrigger.Conditions>
-                                                <Condition Binding="{Binding RelativeSource={RelativeSource Self},
-                                                  Path=IsMouseOver}" Value="True"/>
-                                                <Condition Binding="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem},
-                                                  Path=IsSelected}" Value="False"/>
-                                            </MultiDataTrigger.Conditions>
-                                            <Setter Property="Background" Value="{DynamicResource hoverBrush}"/>
-                                            <Setter Property="BorderBrush" Value="#ffa5d7f0"/>
-                                        </MultiDataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Border.Style>
-                        </Border>
-                    </DataTemplate>
-                </Setter.Value>
-            </Setter>            
-            
-        </Style>-->
+        <!--<ControlTemplate TargetType="{x:Type TreeView}" x:Key="TreeviewControlTemplate">-->
+        <!--</ControlTemplate>-->
 
-
+        
     </Window.Resources>
-
     <DockPanel Margin="0">
         <Grid Height="35" DockPanel.Dock="Top">
             <Grid.ColumnDefinitions>
@@ -157,7 +42,6 @@
             <Border MouseDown="_MouseDown" Grid.Column="1" BorderThickness="1" CornerRadius="2" BorderBrush="White">
                 <Grid>
                     <DockPanel>
-                        <m:IfeTreeNode></m:IfeTreeNode>
                         <TextBlock x:Name="txtName" Text="Rox" VerticalAlignment="Center" Margin="10,0,0,0" DockPanel.Dock="Left" />
                         <TextBlock/>
                         <TextBlock x:Name="txtVer" FontSize="12" FontStyle="Italic" Text="1.0.0" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0" />
@@ -217,12 +101,6 @@
                 </Grid>
             </Grid>
             <Grid Grid.Column="2">
-                <!--<Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition/>
-                </Grid.RowDefinitions>
-                <StackPanel Margin="2" Orientation="Horizontal">
-                </StackPanel>-->
                 <Grid Grid.Row="1">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition/>
@@ -230,50 +108,159 @@
                         <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
                     <Grid>
-                        <TreeView x:Name="tree" Margin="0" >
-                            <!--<TreeView.Resources>
+                        <TreeView x:Name="tree" Margin="0" ItemsSource="{Binding Modes}" >
+                            <TreeView.ItemContainerStyle>
                                 <Style TargetType="TreeViewItem">
-                                    <Setter Property="HeaderTemplate">
-                                        <Setter.Value>
-                                            <DataTemplate>
-                                                <Border>
-                                                    <TextBlock Text="{Binding}"/>
-                                                    <Border.Style>
-                                                        <Style TargetType="Border">
-                                                            <Setter Property="BorderThickness" Value="1"/>
-                                                            <Setter Property="BorderBrush" Value="Transparent"/>
-                                                            <Style.Triggers>
-                                                                <MultiDataTrigger>
-                                                                    <MultiDataTrigger.Conditions>
-                                                                        <Condition Binding="{Binding RelativeSource={RelativeSource Self},
-                                                  Path=IsMouseOver}" Value="True"/>
-                                                                        <Condition Binding="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem},
-                                                  Path=IsSelected}" Value="False"/>
-                                                                    </MultiDataTrigger.Conditions>
-                                                                    <Setter Property="Background" Value="#ffe5f3fb"/>
-                                                                    <Setter Property="BorderBrush" Value="#ffa5d7f0"/>
-                                                                </MultiDataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </Border.Style>
-                                                </Border>
-                                            </DataTemplate>
-                                        </Setter.Value>
-                                    </Setter>
+                                    <EventSetter Event="GotFocus" Handler="tvi_GotFocus"/>
+                                    <!--<EventSetter Event="MouseEnter" Handler="tvi_MouseEnter"/>
+                                    <EventSetter Event="MouseLeave" Handler="tvi_MouseLeave"/>-->
+                                    <Setter Property="BorderThickness" Value="1" />
+                                    <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                                    <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+                                    <!--<Setter Property="FontWeight" Value="Normal" />-->
+                                    <Style.Triggers>
+                                            <!--<Trigger SourceName="PART_Header" Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="Bd" Property="Background" Value="Pink"/>
+                                        </Trigger>-->
+                                        <!--<MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver}" Value="true"/>
+                                                <Condition Binding="{Binding ElementName=ItemsHost, Path=IsMouseOver}" Value="True"/>
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter Property="Background" Value="LightBlue"/>
+                                        </MultiDataTrigger>-->
+
+                                        <!--<Trigger Property="IsSelected" Value="True">
+                                            <Setter Property="BorderBrush" Value="Purple" />
+                                        </Trigger>-->
+                                        <!--<Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="BorderBrush" Value="red" />
+                                            <Setter Property="Background" Value="DarkGray" />
+                                        </Trigger>-->
+                                    </Style.Triggers>
                                 </Style>
-                            </TreeView.Resources>-->
-                            <TreeViewItem Header="Item 1">
-                                <TreeViewItem Header="Item 11"></TreeViewItem>
-                                <TreeViewItem Header="Item 12"/>
-                            </TreeViewItem>
-                            <TreeViewItem Header="Item 2">
-                            </TreeViewItem>
+
+                            </TreeView.ItemContainerStyle>
+                            
+                            <TreeView.Resources>
+                                <!-- GENERIC NODE STYLE ############################################################# -->
+                                <HierarchicalDataTemplate DataType="{x:Type local:IteNodeViewModel}" ItemsSource="{Binding Items}" >
+                                    <HierarchicalDataTemplate.Resources>
+                                        <Style TargetType="Border">
+                                            <Setter Property="CornerRadius" Value="4" />
+                                            <Setter Property="BorderThickness" Value="1" />
+                                            <Setter Property="Background" Value="Transparent" />
+                                            <Style.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="BorderBrush" Value="White" />
+                                                    <Setter Property="Background" Value="#FF515151" />
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </HierarchicalDataTemplate.Resources>
+                                    <Border>
+                                        <StackPanel Orientation="Horizontal" >
+                                            <Image Width="20" Height="20" Margin="5,0,0,0" Source="include/X.png">
+                                            </Image>
+                                            <TextBlock Text="{Binding Name}" Margin="5,2,5,2" FontSize="16" Foreground="White">
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </Border>
+                               </HierarchicalDataTemplate>
+                                <!-- INITIALIZE NODE STYLE ############################################################# -->
+                                <HierarchicalDataTemplate DataType="{x:Type local:IteFIRST_VM}" ItemsSource="{Binding Items}" >
+                                    <HierarchicalDataTemplate.Resources>
+                                        <Style TargetType="Border">
+                                            <Setter Property="CornerRadius" Value="4" />
+                                            <Setter Property="BorderThickness" Value="1" />
+                                            <Setter Property="Background" Value="Transparent" />
+                                            <Style.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="BorderBrush" Value="White" />
+                                                    <Setter Property="Background" Value="#FF515151" />
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </HierarchicalDataTemplate.Resources>
+                                    <Border>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Image Width="20" Height="20" Margin="5,0,0,0" Source="include/once.png" />
+                                            <TextBlock Text="{Binding Name}" Margin="5,2,5,2" FontSize="16" Foreground="White" />
+                                    </StackPanel>
+                                    </Border>
+                                </HierarchicalDataTemplate>
+                                <!-- CONTINUOUS NODE STYLE ############################################################# -->
+                                <HierarchicalDataTemplate DataType="{x:Type local:IteCONTINUOUS_VM}" ItemsSource="{Binding Items}" >
+                                    <HierarchicalDataTemplate.Resources>
+                                        <Style TargetType="Border">
+                                            <Setter Property="CornerRadius" Value="4" />
+                                            <Setter Property="BorderThickness" Value="1" />
+                                            <Setter Property="Background" Value="Transparent" />
+                                            <Style.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="BorderBrush" Value="White" />
+                                                    <Setter Property="Background" Value="#FF515151" />
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </HierarchicalDataTemplate.Resources>
+                                    <Border>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Image Width="20" Height="20" Margin="5,0,0,0" Source="include/continue.png" />
+                                            <TextBlock Text="{Binding Name}" Margin="5,2,5,2" FontSize="16" Foreground="White" />
+                                    </StackPanel>
+                                    </Border>
+                                </HierarchicalDataTemplate>
+                                <!-- MODE NODE STYLE ############################################################# -->
+                                <HierarchicalDataTemplate DataType="{x:Type local:IteMODE_VM}" ItemsSource="{Binding Items}" >
+                                    <HierarchicalDataTemplate.Resources>
+                                        <Style TargetType="Border">
+                                            <Setter Property="CornerRadius" Value="4" />
+                                            <Setter Property="BorderThickness" Value="1" />
+                                            <Setter Property="Background" Value="Transparent" />
+                                            <Style.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="BorderBrush" Value="White" />
+                                                    <Setter Property="Background" Value="#FF515151" />
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </HierarchicalDataTemplate.Resources>
+                                    <Border>
+                                        <StackPanel Orientation="Horizontal" >
+                                            <Image Width="20" Height="20" Margin="5,0,0,0" Source="include/mode.png" />
+                                            <TextBlock Text="{Binding Name}" Margin="5,2,5,2" FontSize="16" Foreground="White" />
+                                        </StackPanel>
+                                    </Border>
+                                </HierarchicalDataTemplate>
+                                <!-- TIMER NODE STYLE ############################################################# -->
+                                <HierarchicalDataTemplate DataType="{x:Type local:IteTIMER_VM}" ItemsSource="{Binding Items}" >
+                                    <HierarchicalDataTemplate.Resources>
+                                        <Style TargetType="Border">
+                                            <Setter Property="CornerRadius" Value="4" />
+                                            <Setter Property="BorderThickness" Value="1" />
+                                            <Setter Property="Background" Value="Transparent" />
+                                            <Style.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="BorderBrush" Value="White" />
+                                                    <Setter Property="Background" Value="#FF515151" />
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </HierarchicalDataTemplate.Resources>
+                                    <Border>
+                                        <StackPanel Orientation="Horizontal" >
+                                            <Image Width="20" Height="20" Margin="5,0,0,0" Source="include/mode.png"/>
+                                            <TextBlock Text="{Binding Name}" Margin="5,2,5,2" FontSize="16" Foreground="White"/>
+                                    </StackPanel>
+                                     </Border>
+                               </HierarchicalDataTemplate>
+                            </TreeView.Resources>
                         </TreeView>
                     </Grid>
                     <GridSplitter Grid.Column="1" Width="5" Background="#FF555555" HorizontalAlignment="Center" />
                     <DockPanel Grid.Column="2">
                         <StackPanel DockPanel.Dock="Top">
-                            <!--<Button Template="{DynamicResource ButtonBaseControlTemplate}" Padding="5,1" >-->
                             <Border BorderThickness="1">
                                 <Border.BorderBrush>
                                     <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
@@ -290,8 +277,6 @@
                                     <Label Foreground="White">Add</Label>
                                 </StackPanel>
                             </Border>
-                            <!--</Button>-->
-                            <!--<Button Template="{DynamicResource ButtonBaseControlTemplate}" Padding="5,1" Click="AddMode_Click" HorizontalContentAlignment="Left" >-->
                             <StackPanel Orientation="Horizontal">
                                 <Canvas Width="26" Height="26">
                                     <Canvas.Background>
@@ -300,8 +285,6 @@
                                 </Canvas>
                                 <Label Foreground="White">Mode</Label>
                             </StackPanel>
-                            <!--</Button>-->
-                            <!--<Button Template="{DynamicResource ButtonBaseControlTemplate}" Padding="5,1" HorizontalContentAlignment="Left" >-->
                             <StackPanel Orientation="Horizontal">
                                 <Canvas Width="26" Height="26">
                                     <Canvas.Background>
@@ -310,7 +293,6 @@
                                 </Canvas>
                                 <Label Foreground="White">Condition</Label>
                             </StackPanel>
-                            <!--</Button>-->
                         </StackPanel>
                         <Grid DockPanel.Dock="Bottom">
                             <Grid.ColumnDefinitions>
