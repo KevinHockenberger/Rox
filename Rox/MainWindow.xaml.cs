@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
@@ -11,34 +10,34 @@ using System.Windows.Media;
 
 namespace Rox
 {
-    public class DelegateCommand<T> : System.Windows.Input.ICommand where T : class
-    {
-        private readonly Predicate<T> _canExecute;
-        private readonly Action<T> _execute;
-        public DelegateCommand(Action<T> execute)            : this(execute, null)
-        {
-        }
-        public DelegateCommand(Action<T> execute, Predicate<T> canExecute)
-        {
-            _execute = execute;
-            _canExecute = canExecute;
-        }
-        public bool CanExecute(object parameter)
-        {
-            if (_canExecute == null) { return true; }
-            return _canExecute((T)parameter);
-        }
+    //public class DelegateCommand<T> : System.Windows.Input.ICommand where T : class
+    //{
+    //    private readonly Predicate<T> _canExecute;
+    //    private readonly Action<T> _execute;
+    //    public DelegateCommand(Action<T> execute) : this(execute, null)
+    //    {
+    //    }
+    //    public DelegateCommand(Action<T> execute, Predicate<T> canExecute)
+    //    {
+    //        _execute = execute;
+    //        _canExecute = canExecute;
+    //    }
+    //    public bool CanExecute(object parameter)
+    //    {
+    //        if (_canExecute == null) { return true; }
+    //        return _canExecute((T)parameter);
+    //    }
 
-        public void Execute(object parameter)
-        {
-            _execute((T)parameter);
-        }
-        public event EventHandler CanExecuteChanged;
-        public void RaiseCanExecuteChanged()
-        {
-            CanExecuteChanged?.Invoke(this, EventArgs.Empty);
-        }
-    }
+    //    public void Execute(object parameter)
+    //    {
+    //        _execute((T)parameter);
+    //    }
+    //    public event EventHandler CanExecuteChanged;
+    //    public void RaiseCanExecuteChanged()
+    //    {
+    //        CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+    //    }
+    //}
     public interface INode
     {
         NodeTypes NodeType { get; }
@@ -54,13 +53,15 @@ namespace Rox
         Condition = 2,
         Timer = 3,
         Initialized = 4,
-        Continuous = 5
+        Continuous = 5,
+        ConditionTrue = 6,
+        ConditionFalse = 7,
     }
     public class IteMode : INode
     {
         public NodeTypes NodeType { get; } = NodeTypes.Mode;
         public string Name { get; set; }
-        public List<NodeTypes> AllowedNodes { get; } = new List<NodeTypes>() { NodeTypes.Condition };
+        public List<NodeTypes> AllowedNodes { get; } = new List<NodeTypes>() { };
         public List<INode> Items { get; set; } = new List<INode>();
         public string Description() { return "{ MODE } A mode can be created to easily abort a running mode and start new sequencing. Stop and Auto modes will run with Start/Stop button. No items can be added directly. Add items to Initialize or Continuous branches."; }
         public IteMode(string name)
@@ -72,7 +73,7 @@ namespace Rox
     {
         public NodeTypes NodeType { get; } = NodeTypes.Initialized;
         public string Name { get; set; }
-        public List<NodeTypes> AllowedNodes { get; } = new List<NodeTypes>() { NodeTypes.Condition };
+        public List<NodeTypes> AllowedNodes { get; } = Rox.MainWindow.SequenceNodes;
         public List<INode> Items { get; set; } = new List<INode>();
         public string Description() { return "{ First Scan branch } This sequence will run one time when the program is loaded and can accept any item."; }
         public IteFirstScan(string name)
@@ -84,7 +85,7 @@ namespace Rox
     {
         public NodeTypes NodeType { get; } = NodeTypes.Initialized;
         public string Name { get; set; }
-        public List<NodeTypes> AllowedNodes { get; } = new List<NodeTypes>() { NodeTypes.Condition };
+        public List<NodeTypes> AllowedNodes { get; } = Rox.MainWindow.SequenceNodes;
         public List<INode> Items { get; set; } = new List<INode>();
         public string Description() { return "{ Initialize branch } This sequence will only run one time when the mode is first started and before the continuous branch. This node can accept any item."; }
         public IteIntialize(string name)
@@ -96,7 +97,7 @@ namespace Rox
     {
         public NodeTypes NodeType { get; } = NodeTypes.Continuous;
         public string Name { get; set; }
-        public List<NodeTypes> AllowedNodes { get; } = new List<NodeTypes>() { NodeTypes.Condition };
+        public List<NodeTypes> AllowedNodes { get; } = Rox.MainWindow.SequenceNodes;
         public List<INode> Items { get; set; } = new List<INode>();
         public string Description() { return "{ Continuous branch } This sequence will run repeatedly after the initalize branch has completed and while the mode is active."; }
         public IteContinuous(string name)
@@ -104,13 +105,49 @@ namespace Rox
             Name = name;
         }
     }
+    public class IteCondition : INode
+    {
+        public NodeTypes NodeType { get; } = NodeTypes.Condition;
+        public string Name { get; set; }
+        public List<NodeTypes> AllowedNodes { get; } = new List<NodeTypes>() { };
+        public List<INode> Items { get; set; } = new List<INode>();
+        public string Description() { return "{ Condition } This will evaluate a statement to true or false and run the appropriate sequence. Add items to True / False branches."; }
+        public IteCondition(string name)
+        {
+            Name = name;
+        }
+    }
+    public class IteTrue : INode
+    {
+        public NodeTypes NodeType { get; } = NodeTypes.ConditionTrue;
+        public string Name { get; set; }
+        public List<NodeTypes> AllowedNodes { get; } = Rox.MainWindow.SequenceNodes;
+        public List<INode> Items { get; set; } = new List<INode>();
+        public string Description() { return "{ Condition True branch } This sequence will run while the condition is true."; }
+        public IteTrue(string name)
+        {
+            Name = name;
+        }
+    }
+    public class IteFalse : INode
+    {
+        public NodeTypes NodeType { get; } = NodeTypes.ConditionFalse;
+        public string Name { get; set; }
+        public List<NodeTypes> AllowedNodes { get; } = Rox.MainWindow.SequenceNodes;
+        public List<INode> Items { get; set; } = new List<INode>();
+        public string Description() { return "{ Condition False branch } This sequence will run while the condition is not true."; }
+        public IteFalse(string name)
+        {
+            Name = name;
+        }
+    }
     public class IteNodeViewModel : INotifyPropertyChanged
     {
-        public DelegateCommand<string> ButtonClickCommand
-        {
-            get { return _clickCommand; }
-        }
-        private readonly DelegateCommand<string> _clickCommand;
+        //public DelegateCommand<string> ButtonClickCommand
+        //{
+        //    get { return _clickCommand; }
+        //}
+        //private readonly DelegateCommand<string> _clickCommand;
         private INode Node { get; set; }
         public event PropertyChangedEventHandler PropertyChanged;
         private bool _isSelected;
@@ -128,7 +165,7 @@ namespace Rox
                 switch (item.NodeType)
                 {
                     case NodeTypes.General:
-                        Items.Add(new IteNodeViewModel(item));
+                        //Items.Add(new IteNodeViewModel(item));
                         break;
                     case NodeTypes.Mode:
                         Items.Add(new IteMODE_VM(item));
@@ -145,18 +182,24 @@ namespace Rox
                     case NodeTypes.Continuous:
                         Items.Add(new IteCONTINUOUS_VM(item));
                         break;
+                    case NodeTypes.ConditionTrue:
+                        Items.Add(new IteTRUE_VM(item));
+                        break;
+                    case NodeTypes.ConditionFalse:
+                        Items.Add(new IteFALSE_VM(item));
+                        break;
                     default:
                         break;
                 }
             }
             //Items = new Collection<IteNodeViewModel>((from item in node.Items select new IteNodeViewModel(item, this)).ToList<IteNodeViewModel>());
-            _clickCommand = new DelegateCommand<string>(
-                       (s) => 
-                       {
-                           Console.WriteLine(node.Description());
-                       }, //Execute
-                       (s) => { return true; } //CanExecute
-                       );
+            //_clickCommand = new DelegateCommand<string>(
+            //           (s) =>
+            //           {
+            //               Console.WriteLine(node.Description());
+            //           }, //Execute
+            //           (s) => { return true; } //CanExecute
+            //           );
         }
         public string Name
         {
@@ -169,6 +212,10 @@ namespace Rox
         public NodeTypes NodeType
         {
             get { return Node.NodeType; }
+        }
+        public List<NodeTypes> AllowedNodes
+        {
+            get { return Node.AllowedNodes; }
         }
         protected virtual void OnPropertyChanged(string propertyName)
         {
@@ -183,6 +230,7 @@ namespace Rox
                 {
                     _isSelected = value;
                     this.OnPropertyChanged("IsSelected");
+                    Console.WriteLine(value);
                 }
             }
         }
@@ -211,6 +259,18 @@ namespace Rox
     {
         public IteMODE_VM(INode node) : base(node) { }
     }
+    public class IteCONDITION_VM : IteNodeViewModel
+    {
+        public IteCONDITION_VM(INode node) : base(node) { }
+    }
+    public class IteTRUE_VM : IteNodeViewModel
+    {
+        public IteTRUE_VM(INode node) : base(node) { }
+    }
+    public class IteFALSE_VM : IteNodeViewModel
+    {
+        public IteFALSE_VM(INode node) : base(node) { }
+    }
     public class IteFIRST_VM : IteNodeViewModel
     {
         public IteFIRST_VM(INode node) : base(node) { }
@@ -224,7 +284,10 @@ namespace Rox
     /// </summary>
     public partial class MainWindow : Window
     {
-        public List<IteNodeViewModel> Modes;
+        private static SolidColorBrush treeBackground = new SolidColorBrush(Color.FromRgb(41, 41, 41));
+        private static SolidColorBrush treeBackgroundAllowDrop = new SolidColorBrush(Color.FromRgb(71, 125, 30));
+        public static List<NodeTypes> SequenceNodes = new List<NodeTypes>() { NodeTypes.Condition, NodeTypes.General, NodeTypes.Timer };
+        public List<IteNodeViewModel> Modes;// : INotifyPropertyChanged;
         System.Threading.Timer closeMnu;
         private bool? _running;
         public bool? Running
@@ -261,6 +324,7 @@ namespace Rox
         }
         string loadedFile;
         string fileToBeLoaded;
+        Point startDragPoint;
         public MainWindow()
         {
             InitializeComponent();
@@ -434,10 +498,8 @@ namespace Rox
                 new IteMODE_VM( new IteMode("Stop"){Items={new IteIntialize("Initialize"),new IteContinuous("Continuous") } }),
                 new IteMODE_VM( new IteMode("Auto"){Items={new IteIntialize("Initialize"),new IteContinuous("Continuous") } }),
             };
-            tree.DataContext = new
-            {
-                Modes
-            };
+            tree.DataContext = null;
+            tree.DataContext = new { Modes };
         }
         private void btnLoadFile_Click(object sender, RoutedEventArgs e)
         {
@@ -494,40 +556,222 @@ namespace Rox
         {
             txtSelectedNodeInfo.Text = t;
         }
-        private void SetAvailableAddButtons(NodeTypes t)
+        private void tvi_GotFocus(object sender, RoutedEventArgs e)
         {
-            switch (t)
+            var s = ((IteNodeViewModel)((TreeViewItem)sender).DataContext);
+            SetHelperText(s.Name + " - " + s.Description);
+            switch (s.NodeType)
             {
                 case NodeTypes.General:
                     break;
                 case NodeTypes.Mode:
+                    SetNodeOptionsPanel_Mode(s.Name);
                     break;
                 case NodeTypes.Condition:
+                    SetNodeOptionsPanel_Other(s.Name);
                     break;
                 case NodeTypes.Timer:
                     break;
+                case NodeTypes.Initialized:
+                    break;
+                case NodeTypes.Continuous:
+                    ClearNodeOptionsPanel();
+                    break;
+                case NodeTypes.ConditionTrue:
+                    ClearNodeOptionsPanel();
+                    break;
+                case NodeTypes.ConditionFalse:
+                    ClearNodeOptionsPanel();
+                    break;
                 default:
+                    ClearNodeOptionsPanel();
                     break;
             }
-        }
-
-        private void tvi_GotFocus(object sender, RoutedEventArgs e)
-        {
-            //Dispatcher.Invoke(() => {
-            var s = ((IteNodeViewModel)((TreeViewItem)sender).DataContext);
-            SetHelperText(s.Name + " - " + s.Description);
-            SetAvailableAddButtons(((IteNodeViewModel)((TreeViewItem)sender).DataContext).NodeType);
-            //});
             e.Handled = true;
         }
+        private void ClearNodeOptionsPanel()
+        {
+            NodeOptions.ContentTemplate = null;
+        }
+        private void SetNodeOptionsPanel_Mode(string Name)
+        {
+            NodeOptions.ContentTemplate = (DataTemplate)this.FindResource("NodeOptions");
+        }
+        private void SetNodeOptionsPanel_Other(string Name)
+        {
+            NodeOptions.ContentTemplate = (DataTemplate)this.FindResource("NodeOther");
+        }
+        private void _PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            startDragPoint = e.GetPosition(null);
+        }
+        private void Mode_PreviewMouseMove(object sender, MouseEventArgs e)
+        {
+            Vector diff = startDragPoint - e.GetPosition(null);
+            if (e.LeftButton == MouseButtonState.Pressed && (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance || Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance))
+            {
+                // Initialize the drag & drop operation
+                DataObject dragData = new DataObject("iteNode", new IteMode("Mode") { Items = { new IteIntialize("Initialize"), new IteContinuous("Continuous") } });
+                DragDrop.DoDragDrop((StackPanel)sender, dragData, DragDropEffects.Move);
+            }
+        }
+        private void Condition_PreviewMouseMove(object sender, MouseEventArgs e)
+        {
+            Vector diff = startDragPoint - e.GetPosition(null);
+            if (e.LeftButton == MouseButtonState.Pressed && (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance || Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance))
+            {
+                // Initialize the drag & drop operation
+                DataObject dragData = new DataObject("iteNode", new IteCondition("Condition") { Items = { new IteTrue("True"), new IteFalse("False") } });
+                DragDrop.DoDragDrop((StackPanel)sender, dragData, DragDropEffects.Move);
+            }
+        }
+        private void tvi_DragEnter(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent("iteNode") && sender != e.Source)
+            {
+                // test if node can be dropped here
+                var target = (TreeViewItem)sender;
+                var dc = (IteNodeViewModel)target.DataContext;
+                if (dc.AllowedNodes.Contains(((INode)e.Data.GetData("iteNode")).NodeType))
+                {
+                    e.Effects = DragDropEffects.Copy;
+                    target.Background = treeBackgroundAllowDrop;
+                }
+                else
+                {
+                    e.Effects = DragDropEffects.None;
+                }
+            }
+            else
+            {
+                e.Effects = DragDropEffects.None;
+            }
+            e.Handled = true;
+        }
+        private void tvi_DragOver(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent("iteNode") && sender != e.Source)
+            {
+                e.Effects = DragDropEffects.Copy;
+            }
+            else
+            {
+                e.Effects = DragDropEffects.None;
+                e.Handled = true;
+            }
+        }
+        private void tvi_Drop(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent("iteNode"))
+            {
+                // test if node can be dropped here
+                var target = (TreeViewItem)sender;
+                var dc = (IteNodeViewModel)target.DataContext;
+                var source = (INode)e.Data.GetData("iteNode");
+                if (dc.AllowedNodes.Contains(source.NodeType))
+                {
+                    try
+                    {
+                        ((IteNodeViewModel)tree.SelectedItem).IsSelected = false;
+                    }
+                    catch (Exception)
+                    {
+                    }
+                    var success = false;
+                    var T = source.GetType();
+                    IteNodeViewModel N = null;
+                    if (T == typeof(IteMode))
+                    {
+                        N = new IteMODE_VM(source) { IsSelected = true };
+                        Modes.Add(N); success = true;
+                    }
+                    else if (T == typeof(IteCondition))
+                    {
+                        N = new IteCONDITION_VM(source) { IsSelected = true };
+                        dc.Items.Add(N); success = true;
+                        //Modes.Add(new IteCONDITION_VM(source)); success = true;
+                    }
+                    else
+                    {
+                        N = new IteNodeViewModel(null);
+                    }
+                    if (success)
+                    {
+                        tree.DataContext = null;
+                        tree.DataContext = new { Modes };
+                    }
+                }
+            }
+            e.Handled = true;
+            ((TreeViewItem)sender).Background = treeBackground;
+        }
+        private void btnReset_Click(object sender, RoutedEventArgs e)
+        {
+            if (MessageBox.Show("Delete the existing sequence and start over?","Start over",MessageBoxButton.YesNo,MessageBoxImage.Warning,MessageBoxResult.No)==MessageBoxResult.Yes)
+            {
+                SetDefaultGuiElements();
+            }
+        }
+        private void tvi_DragLeave(object sender, DragEventArgs e)
+        {
+            ((TreeViewItem)sender).Background = treeBackground;
+            //e.Handled = true;
+        }
+        private void Tree_DragEnter(object sender, DragEventArgs e)
+        {
+            Console.WriteLine(sender != e.Source);
+            if (e.Data.GetDataPresent("iteNode") )
+            {
+             Console.WriteLine(2);
+               // test if node can be dropped here
+                if (((INode)e.Data.GetData("iteNode")).NodeType == NodeTypes.Mode)
+                {
+            Console.WriteLine(3);
+                    e.Effects = DragDropEffects.Copy;
+                    tree.Background = treeBackgroundAllowDrop;
+            Console.WriteLine(4);
+                }
+                else
+                {
+                    e.Effects = DragDropEffects.None;
+                }
+            }
+            else
+            {
+                e.Effects = DragDropEffects.None;
+            }
+            e.Handled = true;
+        }
+        private void Tree_Drop(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent("iteNode"))
+            {
+                // test if node can be dropped here
+                var target = (TreeView)sender;
+                var source = (INode)e.Data.GetData("iteNode");
+                IteNodeViewModel N = null;
+                if (source.GetType() == typeof(IteMode))
+                {
+                    try
+                    {
+                        ((IteNodeViewModel)tree.SelectedItem).IsSelected = false;
+                    }
+                    catch (Exception)
+                    {
+                    }
+                    N = new IteMODE_VM(source) { IsSelected = true };
+                    Modes.Add(N);
+                    tree.DataContext = null;
+                    tree.DataContext = new { Modes };
+                }
+            }
+            e.Handled = true;
+            tree.Background = treeBackground;
 
-        //private void tvi_MouseEnter(object sender, MouseEventArgs e)
-        //{
-        //    e.Handled = true;
-        //}
-        //private void tvi_MouseLeave(object sender, MouseEventArgs e)
-        //{
-        //    e.Handled = true;
-        //}
+        }
+        private void Tree_DragLeave(object sender, DragEventArgs e)
+        {
+            tree.Background = treeBackground;
+        }
     }
 }

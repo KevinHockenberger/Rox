@@ -25,11 +25,10 @@
         </Style>
 
 
-
         <!--<ControlTemplate TargetType="{x:Type TreeView}" x:Key="TreeviewControlTemplate">-->
         <!--</ControlTemplate>-->
 
-        
+
     </Window.Resources>
     <DockPanel Margin="0">
         <Grid Height="35" DockPanel.Dock="Top">
@@ -108,40 +107,23 @@
                         <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
                     <Grid>
-                        <TreeView x:Name="tree" Margin="0" ItemsSource="{Binding Modes}" >
+                        <TreeView x:Name="tree" Margin="0" ItemsSource="{Binding Modes}" AllowDrop="True" DragEnter="Tree_DragEnter" Drop="Tree_Drop" DragLeave="Tree_DragLeave">
                             <TreeView.ItemContainerStyle>
                                 <Style TargetType="TreeViewItem">
                                     <EventSetter Event="GotFocus" Handler="tvi_GotFocus"/>
-                                    <!--<EventSetter Event="MouseEnter" Handler="tvi_MouseEnter"/>
-                                    <EventSetter Event="MouseLeave" Handler="tvi_MouseLeave"/>-->
-                                    <Setter Property="BorderThickness" Value="1" />
+                                    <EventSetter Event="DragEnter" Handler="tvi_DragEnter"/>
+                                    <EventSetter Event="DragOver" Handler="tvi_DragOver"/>
+                                    <EventSetter Event="Drop" Handler="tvi_Drop"/>
+                                    <EventSetter Event="DragLeave" Handler="tvi_DragLeave"/>
+                                    <Setter Property="AllowDrop" Value="True" />
                                     <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
                                     <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
-                                    <!--<Setter Property="FontWeight" Value="Normal" />-->
                                     <Style.Triggers>
-                                            <!--<Trigger SourceName="PART_Header" Property="IsMouseOver" Value="True">
-                                            <Setter TargetName="Bd" Property="Background" Value="Pink"/>
-                                        </Trigger>-->
-                                        <!--<MultiDataTrigger>
-                                            <MultiDataTrigger.Conditions>
-                                                <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver}" Value="true"/>
-                                                <Condition Binding="{Binding ElementName=ItemsHost, Path=IsMouseOver}" Value="True"/>
-                                            </MultiDataTrigger.Conditions>
-                                            <Setter Property="Background" Value="LightBlue"/>
-                                        </MultiDataTrigger>-->
-
-                                        <!--<Trigger Property="IsSelected" Value="True">
-                                            <Setter Property="BorderBrush" Value="Purple" />
-                                        </Trigger>-->
-                                        <!--<Trigger Property="IsMouseOver" Value="True">
-                                            <Setter Property="BorderBrush" Value="red" />
-                                            <Setter Property="Background" Value="DarkGray" />
-                                        </Trigger>-->
                                     </Style.Triggers>
                                 </Style>
 
                             </TreeView.ItemContainerStyle>
-                            
+
                             <TreeView.Resources>
                                 <!-- GENERIC NODE STYLE ############################################################# -->
                                 <HierarchicalDataTemplate DataType="{x:Type local:IteNodeViewModel}" ItemsSource="{Binding Items}" >
@@ -166,7 +148,7 @@
                                             </TextBlock>
                                         </StackPanel>
                                     </Border>
-                               </HierarchicalDataTemplate>
+                                </HierarchicalDataTemplate>
                                 <!-- INITIALIZE NODE STYLE ############################################################# -->
                                 <HierarchicalDataTemplate DataType="{x:Type local:IteFIRST_VM}" ItemsSource="{Binding Items}" >
                                     <HierarchicalDataTemplate.Resources>
@@ -186,7 +168,7 @@
                                         <StackPanel Orientation="Horizontal">
                                             <Image Width="20" Height="20" Margin="5,0,0,0" Source="include/once.png" />
                                             <TextBlock Text="{Binding Name}" Margin="5,2,5,2" FontSize="16" Foreground="White" />
-                                    </StackPanel>
+                                        </StackPanel>
                                     </Border>
                                 </HierarchicalDataTemplate>
                                 <!-- CONTINUOUS NODE STYLE ############################################################# -->
@@ -208,7 +190,7 @@
                                         <StackPanel Orientation="Horizontal">
                                             <Image Width="20" Height="20" Margin="5,0,0,0" Source="include/continue.png" />
                                             <TextBlock Text="{Binding Name}" Margin="5,2,5,2" FontSize="16" Foreground="White" />
-                                    </StackPanel>
+                                        </StackPanel>
                                     </Border>
                                 </HierarchicalDataTemplate>
                                 <!-- MODE NODE STYLE ############################################################# -->
@@ -233,6 +215,72 @@
                                         </StackPanel>
                                     </Border>
                                 </HierarchicalDataTemplate>
+                                <!-- CONDITION NODE STYLE ############################################################# -->
+                                <HierarchicalDataTemplate DataType="{x:Type local:IteCONDITION_VM}" ItemsSource="{Binding Items}" >
+                                    <HierarchicalDataTemplate.Resources>
+                                        <Style TargetType="Border">
+                                            <Setter Property="CornerRadius" Value="4" />
+                                            <Setter Property="BorderThickness" Value="1" />
+                                            <Setter Property="Background" Value="Transparent" />
+                                            <Style.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="BorderBrush" Value="White" />
+                                                    <Setter Property="Background" Value="#FF515151" />
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </HierarchicalDataTemplate.Resources>
+                                    <Border>
+                                        <StackPanel Orientation="Horizontal" >
+                                            <Image Width="20" Height="20" Margin="5,0,0,0" Source="include/Bandersnatch.png"/>
+                                            <TextBlock Text="{Binding Name}" Margin="5,2,5,2" FontSize="16" Foreground="White"/>
+                                        </StackPanel>
+                                    </Border>
+                                </HierarchicalDataTemplate>
+                                <!-- CONDITION NODE STYLE ############################################################# -->
+                                <HierarchicalDataTemplate DataType="{x:Type local:IteTRUE_VM}" ItemsSource="{Binding Items}" >
+                                    <HierarchicalDataTemplate.Resources>
+                                        <Style TargetType="Border">
+                                            <Setter Property="CornerRadius" Value="4" />
+                                            <Setter Property="BorderThickness" Value="1" />
+                                            <Setter Property="Background" Value="Transparent" />
+                                            <Style.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="BorderBrush" Value="White" />
+                                                    <Setter Property="Background" Value="#FF515151" />
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </HierarchicalDataTemplate.Resources>
+                                    <Border>
+                                        <StackPanel Orientation="Horizontal" >
+                                            <Image Width="20" Height="20" Margin="5,0,0,0" Source="include/check.png"/>
+                                            <TextBlock Text="{Binding Name}" Margin="5,2,5,2" FontSize="16" Foreground="White"/>
+                                        </StackPanel>
+                                    </Border>
+                                </HierarchicalDataTemplate>
+                                <!-- CONDITION NODE STYLE ############################################################# -->
+                                <HierarchicalDataTemplate DataType="{x:Type local:IteFALSE_VM}" ItemsSource="{Binding Items}" >
+                                    <HierarchicalDataTemplate.Resources>
+                                        <Style TargetType="Border">
+                                            <Setter Property="CornerRadius" Value="4" />
+                                            <Setter Property="BorderThickness" Value="1" />
+                                            <Setter Property="Background" Value="Transparent" />
+                                            <Style.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="BorderBrush" Value="White" />
+                                                    <Setter Property="Background" Value="#FF515151" />
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </HierarchicalDataTemplate.Resources>
+                                    <Border>
+                                        <StackPanel Orientation="Horizontal" >
+                                            <Image Width="20" Height="20" Margin="5,0,0,0" Source="include/X.png"/>
+                                            <TextBlock Text="{Binding Name}" Margin="5,2,5,2" FontSize="16" Foreground="White"/>
+                                        </StackPanel>
+                                    </Border>
+                                </HierarchicalDataTemplate>
                                 <!-- TIMER NODE STYLE ############################################################# -->
                                 <HierarchicalDataTemplate DataType="{x:Type local:IteTIMER_VM}" ItemsSource="{Binding Items}" >
                                     <HierarchicalDataTemplate.Resources>
@@ -252,15 +300,31 @@
                                         <StackPanel Orientation="Horizontal" >
                                             <Image Width="20" Height="20" Margin="5,0,0,0" Source="include/mode.png"/>
                                             <TextBlock Text="{Binding Name}" Margin="5,2,5,2" FontSize="16" Foreground="White"/>
-                                    </StackPanel>
-                                     </Border>
-                               </HierarchicalDataTemplate>
+                                        </StackPanel>
+                                    </Border>
+                                </HierarchicalDataTemplate>
                             </TreeView.Resources>
                         </TreeView>
                     </Grid>
                     <GridSplitter Grid.Column="1" Width="5" Background="#FF555555" HorizontalAlignment="Center" />
                     <DockPanel Grid.Column="2">
                         <StackPanel DockPanel.Dock="Top">
+                            <Button x:Name="btnReset" BorderThickness="1" Click="btnReset_Click">
+                                <Button.BorderBrush>
+                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                        <GradientStop Color="#FF292929" Offset="0.6"/>
+                                        <GradientStop Color="White" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Button.BorderBrush>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <Canvas Width="26" Height="26">
+                                        <Canvas.Background>
+                                            <ImageBrush ImageSource="include/x.png"/>
+                                        </Canvas.Background>
+                                    </Canvas>
+                                    <Label Foreground="White">Reset</Label>
+                                </StackPanel>
+                            </Button>
                             <Border BorderThickness="1">
                                 <Border.BorderBrush>
                                     <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
@@ -277,7 +341,7 @@
                                     <Label Foreground="White">Add</Label>
                                 </StackPanel>
                             </Border>
-                            <StackPanel Orientation="Horizontal">
+                            <StackPanel Orientation="Horizontal" PreviewMouseLeftButtonDown="_PreviewMouseLeftButtonDown" PreviewMouseMove="Mode_PreviewMouseMove">
                                 <Canvas Width="26" Height="26">
                                     <Canvas.Background>
                                         <ImageBrush ImageSource="include/mode.png"/>
@@ -285,7 +349,7 @@
                                 </Canvas>
                                 <Label Foreground="White">Mode</Label>
                             </StackPanel>
-                            <StackPanel Orientation="Horizontal">
+                            <StackPanel Orientation="Horizontal" PreviewMouseLeftButtonDown="_PreviewMouseLeftButtonDown" PreviewMouseMove="Condition_PreviewMouseMove">
                                 <Canvas Width="26" Height="26">
                                     <Canvas.Background>
                                         <ImageBrush ImageSource="include/bandersnatch.png"/>
@@ -294,15 +358,20 @@
                                 <Label Foreground="White">Condition</Label>
                             </StackPanel>
                         </StackPanel>
-                        <Grid DockPanel.Dock="Bottom">
+                        <Grid DockPanel.Dock="Bottom" >
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition/>
                             </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
                                 <RowDefinition/>
                             </Grid.RowDefinitions>
                             <TextBlock x:Name="txtSelectedNodeInfo" FontSize="12" Padding="5" TextWrapping="Wrap" xml:space="preserve" >• Select a sequence item to get more information.&#x0a;&#x0a;• To add items, drag and drop one of the above items into the sequence.</TextBlock>
-                        </Grid>
+                         <ContentPresenter x:Name="NodeOptions" Grid.Row="1">
+        
+                             
+                            </ContentPresenter>
+                       </Grid>
                     </DockPanel>
                 </Grid>
             </Grid>
