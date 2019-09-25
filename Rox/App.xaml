@@ -43,25 +43,5 @@
                 </Trigger>
             </ControlTemplate.Triggers>
         </ControlTemplate>
-        <DataTemplate x:Key="NodeOptions" >
-            <Border Margin="0,10,0,0" BorderThickness="2" BorderBrush="DarkGray" Padding="5" Background="#2e2e2e" >
-            <ScrollViewer VerticalScrollBarVisibility="Auto" >
-                <StackPanel>
-                <Label Style="{StaticResource lblDescriptor}" Content="Name:"/>
-                <TextBox />
-            </StackPanel>
-            </ScrollViewer>
-            </Border>
-        </DataTemplate>
-        <DataTemplate x:Key="NodeOther" >
-            <Border Margin="0,10,0,0" BorderThickness="2" BorderBrush="DarkGray" Padding="5" Background="#424242">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" >
-                <StackPanel >
-                <Label Style="{StaticResource lblDescriptor}" Content="Stuff:"/>
-                <TextBox />
-            </StackPanel>
-            </ScrollViewer>
-            </Border>
-        </DataTemplate>
     </Application.Resources>
 </Application>

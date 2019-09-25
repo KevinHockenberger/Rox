@@ -204,7 +204,16 @@ namespace Rox
         public string Name
         {
             get { return Node.Name; }
+            set
+            {
+                if (value != Node.Name)
+                {
+                    Node.Name = value;
+                    this.OnPropertyChanged("Name");
+                }
+            }
         }
+        public bool IsLocked { get; set; }
         public string Description
         {
             get { return Node.Description(); }
@@ -230,7 +239,6 @@ namespace Rox
                 {
                     _isSelected = value;
                     this.OnPropertyChanged("IsSelected");
-                    Console.WriteLine(value);
                 }
             }
         }
@@ -244,10 +252,8 @@ namespace Rox
                     _isExpanded = value;
                     this.OnPropertyChanged("IsExpanded");
                 }
-
                 // Expand all the way up to the root.
-                if (_isExpanded && Parent != null)
-                    Parent.IsExpanded = true;
+                if (_isExpanded && Parent != null) { Parent.IsExpanded = true; }
             }
         }
     }
@@ -279,6 +285,25 @@ namespace Rox
     {
         public IteTIMER_VM(INode node) : base(node) { }
     }
+    public abstract class Variable
+    {
+        public string Name { get; set; }
+        public string Note { get; set; }
+        public Variable() { }
+        public Variable(string name) { Name = name; }
+    }
+    public class vString : Variable
+    {
+        public string Value { get; set; }
+    }
+    public class vBool : Variable
+    {
+        public bool Value { get; set; }
+    }
+    public class vNumber : Variable
+    {
+        public decimal Value { get; set; }
+    }
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
@@ -288,6 +313,7 @@ namespace Rox
         private static SolidColorBrush treeBackgroundAllowDrop = new SolidColorBrush(Color.FromRgb(71, 125, 30));
         public static List<NodeTypes> SequenceNodes = new List<NodeTypes>() { NodeTypes.Condition, NodeTypes.General, NodeTypes.Timer };
         public List<IteNodeViewModel> Modes;// : INotifyPropertyChanged;
+        public IteNodeViewModel selectedNode { get; set; }
         System.Threading.Timer closeMnu;
         private bool? _running;
         public bool? Running
@@ -344,6 +370,10 @@ namespace Rox
             PopulateFilelist();
             //System.Threading.Thread.Sleep(12000); // << to test splash screen
             resetForm(true);
+
+            List<Variable> Vars = new List<Variable>() { new vNumber{Name="total",Note="total note",Value=20 },new vString { Name = "pass", Note = "pass note", Value = "30" },new vBool { Name = "fail", Note = "fail note", Value = false } };
+            listVars.ItemsSource = Vars;
+
         }
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
@@ -495,8 +525,8 @@ namespace Rox
             Modes = new List<IteNodeViewModel>()
             {
                 new IteFIRST_VM( new IteFirstScan("1st scan")),
-                new IteMODE_VM( new IteMode("Stop"){Items={new IteIntialize("Initialize"),new IteContinuous("Continuous") } }),
-                new IteMODE_VM( new IteMode("Auto"){Items={new IteIntialize("Initialize"),new IteContinuous("Continuous") } }),
+                new IteMODE_VM( new IteMode("Stop"){Items={new IteIntialize("Initialize"),new IteContinuous("Continuous") } }){ IsLocked=true },
+                new IteMODE_VM( new IteMode("Auto"){Items={new IteIntialize("Initialize"),new IteContinuous("Continuous") } }){ IsLocked=true },
             };
             tree.DataContext = null;
             tree.DataContext = new { Modes };
@@ -559,47 +589,59 @@ namespace Rox
         private void tvi_GotFocus(object sender, RoutedEventArgs e)
         {
             var s = ((IteNodeViewModel)((TreeViewItem)sender).DataContext);
+            selectedNode = s;
             SetHelperText(s.Name + " - " + s.Description);
             switch (s.NodeType)
             {
                 case NodeTypes.General:
-                    break;
-                case NodeTypes.Mode:
-                    SetNodeOptionsPanel_Mode(s.Name);
-                    break;
-                case NodeTypes.Condition:
-                    SetNodeOptionsPanel_Other(s.Name);
-                    break;
                 case NodeTypes.Timer:
-                    break;
                 case NodeTypes.Initialized:
-                    break;
                 case NodeTypes.Continuous:
-                    ClearNodeOptionsPanel();
-                    break;
                 case NodeTypes.ConditionTrue:
-                    ClearNodeOptionsPanel();
-                    break;
                 case NodeTypes.ConditionFalse:
-                    ClearNodeOptionsPanel();
-                    break;
                 default:
                     ClearNodeOptionsPanel();
                     break;
+                case NodeTypes.Mode:
+                    ClearNodeOptionsPanel();
+                    if (!s.IsLocked)
+                    {
+                        SetNodeOptionsPanel_Basic(s.Name);
+                    }
+                    break;
+                case NodeTypes.Condition:
+                    ClearNodeOptionsPanel();
+                    if (!s.IsLocked)
+                    {
+                        SetNodeOptionsPanel_Simple(s.Name);
+                    }
+                    break;
             }
             e.Handled = true;
+        }
+        private void txtNodeName_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key == System.Windows.Input.Key.Enter)
+            {
+                if (selectedNode == (IteNodeViewModel)((IteNodeViewModel)tree.SelectedItem))
+                {
+                    var T = (TextBox)sender;
+                    selectedNode.Name = T.Text;
+                    //tree.SelectedItem(T.Text);
+                }
+            }
         }
         private void ClearNodeOptionsPanel()
         {
             NodeOptions.ContentTemplate = null;
         }
-        private void SetNodeOptionsPanel_Mode(string Name)
+        private void SetNodeOptionsPanel_Basic(string Name)
         {
-            NodeOptions.ContentTemplate = (DataTemplate)this.FindResource("NodeOptions");
+            NodeOptions.ContentTemplate = (DataTemplate)Application.Current.MainWindow.FindResource("NodeOptionsBasic");
         }
-        private void SetNodeOptionsPanel_Other(string Name)
+        private void SetNodeOptionsPanel_Simple(string Name)
         {
-            NodeOptions.ContentTemplate = (DataTemplate)this.FindResource("NodeOther");
+            NodeOptions.ContentTemplate = (DataTemplate)Application.Current.MainWindow.FindResource("NodeOptionsSimple");
         }
         private void _PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
@@ -707,7 +749,7 @@ namespace Rox
         }
         private void btnReset_Click(object sender, RoutedEventArgs e)
         {
-            if (MessageBox.Show("Delete the existing sequence and start over?","Start over",MessageBoxButton.YesNo,MessageBoxImage.Warning,MessageBoxResult.No)==MessageBoxResult.Yes)
+            if (MessageBox.Show("Delete the existing sequence and start over?", "Start over", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) == MessageBoxResult.Yes)
             {
                 SetDefaultGuiElements();
             }
@@ -720,16 +762,16 @@ namespace Rox
         private void Tree_DragEnter(object sender, DragEventArgs e)
         {
             Console.WriteLine(sender != e.Source);
-            if (e.Data.GetDataPresent("iteNode") )
+            if (e.Data.GetDataPresent("iteNode"))
             {
-             Console.WriteLine(2);
-               // test if node can be dropped here
+                Console.WriteLine(2);
+                // test if node can be dropped here
                 if (((INode)e.Data.GetData("iteNode")).NodeType == NodeTypes.Mode)
                 {
-            Console.WriteLine(3);
+                    Console.WriteLine(3);
                     e.Effects = DragDropEffects.Copy;
                     tree.Background = treeBackgroundAllowDrop;
-            Console.WriteLine(4);
+                    Console.WriteLine(4);
                 }
                 else
                 {
