@@ -285,30 +285,164 @@ namespace Rox
     {
         public IteTIMER_VM(INode node) : base(node) { }
     }
-    public abstract class Variable
+    public interface IVariable : INotifyPropertyChanged
     {
-        public string Name { get; set; }
-        public string Note { get; set; }
-        public Variable() { }
-        public Variable(string name) { Name = name; }
+        string Name { get; set; }
+        string Note { get; set; }
     }
-    public class vString : Variable
+    public class vString : IVariable
     {
-        public string Value { get; set; }
+        private string _value;
+        public string Value
+        {
+            get { return _value; }
+            set
+            {
+                if (value != _value)
+                {
+                    _value = value;
+                    NotifyPropertyChanged("Value");
+                }
+            }
+        }
+        private string _name;
+        public string Name
+        {
+            get { return _name; }
+            set
+            {
+                if (value != _name)
+                {
+                    _name = value;
+                    NotifyPropertyChanged("Name");
+                }
+            }
+        }
+        private string _note;
+        public string Note
+        {
+            get { return _note; }
+            set
+            {
+                if (value != _note)
+                {
+                    _note = value;
+                    NotifyPropertyChanged("Note");
+                }
+            }
+        }
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void NotifyPropertyChanged(String info)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(info));
+        }
     }
-    public class vBool : Variable
+    public class vBool : IVariable
     {
-        public bool Value { get; set; }
+        private bool _value;
+        public bool Value
+        {
+            get { return _value; }
+            set
+            {
+                if (value != _value)
+                {
+                    _value = value;
+                    NotifyPropertyChanged("Value");
+                }
+            }
+        }
+        private string _name;
+        public string Name
+        {
+            get { return _name; }
+            set
+            {
+                if (value != _name)
+                {
+                    _name = value;
+                    NotifyPropertyChanged("Name");
+                }
+            }
+        }
+        private string _note;
+        public string Note
+        {
+            get { return _note; }
+            set
+            {
+                if (value != _note)
+                {
+                    _note = value;
+                    NotifyPropertyChanged("Note");
+                }
+            }
+        }
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void NotifyPropertyChanged(String info)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(info));
+        }
     }
-    public class vNumber : Variable
+    public class vNumber : IVariable
     {
-        public decimal Value { get; set; }
+        private decimal _value;
+        public decimal Value
+        {
+            get { return _value; }
+            set
+            {
+                if (value != _value)
+                {
+                    _value = value;
+                    NotifyPropertyChanged("Value");
+                }
+            }
+        }
+        private string _name;
+        public string Name
+        {
+            get { return _name; }
+            set
+            {
+                if (value != _name)
+                {
+                    _name = value;
+                    NotifyPropertyChanged("Name");
+                }
+            }
+        }
+        private string _note;
+        public string Note
+        {
+            get { return _note; }
+            set
+            {
+                if (value != _note)
+                {
+                    _note = value;
+                    NotifyPropertyChanged("Note");
+                }
+            }
+        }
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void NotifyPropertyChanged(String info)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(info));
+        }
+    }
+    public enum VarType
+    {
+        boolType,
+        stringType,
+        numberType
     }
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow : Window
     {
+        BindingList<IVariable> Vars = new BindingList<IVariable>();
         private static SolidColorBrush treeBackground = new SolidColorBrush(Color.FromRgb(41, 41, 41));
         private static SolidColorBrush treeBackgroundAllowDrop = new SolidColorBrush(Color.FromRgb(71, 125, 30));
         public static List<NodeTypes> SequenceNodes = new List<NodeTypes>() { NodeTypes.Condition, NodeTypes.General, NodeTypes.Timer };
@@ -370,10 +504,7 @@ namespace Rox
             PopulateFilelist();
             //System.Threading.Thread.Sleep(12000); // << to test splash screen
             resetForm(true);
-
-            List<Variable> Vars = new List<Variable>() { new vNumber{Name="total",Note="total note",Value=20 },new vString { Name = "pass", Note = "pass note", Value = "30" },new vBool { Name = "fail", Note = "fail note", Value = false } };
             listVars.ItemsSource = Vars;
-
         }
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
@@ -814,6 +945,33 @@ namespace Rox
         private void Tree_DragLeave(object sender, DragEventArgs e)
         {
             tree.Background = treeBackground;
+        }
+
+        private void BtnAddVariable_Click(object sender, RoutedEventArgs e)
+        {
+            var d = new VarParamsWindow();
+            d.ShowDialog();
+            if(d.DialogResult==true)
+            {
+                Vars.Add(new vBool { Name = d.VarName, Note = d.VarNote, Value = false });
+
+            }
+
+            AutoSizeVarColumns();
+        }
+        public void AutoSizeVarColumns()
+        {
+            if (listVars.View is GridView gv)
+            {
+                foreach (var c in gv.Columns)
+                {
+                    if (double.IsNaN(c.Width))
+                    {
+                        c.Width = c.ActualWidth;
+                    }
+                    c.Width = double.NaN;
+                }
+            }
         }
     }
 }
