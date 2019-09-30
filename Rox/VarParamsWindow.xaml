@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Rox"
         mc:Ignorable="d"
-        Title="Parameters" WindowStartupLocation="CenterOwner" ShowInTaskbar="False" WindowStyle="None" Background="#FF292929" Padding="6,5,5,5" Width="279" Height="200" ResizeMode="NoResize" MinWidth="400" MinHeight="200">
+        Title="Parameters" WindowStartupLocation="CenterOwner" ShowInTaskbar="False" WindowStyle="None" Background="#FF292929" Padding="6,5,5,5" Width="480" Height="300" ResizeMode="CanResizeWithGrip" MinWidth="480" MinHeight="300" Loaded="Window_Loaded">
     <Window.Resources>
         <Style TargetType="{x:Type local:VarParamsWindow}">
             <Setter Property="FontFamily" Value="arial" />
@@ -62,8 +62,8 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <Border x:Name="radioButtonBorder" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" CornerRadius="100" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="1,1,2,1" VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
-                                <Grid x:Name="markGrid" Margin="5">
-                                    <Ellipse x:Name="optionMark" Fill="{StaticResource RadioButton.Static.Glyph}" MinWidth="6" MinHeight="6" Opacity="0"/>
+                                <Grid x:Name="markGrid" Margin="3">
+                                    <Ellipse x:Name="optionMark" Fill="{StaticResource RadioButton.Static.Glyph}" MinWidth="14" MinHeight="14" Opacity="0"/>
                                 </Grid>
                             </Border>
                             <ContentPresenter x:Name="contentPresenter" Grid.Column="1" Focusable="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
@@ -100,90 +100,93 @@
             </Setter>
         </Style>
     </Window.Resources>
-    <Border BorderBrush="#FFACACAC" Background="#FF404040" BorderThickness="2" Margin="5">
+    <Border BorderBrush="#FFACACAC" Background="#FF404040" BorderThickness="2" Margin="5" Padding="20">
+        <Border BorderThickness="1" Padding="5">
 
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-            <Border BorderThickness="1" Background="#FF343434"  >
-                <Border.BorderBrush>
-                    <LinearGradientBrush EndPoint="1,1" StartPoint="1,0">
-                        <GradientStop Color="#FF1B1B1B" Offset="0"/>
-                        <GradientStop Color="#FFDADADA" Offset="1"/>
-                    </LinearGradientBrush>
-                </Border.BorderBrush>
-                <Grid>
-                    <Label Content="⬐ Variable properties ⬎" Foreground="White" HorizontalContentAlignment="Center"/>
-                </Grid>
-            </Border>
-            <Grid Grid.Row="1">
+
+            <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
+                    <RowDefinition/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition/>
-                </Grid.ColumnDefinitions>
-                <Label Content="Name:" VerticalAlignment="Top" HorizontalAlignment="Right"/>
-                <TextBox x:Name="txtName"  KeyUp="Txt_KeyUp" Height="23" Grid.Column="1" Margin="10,4"/>
-                <Grid Grid.Row="1" Grid.ColumnSpan="2" >
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                        <RadioButton x:Name="rdoBool" Content="bit" Margin="15,5,15,5" Foreground="White" />
-                        <RadioButton x:Name="rdoDecimal" Content="number" Margin="15,5,15,5" Foreground="White" />
-                        <RadioButton x:Name="rdoString" Content="text" Margin="15,5,15,5" Foreground="White" />
-                    </StackPanel>
-                </Grid>
-                <Label Content="Note:" VerticalAlignment="Top" HorizontalAlignment="Right" Grid.Row="2"/>
-                <TextBox x:Name="txtNote"  KeyUp="Txt_KeyUp" Height="23" Grid.Column="1" Margin="10,5" Grid.Row="2"/>
-
-                <!--<StackPanel>
-                    <StackPanel Orientation="Horizontal" >
-                        <Label Content="Name:" VerticalAlignment="Center"/>
-                        <TextBox x:Name="txtName"  KeyUp="TxtName_KeyUp" Width="253" Height="23"/>
-                    </StackPanel>
+                <Border BorderThickness="1" Background="#FF343434"  >
+                    <Border.BorderBrush>
+                        <LinearGradientBrush EndPoint="1,1" StartPoint="1,0">
+                            <GradientStop Color="#FF1B1B1B" Offset="0"/>
+                            <GradientStop Color="#FFDADADA" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.BorderBrush>
                     <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition/>
-                        </Grid.ColumnDefinitions>
-                        <Label Content="Name:" />
-                        <TextBox x:Name="txtType"  KeyUp="TxtName_KeyUp" Height="23" Grid.Column="1"/>
-                       
+                        <Label Content="⬐ Variable properties ⬎" Foreground="White" HorizontalContentAlignment="Center"/>
                     </Grid>
-                </StackPanel>-->
-
-            </Grid>
-            <StackPanel Grid.Row="2" Orientation="Horizontal" FlowDirection="RightToLeft">
-                <Button x:Name="btnCancel" Template="{DynamicResource ButtonBaseControlTemplate}" Padding="5,1" Width="100" Click="Button_Click" >
-                    <StackPanel Orientation="Horizontal" Width="90" FlowDirection="LeftToRight">
-                        <Canvas Width="26" Height="26">
-                            <Canvas.Background>
-                                <ImageBrush ImageSource="include/x.png"/>
-                            </Canvas.Background>
-                        </Canvas>
-                        <Label Foreground="White">Cancel</Label>
-                    </StackPanel>
-                </Button>
-                <Button x:Name="btnOk" Template="{DynamicResource ButtonBaseControlTemplate}" Padding="5,1" Width="100" Margin="0" Click="OK_Click" >
-                    <StackPanel Orientation="Horizontal" Width="90" FlowDirection="LeftToRight">
-                        <Canvas Width="26" Height="26">
-                            <Canvas.Background>
-                                <ImageBrush ImageSource="include/check.png"/>
-                            </Canvas.Background>
-                        </Canvas>
-                        <Label Foreground="White">OK</Label>
-                    </StackPanel>
-                </Button>
-                <Grid>
-                    <Label></Label>
+                </Border>
+                <Grid Grid.Row="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <Grid Grid.ColumnSpan="2" >
+                        <Border BorderBrush="#FFA4A4A4" BorderThickness="1" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="0" Margin="2">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <RadioButton x:Name="rdoBool" Content="bit" Margin="15,5,15,5" Foreground="White" Checked="RdoVarType_Checked" VerticalContentAlignment="Center"  />
+                                <RadioButton x:Name="rdoDecimal" Content="number" Margin="15,5,15,5" Foreground="White" Checked="RdoVarType_Checked" VerticalContentAlignment="Center"  />
+                                <RadioButton x:Name="rdoString" Content="text" Margin="15,5,15,5" Foreground="White" Checked="RdoVarType_Checked" VerticalContentAlignment="Center"  />
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                    <Label Grid.Row="1" Content="Name:" VerticalAlignment="Top" HorizontalAlignment="Right"/>
+                    <TextBox x:Name="txtName" Grid.Row="1" KeyUp="Txt_KeyUp" Height="23" Grid.Column="1" Margin="10,4" GotFocus="Txt_GotFocus"/>
+                    <Label Content="Value:" VerticalAlignment="Top" HorizontalAlignment="Right" Grid.Row="2"/>
+                    <Grid x:Name="gValkey" Grid.Row="2" Grid.Column="1" >
+                        <TextBox x:Name="txtValue" Height="23" Margin="10,5" KeyUp="TxtValue_KeyUp" GotFocus="Txt_GotFocus" />
+                    </Grid>
+                    <Grid x:Name="gValrdo" Grid.Row="2" Grid.Column="1">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <RadioButton x:Name="rdoValTrue" Margin="15,5,15,5" Foreground="White" VerticalAlignment="Center" VerticalContentAlignment="Center" Checked="RdoVal_Checked" KeyUp="Txt_KeyUp" >
+                                <RadioButton.Content>
+                                    <TextBlock VerticalAlignment="Center">True<TextBlock FontSize="12" Margin="5,0,0,0">(On, Yes, 1)</TextBlock></TextBlock>
+                                </RadioButton.Content>
+                            </RadioButton>
+                            <RadioButton x:Name="rdoValFalse" Margin="15,5,15,5" Foreground="White" VerticalAlignment="Center" VerticalContentAlignment="Center" Checked="RdoVal_Checked" KeyUp="Txt_KeyUp" >
+                                <RadioButton.Content>
+                                    <TextBlock VerticalAlignment="Center">False<TextBlock FontSize="12" Margin="5,0,0,0">(Off, No, 0)</TextBlock></TextBlock>
+                                </RadioButton.Content>
+                            </RadioButton>
+                        </StackPanel>
+                    </Grid>
+                    <Label Content="Note:" VerticalAlignment="Top" HorizontalAlignment="Right" Grid.Row="3"/>
+                    <TextBox x:Name="txtNote"  KeyUp="Txt_KeyUp" Height="23" Grid.Column="1" Margin="10,5" Grid.Row="3" GotFocus="Txt_GotFocus" />
                 </Grid>
-            </StackPanel>
-        </Grid>
+                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" >
+                    <Button x:Name="btnOk" Template="{DynamicResource ButtonBaseControlTemplate}" Padding="5,1" Width="100" Click="OK_Click" Margin="0,0,5,0" >
+                        <StackPanel Orientation="Horizontal" Width="90" FlowDirection="LeftToRight">
+                            <Canvas Width="26" Height="26">
+                                <Canvas.Background>
+                                    <ImageBrush ImageSource="include/check.png"/>
+                                </Canvas.Background>
+                            </Canvas>
+                            <Label Foreground="White">OK</Label>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="btnCancel" Template="{DynamicResource ButtonBaseControlTemplate}" Padding="5,1" Width="100" Click="Button_Click" Margin="5,0,0,0" >
+                        <StackPanel Orientation="Horizontal" Width="90" FlowDirection="LeftToRight">
+                            <Canvas Width="26" Height="26">
+                                <Canvas.Background>
+                                    <ImageBrush ImageSource="include/x.png"/>
+                                </Canvas.Background>
+                            </Canvas>
+                            <Label Foreground="White">Cancel</Label>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
     </Border>
-
 </Window>

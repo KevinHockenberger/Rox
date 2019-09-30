@@ -75,7 +75,6 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
         <Style x:Key="{x:Type GridViewColumnHeader}" TargetType="GridViewColumnHeader">
             <Setter Property="HorizontalContentAlignment" Value="Left" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
@@ -144,7 +143,6 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
-
         <Style x:Key="{x:Type ListView}" TargetType="ListView">
             <Setter Property="SnapsToDevicePixels" Value="true" />
             <Setter Property="OverridesDefaultStyle" Value="true" />
@@ -185,7 +183,6 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
         <Style x:Key="{x:Type ListViewItem}" TargetType="ListViewItem">
             <Setter Property="SnapsToDevicePixels" Value="true" />
             <Setter Property="OverridesDefaultStyle" Value="true" />
@@ -243,14 +240,14 @@
                 </ScrollViewer>
             </Border>
         </DataTemplate>
-        <DataTemplate x:Key="NodeOptionsSimple" >
+        <DataTemplate x:Key="NodeOptionsCondition" >
             <Border Margin="0,10,0,0" BorderThickness="2" BorderBrush="DarkGray" Padding="5" Background="#424242">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" >
                     <StackPanel >
                         <Label Style="{StaticResource lblDescriptor}" Content="Name:"/>
                         <TextBox x:Name="txtNodeName" KeyUp="txtNodeName_KeyUp" Text="{Binding selectedNode.Name, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}"/>
                         <Label Style="{StaticResource lblDescriptor}" Content="Condition:"/>
-                        <TextBox Text="{Binding selectedNode.Name, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}"/>
+                        <TextBox Text="{Binding selectedNode.Node, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}"/>
                     </StackPanel>
                 </ScrollViewer>
             </Border>
@@ -598,6 +595,11 @@
                                 </StackPanel>
                             </Button>
                             <ListView x:Name="listVars" >
+                                <ListView.ItemContainerStyle>
+                                    <Style TargetType="ListViewItem" BasedOn="{StaticResource {x:Type ListViewItem}}">
+                                        <EventSetter Event="MouseDoubleClick" Handler="ListViewItem_MouseDoubleClick"/>
+                                    </Style>
+                                </ListView.ItemContainerStyle>
                                 <ListView.View>
                                     <GridView>
                                         <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}"/>

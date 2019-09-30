@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
@@ -43,7 +44,7 @@ namespace Rox
         NodeTypes NodeType { get; }
         string Name { get; set; }
         string Description();
-        List<INode> Items { get; set; }
+        Collection<INode> Items { get; set; }
         List<NodeTypes> AllowedNodes { get; }
     }
     public enum NodeTypes
@@ -62,7 +63,7 @@ namespace Rox
         public NodeTypes NodeType { get; } = NodeTypes.Mode;
         public string Name { get; set; }
         public List<NodeTypes> AllowedNodes { get; } = new List<NodeTypes>() { };
-        public List<INode> Items { get; set; } = new List<INode>();
+        public Collection<INode> Items { get; set; } = new Collection<INode>();
         public string Description() { return "{ MODE } A mode can be created to easily abort a running mode and start new sequencing. Stop and Auto modes will run with Start/Stop button. No items can be added directly. Add items to Initialize or Continuous branches."; }
         public IteMode(string name)
         {
@@ -74,7 +75,7 @@ namespace Rox
         public NodeTypes NodeType { get; } = NodeTypes.Initialized;
         public string Name { get; set; }
         public List<NodeTypes> AllowedNodes { get; } = Rox.MainWindow.SequenceNodes;
-        public List<INode> Items { get; set; } = new List<INode>();
+        public Collection<INode> Items { get; set; } = new Collection<INode>();
         public string Description() { return "{ First Scan branch } This sequence will run one time when the program is loaded and can accept any item."; }
         public IteFirstScan(string name)
         {
@@ -86,7 +87,7 @@ namespace Rox
         public NodeTypes NodeType { get; } = NodeTypes.Initialized;
         public string Name { get; set; }
         public List<NodeTypes> AllowedNodes { get; } = Rox.MainWindow.SequenceNodes;
-        public List<INode> Items { get; set; } = new List<INode>();
+        public Collection<INode> Items { get; set; } = new Collection<INode>();
         public string Description() { return "{ Initialize branch } This sequence will only run one time when the mode is first started and before the continuous branch. This node can accept any item."; }
         public IteIntialize(string name)
         {
@@ -98,7 +99,7 @@ namespace Rox
         public NodeTypes NodeType { get; } = NodeTypes.Continuous;
         public string Name { get; set; }
         public List<NodeTypes> AllowedNodes { get; } = Rox.MainWindow.SequenceNodes;
-        public List<INode> Items { get; set; } = new List<INode>();
+        public Collection<INode> Items { get; set; } = new Collection<INode>();
         public string Description() { return "{ Continuous branch } This sequence will run repeatedly after the initalize branch has completed and while the mode is active."; }
         public IteContinuous(string name)
         {
@@ -110,7 +111,7 @@ namespace Rox
         public NodeTypes NodeType { get; } = NodeTypes.Condition;
         public string Name { get; set; }
         public List<NodeTypes> AllowedNodes { get; } = new List<NodeTypes>() { };
-        public List<INode> Items { get; set; } = new List<INode>();
+        public Collection<INode> Items { get; set; } = new Collection<INode>();
         public string Description() { return "{ Condition } This will evaluate a statement to true or false and run the appropriate sequence. Add items to True / False branches."; }
         public IteCondition(string name)
         {
@@ -122,7 +123,7 @@ namespace Rox
         public NodeTypes NodeType { get; } = NodeTypes.ConditionTrue;
         public string Name { get; set; }
         public List<NodeTypes> AllowedNodes { get; } = Rox.MainWindow.SequenceNodes;
-        public List<INode> Items { get; set; } = new List<INode>();
+        public Collection<INode> Items { get; set; } = new Collection<INode>();
         public string Description() { return "{ Condition True branch } This sequence will run while the condition is true."; }
         public IteTrue(string name)
         {
@@ -134,7 +135,7 @@ namespace Rox
         public NodeTypes NodeType { get; } = NodeTypes.ConditionFalse;
         public string Name { get; set; }
         public List<NodeTypes> AllowedNodes { get; } = Rox.MainWindow.SequenceNodes;
-        public List<INode> Items { get; set; } = new List<INode>();
+        public Collection<INode> Items { get; set; } = new Collection<INode>();
         public string Description() { return "{ Condition False branch } This sequence will run while the condition is not true."; }
         public IteFalse(string name)
         {
@@ -148,7 +149,7 @@ namespace Rox
         //    get { return _clickCommand; }
         //}
         //private readonly DelegateCommand<string> _clickCommand;
-        private INode Node { get; set; }
+        public INode Node { get; set; }
         public event PropertyChangedEventHandler PropertyChanged;
         private bool _isSelected;
         private bool _isExpanded = true;
@@ -289,9 +290,73 @@ namespace Rox
     {
         string Name { get; set; }
         string Note { get; set; }
+        VarType VarType { get; }
+    }
+    public class vDynamic : IVariable
+    {
+        private VarType _varType;
+        public VarType VarType { get { return _varType; } }
+        private dynamic _value;
+        public dynamic Value
+        {
+            get { return _value; }
+            set
+            {
+                var t = value.GetType();
+                if (t == typeof(bool))
+                {
+                    _varType = VarType.boolType;
+                }
+                else if (t == typeof(decimal) || t == typeof(int) || t == typeof(long) || t == typeof(short))
+                {
+                    _varType = VarType.numberType;
+                }
+                if (t == typeof(string))
+                {
+                    _varType = VarType.stringType;
+                }
+                if (value != _value)
+                {
+                    _value = value;
+                    NotifyPropertyChanged("Value");
+                }
+            }
+        }
+        private string _name;
+        public string Name
+        {
+            get { return _name; }
+            set
+            {
+                if (value != _name)
+                {
+                    _name = value;
+                    NotifyPropertyChanged("Name");
+                }
+            }
+        }
+        private string _note;
+        public string Note
+        {
+            get { return _note; }
+            set
+            {
+                if (value != _note)
+                {
+                    _note = value;
+                    NotifyPropertyChanged("Note");
+                }
+            }
+        }
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void NotifyPropertyChanged(String info)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(info));
+        }
     }
     public class vString : IVariable
     {
+        public VarType VarType { get { return VarType.stringType; } }
         private string _value;
         public string Value
         {
@@ -337,55 +402,57 @@ namespace Rox
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(info));
         }
     }
-    public class vBool : IVariable
-    {
-        private bool _value;
-        public bool Value
-        {
-            get { return _value; }
-            set
-            {
-                if (value != _value)
-                {
-                    _value = value;
-                    NotifyPropertyChanged("Value");
-                }
-            }
-        }
-        private string _name;
-        public string Name
-        {
-            get { return _name; }
-            set
-            {
-                if (value != _name)
-                {
-                    _name = value;
-                    NotifyPropertyChanged("Name");
-                }
-            }
-        }
-        private string _note;
-        public string Note
-        {
-            get { return _note; }
-            set
-            {
-                if (value != _note)
-                {
-                    _note = value;
-                    NotifyPropertyChanged("Note");
-                }
-            }
-        }
-        public event PropertyChangedEventHandler PropertyChanged;
-        private void NotifyPropertyChanged(String info)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(info));
-        }
-    }
+    //public class vBool : IVariable
+    //{
+    //    public VarType VarType { get { return VarType.boolType; } }
+    //    private bool _value;
+    //    public bool Value
+    //    {
+    //        get { return _value; }
+    //        set
+    //        {
+    //            if (value != _value)
+    //            {
+    //                _value = value;
+    //                NotifyPropertyChanged("Value");
+    //            }
+    //        }
+    //    }
+    //    private string _name;
+    //    public string Name
+    //    {
+    //        get { return _name; }
+    //        set
+    //        {
+    //            if (value != _name)
+    //            {
+    //                _name = value;
+    //                NotifyPropertyChanged("Name");
+    //            }
+    //        }
+    //    }
+    //    private string _note;
+    //    public string Note
+    //    {
+    //        get { return _note; }
+    //        set
+    //        {
+    //            if (value != _note)
+    //            {
+    //                _note = value;
+    //                NotifyPropertyChanged("Note");
+    //            }
+    //        }
+    //    }
+    //    public event PropertyChangedEventHandler PropertyChanged;
+    //    private void NotifyPropertyChanged(String info)
+    //    {
+    //        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(info));
+    //    }
+    //}
     public class vNumber : IVariable
     {
+        public VarType VarType { get { return VarType.numberType; } }
         private decimal _value;
         public decimal Value
         {
@@ -744,7 +811,7 @@ namespace Rox
                     ClearNodeOptionsPanel();
                     if (!s.IsLocked)
                     {
-                        SetNodeOptionsPanel_Simple(s.Name);
+                        SetNodeOptionsPanel_Condition(s.Name);
                     }
                     break;
             }
@@ -770,9 +837,9 @@ namespace Rox
         {
             NodeOptions.ContentTemplate = (DataTemplate)Application.Current.MainWindow.FindResource("NodeOptionsBasic");
         }
-        private void SetNodeOptionsPanel_Simple(string Name)
+        private void SetNodeOptionsPanel_Condition(string Name)
         {
-            NodeOptions.ContentTemplate = (DataTemplate)Application.Current.MainWindow.FindResource("NodeOptionsSimple");
+            NodeOptions.ContentTemplate = (DataTemplate)Application.Current.MainWindow.FindResource("NodeOptionsCondition");
         }
         private void _PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
@@ -946,17 +1013,27 @@ namespace Rox
         {
             tree.Background = treeBackground;
         }
-
         private void BtnAddVariable_Click(object sender, RoutedEventArgs e)
         {
-            var d = new VarParamsWindow();
+            var d = new VarParamsWindow() { Owner = this };
             d.ShowDialog();
-            if(d.DialogResult==true)
+            if (d.DialogResult == true && !string.IsNullOrWhiteSpace(d.VarName))
             {
-                Vars.Add(new vBool { Name = d.VarName, Note = d.VarNote, Value = false });
+                if (Vars.Where(p => p.Name == d.VarName).Any()) { return; }
+                switch (d.VarType)
+                {
+                    default:
+                        Vars.Add(new vDynamic { Name = d.VarName, Note = d.VarNote, Value = d.VarValue });
+                        break;
+                        //case VarType.stringType:
+                        //    Vars.Add(new vString { Name = d.VarName, Note = d.VarNote, Value = (d.VarValue as string) ?? string.Empty });
+                        //    break;
+                        //case VarType.numberType:
+                        //    Vars.Add(new vNumber { Name = d.VarName, Note = d.VarNote, Value = (d.VarValue as decimal?) ?? 0 });
+                        //    break;
+                }
 
             }
-
             AutoSizeVarColumns();
         }
         public void AutoSizeVarColumns()
@@ -972,6 +1049,43 @@ namespace Rox
                     c.Width = double.NaN;
                 }
             }
+        }
+        private void ListViewItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            var n = ((ListViewItem)sender).Content as IVariable;
+
+            var d = new VarParamsWindow() { Owner = this, VarName = n.Name, VarNote = n.Note, VarType = n.VarType };
+            switch (n.VarType)
+            {
+                default:
+                    d.VarValue = ((vDynamic)n).Value;// = (d.VarValue as bool?) ?? false;
+                    break;
+                    //case VarType.stringType:
+                    //    d.VarValue = ((vString)n).Value;// = (d.VarValue as string) ?? string.Empty;
+                    //    break;
+                    //case VarType.numberType:
+                    //    d.VarValue = ((vNumber)n).Value;// = (d.VarValue as decimal?) ?? 0;
+                    //    break;
+            }
+            d.ShowDialog();
+            if (d.DialogResult == true && !string.IsNullOrWhiteSpace(d.VarName))
+            {
+                n.Name = d.VarName;
+                n.Note = d.VarNote;
+                switch (n.VarType)
+                {
+                    default:
+                        ((vDynamic)n).Value = d.VarValue;
+                        break;
+                        //case VarType.stringType:
+                        //    ((vString)n).Value = (d.VarValue as string) ?? string.Empty;
+                        //    break;
+                        //case VarType.numberType:
+                        //    ((vNumber)n).Value = (d.VarValue as decimal?) ?? 0;
+                        //    break;
+                }
+            }
+            AutoSizeVarColumns();
         }
     }
 }
