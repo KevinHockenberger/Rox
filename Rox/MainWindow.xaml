@@ -5,33 +5,31 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Rox"
         mc:Ignorable="d"
-        Title="Rox" Height="467" Width="529" WindowStyle="None" Loaded="Window_Loaded" 
+        Title="Rox" Height="467" Width="881" WindowStyle="None" Loaded="Window_Loaded" 
         Initialized="Window_Initialized" Closing="Window_Closing" Icon="include/ite.ico"
         >
-    <Window.Resources>
-
-        <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey }" Color="#8f0030" />
-        <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#1982a8" />
-        
-        <Style x:Key="{x:Static GridView.GridViewScrollViewerStyleKey}" TargetType="ScrollViewer">
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ScrollViewer">
-                        <Grid Background="{TemplateBinding Background}">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="*" />
-                                <RowDefinition Height="Auto" />
-                            </Grid.RowDefinitions>
-                            <DockPanel Margin="{TemplateBinding Padding}">
-                                <ScrollViewer DockPanel.Dock="Top" 
+  <Window.Resources>
+    <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey }" Color="#8f0030" />
+    <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#1982a8" />
+    <Style x:Key="{x:Static GridView.GridViewScrollViewerStyleKey}" TargetType="ScrollViewer">
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ScrollViewer">
+            <Grid Background="{TemplateBinding Background}">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+              </Grid.ColumnDefinitions>
+              <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+              </Grid.RowDefinitions>
+              <DockPanel Margin="{TemplateBinding Padding}">
+                <ScrollViewer DockPanel.Dock="Top" 
                                               HorizontalScrollBarVisibility="Hidden" 
                                               VerticalScrollBarVisibility="Hidden" 
                                               Focusable="false">
-                                    <GridViewHeaderRowPresenter 
+                  <GridViewHeaderRowPresenter 
                                         Margin="2,0,2,0" 
                                         Columns="{Binding Path=TemplatedParent.View.Columns, RelativeSource={RelativeSource TemplatedParent}}" 
                                         ColumnHeaderContainerStyle="{Binding Path=TemplatedParent.View.ColumnHeaderContainerStyle, RelativeSource={RelativeSource TemplatedParent}}" 
@@ -41,577 +39,629 @@
                                         ColumnHeaderContextMenu="{Binding Path=TemplatedParent.View.ColumnHeaderContextMenu, RelativeSource={RelativeSource TemplatedParent}}" 
                                         ColumnHeaderToolTip="{Binding Path=TemplatedParent.View.ColumnHeaderToolTip, RelativeSource={RelativeSource TemplatedParent}}" 
                                         SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
-                                </ScrollViewer>
-                                <ScrollContentPresenter Name="PART_ScrollContentPresenter" KeyboardNavigation.DirectionalNavigation="Local" CanContentScroll="True" CanHorizontallyScroll="False" CanVerticallyScroll="False" />
-                            </DockPanel>
-                            <ScrollBar Name="PART_HorizontalScrollBar" 
+                </ScrollViewer>
+                <ScrollContentPresenter Name="PART_ScrollContentPresenter" KeyboardNavigation.DirectionalNavigation="Local" CanContentScroll="True" CanHorizontallyScroll="False" CanVerticallyScroll="False" />
+              </DockPanel>
+              <ScrollBar Name="PART_HorizontalScrollBar" 
                                        Orientation="Horizontal" 
                                        Grid.Row="1" Maximum="{TemplateBinding ScrollableWidth}" 
                                        ViewportSize="{TemplateBinding ViewportWidth}" 
                                        Value="{TemplateBinding HorizontalOffset}" 
                                        Visibility="{TemplateBinding ComputedHorizontalScrollBarVisibility}" />
-                            <ScrollBar Name="PART_VerticalScrollBar" 
+              <ScrollBar Name="PART_VerticalScrollBar" 
                                        Grid.Column="1" 
                                        Maximum="{TemplateBinding ScrollableHeight}" 
                                        ViewportSize="{TemplateBinding ViewportHeight}" 
                                        Value="{TemplateBinding VerticalOffset}" 
                                        Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}" />
-                        </Grid>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-        <Style x:Key="GridViewColumnHeaderGripper" TargetType="Thumb">
-            <Setter Property="Width" Value="20" />
-            <Setter Property="Background" Value="#575757">
-            </Setter>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type Thumb}">
-                        <Border Padding="{TemplateBinding Padding}" Background="Transparent">
-                            <Rectangle HorizontalAlignment="Center" Width="2" Fill="{TemplateBinding Background}" />
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-        <Style x:Key="{x:Type GridViewColumnHeader}" TargetType="GridViewColumnHeader">
-            <Setter Property="HorizontalContentAlignment" Value="Left" />
-            <Setter Property="VerticalContentAlignment" Value="Center" />
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Foreground" Value="#d7d4ff" />
-            <Setter Property="FontSize" Value="12" />
-            <Setter Property="FontStyle" Value="Italic" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="GridViewColumnHeader">
-                        <Grid>
-                            <VisualStateManager.VisualStateGroups>
-                                <VisualStateGroup x:Name="CommonStates">
-                                    <VisualState x:Name="Normal" />
-                                    <VisualState x:Name="MouseOver">
-                                        <Storyboard>
-                                            <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Panel.Background).(GradientBrush.GradientStops)[1].(GradientStop.Color)" Storyboard.TargetName="HeaderBorder">
-                                                <EasingColorKeyFrame KeyTime="0" Value="#326f9c" />
-                                            </ColorAnimationUsingKeyFrames>
-                                        </Storyboard>
-                                    </VisualState>
-                                    <VisualState x:Name="Pressed" />
-                                    <VisualState x:Name="Disabled" />
-                                </VisualStateGroup>
-                            </VisualStateManager.VisualStateGroups>
-                            <Border x:Name="HeaderBorder" BorderThickness="0,1,0,1" Padding="5,0,5,0">
-                                <Border.Background>
-                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                        <LinearGradientBrush.GradientStops>
-                                            <GradientStopCollection>
-                                                <GradientStop Color="White" Offset="1.0" />
-                                                <GradientStop Color="#242424" Offset="0.9" />
-                                                <GradientStop Color="#121212" Offset="0.0" />
-                                            </GradientStopCollection>
-                                        </LinearGradientBrush.GradientStops>
-                                    </LinearGradientBrush>
-                                </Border.Background>
-                                <ContentPresenter x:Name="HeaderContent" Margin="0,0,0,1" RecognizesAccessKey="True" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
-                            </Border>
-                            <Thumb x:Name="PART_HeaderGripper" HorizontalAlignment="Right" Margin="0,0,-10,0" Style="{StaticResource GridViewColumnHeaderGripper}" />
-                        </Grid>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-            <Style.Triggers>
-                <Trigger Property="Role" Value="Floating">
-                    <Setter Property="Opacity" Value="0.7" />
-                    <Setter Property="Template">
-                        <Setter.Value>
-                            <ControlTemplate TargetType="GridViewColumnHeader">
-                                <Canvas Name="PART_FloatingHeaderCanvas">
-                                    <Rectangle Fill="#60000000" Width="{TemplateBinding ActualWidth}" Height="{TemplateBinding ActualHeight}" />
-                                </Canvas>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </Trigger>
-                <Trigger Property="Role" Value="Padding">
-                    <Setter Property="Template">
-                        <Setter.Value>
-                            <ControlTemplate TargetType="GridViewColumnHeader">
-                                <Border Name="HeaderBorder" BorderThickness="0"/>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-        <Style x:Key="{x:Type ListView}" TargetType="ListView">
-            <Setter Property="SnapsToDevicePixels" Value="true" />
-            <Setter Property="OverridesDefaultStyle" Value="true" />
-            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto" />
-            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
-            <Setter Property="ScrollViewer.CanContentScroll" Value="true" />
-            <Setter Property="VerticalContentAlignment" Value="Center" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ListView">
-                        <Border Name="Border" BorderThickness="1">
-                            <Border.Background>
-                                <SolidColorBrush Color="Transparent" />
-                            </Border.Background>
-                            <Border.BorderBrush>
-                                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                                    <GradientStop Color="#FF292929" Offset="0.6"/>
-                                    <GradientStop Color="White" Offset="1"/>
-                                </LinearGradientBrush>
-                            </Border.BorderBrush>
-                            <ScrollViewer Style="{DynamicResource {x:Static GridView.GridViewScrollViewerStyleKey}}">
-                                <ItemsPresenter />
-                            </ScrollViewer>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsGrouping" Value="true">
-                                <Setter Property="ScrollViewer.CanContentScroll" Value="false" />
-                            </Trigger>
-                            <Trigger Property="IsEnabled" Value="false">
-                                <Setter TargetName="Border" Property="Background">
-                                    <Setter.Value>
-                                        <SolidColorBrush Color="{DynamicResource DisabledBorderLightColor}" />
-                                    </Setter.Value>
-                                </Setter>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-        <Style x:Key="{x:Type ListViewItem}" TargetType="ListViewItem">
-            <Setter Property="SnapsToDevicePixels" Value="true" />
-            <Setter Property="OverridesDefaultStyle" Value="true" />
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ListBoxItem">
-                        <Border x:Name="Border" Padding="5,0,5,0" SnapsToDevicePixels="true" Background="Transparent">
-                            <VisualStateManager.VisualStateGroups>
-                                <VisualStateGroup x:Name="CommonStates">
-                                    <VisualState x:Name="Normal" />
-                                    <VisualState x:Name="MouseOver" >
-                                        <Storyboard>
-                                            <ColorAnimationUsingKeyFrames Storyboard.TargetName="Border" Storyboard.TargetProperty="(Panel.Background).(SolidColorBrush.Color)">
-                                                <EasingColorKeyFrame KeyTime="0" Value="#326f9c" />
-                                            </ColorAnimationUsingKeyFrames>
-                                        </Storyboard>
-                                    </VisualState>
-                                    <VisualState x:Name="Disabled" />
-                                </VisualStateGroup>
-                                <VisualStateGroup x:Name="SelectionStates">
-                                    <VisualState x:Name="Unselected" />
-                                    <VisualState x:Name="Selected"/>
-                                    <VisualState x:Name="SelectedUnfocused"/>
-                                </VisualStateGroup>
-                            </VisualStateManager.VisualStateGroups>
-                            <GridViewRowPresenter VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-        <Style TargetType="{x:Type local:MainWindow}">
-            <Setter Property="FontFamily" Value="arial" />
-            <Setter Property="FontSize" Value="18"/>
-            <Setter Property="Background" Value="#FF292929"/>
-            <Setter Property="Foreground" Value="White"/>
-        </Style>
-        <Style TargetType="{x:Type Button}">
-            <Setter Property="Background" Value="#FF292929"/>
-            <Setter Property="Foreground" Value="White"/>
-        </Style>
-        <Style TargetType="{x:Type TreeView}">
-            <Setter Property="Background" Value="#FF292929"/>
-            <Setter Property="Foreground" Value="White"/>
-        </Style>
-        <DataTemplate x:Key="NodeOptionsBasic" >
-            <Border Margin="0,10,0,0" BorderThickness="2" BorderBrush="DarkGray" Padding="5" Background="#2e2e2e" >
-                <ScrollViewer VerticalScrollBarVisibility="Auto" >
-                    <StackPanel>
-                        <Label Style="{StaticResource lblDescriptor}" Content="Name:"/>
-                        <TextBox x:Name="txtNodeName" KeyUp="txtNodeName_KeyUp" Text="{Binding selectedNode.Name, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}"/>
-                    </StackPanel>
-                </ScrollViewer>
+            </Grid>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style x:Key="GridViewColumnHeaderGripper" TargetType="Thumb">
+      <Setter Property="Width" Value="20" />
+      <Setter Property="Background" Value="#575757">
+      </Setter>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="{x:Type Thumb}">
+            <Border Padding="{TemplateBinding Padding}" Background="Transparent">
+              <Rectangle HorizontalAlignment="Center" Width="2" Fill="{TemplateBinding Background}" />
             </Border>
-        </DataTemplate>
-        <DataTemplate x:Key="NodeOptionsCondition" >
-            <Border Margin="0,10,0,0" BorderThickness="2" BorderBrush="DarkGray" Padding="5" Background="#424242">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" >
-                    <StackPanel >
-                        <Label Style="{StaticResource lblDescriptor}" Content="Name:"/>
-                        <TextBox x:Name="txtNodeName" KeyUp="txtNodeName_KeyUp" Text="{Binding selectedNode.Name, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}"/>
-                        <Label Style="{StaticResource lblDescriptor}" Content="Condition:"/>
-                        <TextBox Text="{Binding selectedNode.Node, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}"/>
-                    </StackPanel>
-                </ScrollViewer>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style x:Key="{x:Type GridViewColumnHeader}" TargetType="GridViewColumnHeader">
+      <Setter Property="HorizontalContentAlignment" Value="Left" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Foreground" Value="#d7d4ff" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="FontStyle" Value="Italic" />
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="GridViewColumnHeader">
+            <Grid>
+              <VisualStateManager.VisualStateGroups>
+                <VisualStateGroup x:Name="CommonStates">
+                  <VisualState x:Name="Normal" />
+                  <VisualState x:Name="MouseOver">
+                    <Storyboard>
+                      <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Panel.Background).(GradientBrush.GradientStops)[1].(GradientStop.Color)" Storyboard.TargetName="HeaderBorder">
+                        <EasingColorKeyFrame KeyTime="0" Value="#326f9c" />
+                      </ColorAnimationUsingKeyFrames>
+                    </Storyboard>
+                  </VisualState>
+                  <VisualState x:Name="Pressed" />
+                  <VisualState x:Name="Disabled" />
+                </VisualStateGroup>
+              </VisualStateManager.VisualStateGroups>
+              <Border x:Name="HeaderBorder" BorderThickness="0,1,0,1" Padding="5,0,5,0">
+                <Border.Background>
+                  <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <LinearGradientBrush.GradientStops>
+                      <GradientStopCollection>
+                        <GradientStop Color="White" Offset="1.0" />
+                        <GradientStop Color="#242424" Offset="0.9" />
+                        <GradientStop Color="#121212" Offset="0.0" />
+                      </GradientStopCollection>
+                    </LinearGradientBrush.GradientStops>
+                  </LinearGradientBrush>
+                </Border.Background>
+                <ContentPresenter x:Name="HeaderContent" Margin="0,0,0,1" RecognizesAccessKey="True" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+              </Border>
+              <Thumb x:Name="PART_HeaderGripper" HorizontalAlignment="Right" Margin="0,0,-10,0" Style="{StaticResource GridViewColumnHeaderGripper}" />
+            </Grid>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+      <Style.Triggers>
+        <Trigger Property="Role" Value="Floating">
+          <Setter Property="Opacity" Value="0.7" />
+          <Setter Property="Template">
+            <Setter.Value>
+              <ControlTemplate TargetType="GridViewColumnHeader">
+                <Canvas Name="PART_FloatingHeaderCanvas">
+                  <Rectangle Fill="#60000000" Width="{TemplateBinding ActualWidth}" Height="{TemplateBinding ActualHeight}" />
+                </Canvas>
+              </ControlTemplate>
+            </Setter.Value>
+          </Setter>
+        </Trigger>
+        <Trigger Property="Role" Value="Padding">
+          <Setter Property="Template">
+            <Setter.Value>
+              <ControlTemplate TargetType="GridViewColumnHeader">
+                <Border Name="HeaderBorder" BorderThickness="0"/>
+              </ControlTemplate>
+            </Setter.Value>
+          </Setter>
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+    <Style x:Key="{x:Type ListView}" TargetType="ListView">
+      <Setter Property="SnapsToDevicePixels" Value="true" />
+      <Setter Property="OverridesDefaultStyle" Value="true" />
+      <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto" />
+      <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+      <Setter Property="ScrollViewer.CanContentScroll" Value="true" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ListView">
+            <Border Name="Border" BorderThickness="1">
+              <Border.Background>
+                <SolidColorBrush Color="Transparent" />
+              </Border.Background>
+              <Border.BorderBrush>
+                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                  <GradientStop Color="#FF292929" Offset="0.6"/>
+                  <GradientStop Color="White" Offset="1"/>
+                </LinearGradientBrush>
+              </Border.BorderBrush>
+              <ScrollViewer Style="{DynamicResource {x:Static GridView.GridViewScrollViewerStyleKey}}">
+                <ItemsPresenter />
+              </ScrollViewer>
             </Border>
-        </DataTemplate>
-    </Window.Resources>
-    <DockPanel Margin="0">
-        <Grid Height="35" DockPanel.Dock="Top">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="35"/>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsGrouping" Value="true">
+                <Setter Property="ScrollViewer.CanContentScroll" Value="false" />
+              </Trigger>
+              <Trigger Property="IsEnabled" Value="false">
+                <Setter TargetName="Border" Property="Background">
+                  <Setter.Value>
+                    <SolidColorBrush Color="{DynamicResource DisabledBorderLightColor}" />
+                  </Setter.Value>
+                </Setter>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style x:Key="{x:Type ListViewItem}" TargetType="ListViewItem">
+      <Setter Property="SnapsToDevicePixels" Value="true" />
+      <Setter Property="OverridesDefaultStyle" Value="true" />
+      <Setter Property="Foreground" Value="White"/>
+      <Setter Property="FontSize" Value="14"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ListBoxItem">
+            <Border x:Name="Border" Padding="5,0,5,0" SnapsToDevicePixels="true" Background="Transparent">
+              <VisualStateManager.VisualStateGroups>
+                <VisualStateGroup x:Name="CommonStates">
+                  <VisualState x:Name="Normal" />
+                  <VisualState x:Name="MouseOver" >
+                    <Storyboard>
+                      <ColorAnimationUsingKeyFrames Storyboard.TargetName="Border" Storyboard.TargetProperty="(Panel.Background).(SolidColorBrush.Color)">
+                        <EasingColorKeyFrame KeyTime="0" Value="#326f9c" />
+                      </ColorAnimationUsingKeyFrames>
+                    </Storyboard>
+                  </VisualState>
+                  <VisualState x:Name="Disabled" />
+                </VisualStateGroup>
+                <VisualStateGroup x:Name="SelectionStates">
+                  <VisualState x:Name="Unselected" />
+                  <VisualState x:Name="Selected"/>
+                  <VisualState x:Name="SelectedUnfocused"/>
+                </VisualStateGroup>
+              </VisualStateManager.VisualStateGroups>
+              <GridViewRowPresenter VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+            </Border>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style TargetType="{x:Type local:MainWindow}">
+      <Setter Property="FontFamily" Value="arial" />
+      <Setter Property="FontSize" Value="18"/>
+      <Setter Property="Background" Value="#FF292929"/>
+      <Setter Property="Foreground" Value="White"/>
+    </Style>
+    <Style TargetType="{x:Type Button}">
+      <Setter Property="Background" Value="#FF292929"/>
+      <Setter Property="Foreground" Value="White"/>
+    </Style>
+    <Style TargetType="{x:Type TextBox}">
+      <Setter Property="Background" Value="#FFF1F1F1"/>
+      <Setter Property="Foreground" Value="Black"/>
+    </Style>
+    <Style TargetType="{x:Type TreeView}">
+      <Setter Property="Background" Value="#FF292929"/>
+      <Setter Property="Foreground" Value="White"/>
+    </Style>
+    <DataTemplate x:Key="NodeOptionsBasic" >
+      <Border Margin="0,10,0,0" BorderThickness="2" BorderBrush="DarkGray" Padding="5" Background="#2e2e2e" >
+        <ScrollViewer VerticalScrollBarVisibility="Auto" >
+          <StackPanel>
+            <Label Style="{StaticResource lblDescriptor}" Content="Name"/>
+            <TextBox x:Name="txtNodeName" KeyUp="txtNodeName_KeyUp" Text="{Binding selectedNode.Name, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}"/>
+          </StackPanel>
+        </ScrollViewer>
+      </Border>
+    </DataTemplate>
+    <DataTemplate x:Key="NodeOptionsCondition" >
+      <Border Margin="0,10,0,0" BorderThickness="2" BorderBrush="DarkGray" Padding="5" Background="#424242">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" >
+          <StackPanel>
+            <Label Style="{StaticResource lblDescriptor}" Content="Name"/>
+            <TextBox x:Name="txtNodeName"  AllowDrop="True" KeyUp="txtNodeName_KeyUp" Text="{Binding selectedNode.Name, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}"/>
+            <Grid>
+              <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
-                <ColumnDefinition Width="35"/>
-                <ColumnDefinition Width="35"/>
-            </Grid.ColumnDefinitions>
-            <Border MouseDown="_MouseDown" Grid.Column="1" BorderThickness="1" CornerRadius="2" BorderBrush="White">
-                <Grid>
-                    <DockPanel>
-                        <TextBlock x:Name="txtName" Text="Rox" VerticalAlignment="Center" Margin="10,0,0,0" DockPanel.Dock="Left" />
-                        <TextBlock/>
-                        <TextBlock x:Name="txtVer" FontSize="12" FontStyle="Italic" Text="1.0.0" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0" />
-                        <Border BorderThickness="1,0" CornerRadius="2" BorderBrush="#FF97B3CB" Margin="10,0">
-                            <TextBlock x:Name="txtTitle" Margin="5,0" Text="" Padding="6"/>
-                        </Border>
-                    </DockPanel>
-                </Grid>
-            </Border>
-            <Border BorderBrush="White" BorderThickness="1" CornerRadius="2">
-                <Button Template="{DynamicResource ButtonBaseControlTemplate}" x:Name="btnMenu" Click="toggleMenu">
-                    <Canvas Width="30" Height="30">
-                        <Canvas.Background>
-                            <ImageBrush ImageSource="include/ite.ico"/>
-                        </Canvas.Background>
-                    </Canvas>
-                </Button>
-            </Border>
-            <Border Grid.Column="2" BorderBrush="White" BorderThickness="1" CornerRadius="2">
-                <Button Template="{DynamicResource ButtonBaseControlTemplate}" x:Name="btnMinimize" Content="_" Click="btnMinimize_Click" Foreground="lightgray" VerticalContentAlignment="Stretch" HorizontalContentAlignment="Center"/>
-            </Border>
-            <Border Grid.Column="3" BorderBrush="White" BorderThickness="1" CornerRadius="2">
-                <Button Template="{DynamicResource ButtonBaseControlTemplate}" x:Name="btnClose" Content="X" Click="btnClose_Click" Foreground="Red" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
-            </Border>
-        </Grid>
-        <Grid DockPanel.Dock="Bottom" >
-            <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition />
-            </Grid.ColumnDefinitions>
-            <Grid x:Name="gridMenu" >
-                <Border x:Name="brdrRun" Background="#FF292929">
-                    <Button x:Name="btnToggleRun" Template="{DynamicResource ButtonBaseControlTemplate}" Height="120" VerticalAlignment="Top" Click="toggleRun" Margin="2" Width="60" >
-                        <TextBlock x:Name="txtblkRunDefault" TextAlignment="Center"><Run Text="load"/><LineBreak/><Run Text="file"/></TextBlock>
-                    </Button>
-                </Border>
+                <ColumnDefinition/>
+              </Grid.ColumnDefinitions>
+              <DockPanel Margin="0,5,0,0" >
+                <Label AllowDrop="True" Style="{StaticResource lblDescriptor}" Content="Variable" DockPanel.Dock="Top" />
+                <TextBox Text="{Binding Path=selectedNode.Node.VariableName, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" 
+                         VerticalContentAlignment="Center"
+                         AllowDrop="True"
+                         PreviewDragLeave="TextBox_PreviewDragLeave"
+                         PreviewDragEnter="Var_PreviewDragEnter" 
+                         PreviewDragOver="Var_PreviewDragEnter"
+                         Drop="Var_Drop" 
+                         />
+              </DockPanel>
+              <StackPanel Grid.Column="1" Margin="5,5,5,0">
+                <Label Style="{StaticResource lblDescriptor}" Content="Logic"/>
+                <ComboBox Text="{Binding Path=selectedNode.Node.EvalMethodText, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" SelectionChanged="Logic_SelectionChanged" >
+                  <ComboBoxItem Content="=" />
+                  <ComboBoxItem Content="&gt;" />
+                  <ComboBoxItem Content="&lt;" />
+                  <ComboBoxItem Content="&gt;=" />
+                  <ComboBoxItem Content="&lt;=" />
+                  <ComboBoxItem Content="!=" />
+                </ComboBox>
+              </StackPanel>
+              <StackPanel Grid.Column="2" Margin="0,5,0,0" >
+                <Label Style="{StaticResource lblDescriptor}" Content="Value"/>
+                <ComboBox IsEditable="True" Text="{Binding Path=selectedNode.Node.DesiredValue, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" TextBoxBase.TextChanged="DesiredValue_TextChanged">
+                  <!----><ComboBoxItem Content="true" />
+                  <ComboBoxItem Content="false" />
+                  <ComboBoxItem Content="0" />
+                  <ComboBoxItem Content="1" />
+                </ComboBox>
+                <!--<TextBox Text="{Binding Path=selectedNode.Node.DesiredValue, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}"/>-->
+              </StackPanel>
             </Grid>
-            <Grid x:Name="gridFiles" Margin="2,2,0,2" Width="150" Grid.Column="1">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="110"/>
-                        <RowDefinition/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <Button Template="{DynamicResource ButtonBaseControlTemplate}" x:Name="btnLoadFile" Foreground="White" Height="40" VerticalAlignment="Top" Click="btnLoadFile_Click" Margin="2" Background="#FF5A5A5A" BorderBrush="White" BorderThickness="2" >
-                        <TextBlock x:Name="btnLoadFileText" TextTrimming="CharacterEllipsis" Text="load"/>
-                    </Button>
-                    <Label Content="recent:" Grid.Row="1" Foreground="White" />
-                    <ListBox x:Name="listRecentFiles" Grid.Row="1" Background="#FF343434" Margin="2,26,2,2" Foreground="White" SelectionChanged="Files_SelectionChanged" GotFocus="Files_GotFocus" LostFocus="Files_LostFocus" />
-                    <ListBox x:Name="listFiles" Background="#FF343434" Margin="2" Foreground="White" SelectionChanged="Files_SelectionChanged" GotFocus="Files_GotFocus" Grid.Row="2" LostFocus="Files_LostFocus"/>
-                    <Button x:Name="btnSaveAs" VerticalAlignment="Bottom" Grid.Row="3" Margin="2" Click="btnSaveAs_Click">
-                        <TextBlock TextTrimming="CharacterEllipsis" Text="save as"/>
-                    </Button>
-                </Grid>
-            </Grid>
-            <Grid Grid.Column="2">
-                <Grid Grid.Row="1">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition/>
-                        <ColumnDefinition Width="5"/>
-                        <ColumnDefinition/>
-                        <ColumnDefinition Width="5"/>
-                        <ColumnDefinition/>
-                    </Grid.ColumnDefinitions>
-                    <Grid>
-                        <TreeView x:Name="tree" Margin="0" ItemsSource="{Binding Modes}" AllowDrop="True" DragEnter="Tree_DragEnter" Drop="Tree_Drop" DragLeave="Tree_DragLeave">
-
-                            <TreeView.Resources>
-                                <!-- GENERIC NODE STYLE ############################################################# -->
-                                <HierarchicalDataTemplate DataType="{x:Type local:IteNodeViewModel}" ItemsSource="{Binding Items}" >
-                                    <HierarchicalDataTemplate.Resources>
-                                        <Style TargetType="{x:Type Border}">
-                                            <Setter Property="CornerRadius" Value="4" />
-                                            <Setter Property="BorderThickness" Value="1" />
-                                            <Setter Property="Background" Value="Transparent" />
-                                            <Style.Triggers>
-                                                <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter Property="BorderBrush" Value="White" />
-                                                    <Setter Property="Background" Value="#FF515151" />
-                                                </Trigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </HierarchicalDataTemplate.Resources>
-                                    <Border>
-                                        <StackPanel Orientation="Horizontal" >
-                                            <Image Width="20" Height="20" Margin="5,0,0,0" Source="include/X.png"/>
-                                            <TextBlock Text="{Binding Name}" Margin="5,2,5,2" FontSize="16" Foreground="White"/>
-                                        </StackPanel>
-                                    </Border>
-                                </HierarchicalDataTemplate>
-                                <!-- INITIALIZE NODE STYLE ############################################################# -->
-                                <HierarchicalDataTemplate DataType="{x:Type local:IteFIRST_VM}" ItemsSource="{Binding Items}" >
-                                    <HierarchicalDataTemplate.Resources>
-                                        <Style TargetType="{x:Type Border}">
-                                            <Setter Property="CornerRadius" Value="4" />
-                                            <Setter Property="BorderThickness" Value="1" />
-                                            <Setter Property="Background" Value="Transparent" />
-                                            <Style.Triggers>
-                                                <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter Property="BorderBrush" Value="White" />
-                                                    <Setter Property="Background" Value="#FF515151" />
-                                                </Trigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </HierarchicalDataTemplate.Resources>
-                                    <Border>
-                                        <StackPanel Orientation="Horizontal">
-                                            <Image Width="20" Height="20" Margin="5,0,0,0" Source="include/once.png" />
-                                            <TextBlock Text="{Binding Name}" Margin="5,2,5,2" FontSize="16" Foreground="White" />
-                                        </StackPanel>
-                                    </Border>
-                                </HierarchicalDataTemplate>
-                                <!-- CONTINUOUS NODE STYLE ############################################################# -->
-                                <HierarchicalDataTemplate DataType="{x:Type local:IteCONTINUOUS_VM}" ItemsSource="{Binding Items}" >
-                                    <HierarchicalDataTemplate.Resources>
-                                        <Style TargetType="{x:Type Border}">
-                                            <Setter Property="CornerRadius" Value="4" />
-                                            <Setter Property="BorderThickness" Value="1" />
-                                            <Setter Property="Background" Value="Transparent" />
-                                            <Style.Triggers>
-                                                <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter Property="BorderBrush" Value="White" />
-                                                    <Setter Property="Background" Value="#FF515151" />
-                                                </Trigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </HierarchicalDataTemplate.Resources>
-                                    <Border>
-                                        <StackPanel Orientation="Horizontal">
-                                            <Image Width="20" Height="20" Margin="5,0,0,0" Source="include/continue.png" />
-                                            <TextBlock Text="{Binding Name}" Margin="5,2,5,2" FontSize="16" Foreground="White" />
-                                        </StackPanel>
-                                    </Border>
-                                </HierarchicalDataTemplate>
-                                <!-- MODE NODE STYLE ############################################################# -->
-                                <HierarchicalDataTemplate DataType="{x:Type local:IteMODE_VM}" ItemsSource="{Binding Items}" >
-                                    <HierarchicalDataTemplate.Resources>
-                                        <Style TargetType="{x:Type Border}">
-                                            <Setter Property="CornerRadius" Value="4" />
-                                            <Setter Property="BorderThickness" Value="1" />
-                                            <Setter Property="Background" Value="Transparent" />
-                                            <Style.Triggers>
-                                                <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter Property="BorderBrush" Value="White" />
-                                                    <Setter Property="Background" Value="#FF515151" />
-                                                </Trigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </HierarchicalDataTemplate.Resources>
-                                    <Border>
-                                        <StackPanel Orientation="Horizontal" >
-                                            <Image Width="20" Height="20" Margin="5,0,0,0" Source="include/mode.png" />
-                                            <TextBlock Text="{Binding Name}" Margin="5,2,5,2" FontSize="16" Foreground="White" />
-                                        </StackPanel>
-                                    </Border>
-                                </HierarchicalDataTemplate>
-                                <!-- CONDITION NODE STYLE ############################################################# -->
-                                <HierarchicalDataTemplate DataType="{x:Type local:IteCONDITION_VM}" ItemsSource="{Binding Items}" >
-                                    <HierarchicalDataTemplate.Resources>
-                                        <Style TargetType="{x:Type Border}">
-                                            <Setter Property="CornerRadius" Value="4" />
-                                            <Setter Property="BorderThickness" Value="1" />
-                                            <Setter Property="Background" Value="Transparent" />
-                                            <Style.Triggers>
-                                                <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter Property="BorderBrush" Value="White" />
-                                                    <Setter Property="Background" Value="#FF515151" />
-                                                </Trigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </HierarchicalDataTemplate.Resources>
-                                    <Border>
-                                        <StackPanel Orientation="Horizontal" >
-                                            <Image Width="20" Height="20" Margin="5,0,0,0" Source="include/Bandersnatch.png"/>
-                                            <TextBlock Text="{Binding Name}" Margin="5,2,5,2" FontSize="16" Foreground="White"/>
-                                        </StackPanel>
-                                    </Border>
-                                </HierarchicalDataTemplate>
-                                <!-- CONDITION NODE STYLE ############################################################# -->
-                                <HierarchicalDataTemplate DataType="{x:Type local:IteTRUE_VM}" ItemsSource="{Binding Items}" >
-                                    <HierarchicalDataTemplate.Resources>
-                                        <Style TargetType="{x:Type Border}">
-                                            <Setter Property="CornerRadius" Value="4" />
-                                            <Setter Property="BorderThickness" Value="1" />
-                                            <Setter Property="Background" Value="Transparent" />
-                                            <Style.Triggers>
-                                                <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter Property="BorderBrush" Value="White" />
-                                                    <Setter Property="Background" Value="#FF515151" />
-                                                </Trigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </HierarchicalDataTemplate.Resources>
-                                    <Border>
-                                        <StackPanel Orientation="Horizontal" >
-                                            <Image Width="20" Height="20" Margin="5,0,0,0" Source="include/check.png"/>
-                                            <TextBlock Text="{Binding Name}" Margin="5,2,5,2" FontSize="16" Foreground="White"/>
-                                        </StackPanel>
-                                    </Border>
-                                </HierarchicalDataTemplate>
-                                <!-- CONDITION NODE STYLE ############################################################# -->
-                                <HierarchicalDataTemplate DataType="{x:Type local:IteFALSE_VM}" ItemsSource="{Binding Items}" >
-                                    <HierarchicalDataTemplate.Resources>
-                                        <Style TargetType="{x:Type Border}">
-                                            <Setter Property="CornerRadius" Value="4" />
-                                            <Setter Property="BorderThickness" Value="1" />
-                                            <Setter Property="Background" Value="Transparent" />
-                                            <Style.Triggers>
-                                                <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter Property="BorderBrush" Value="White" />
-                                                    <Setter Property="Background" Value="#FF515151" />
-                                                </Trigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </HierarchicalDataTemplate.Resources>
-                                    <Border>
-                                        <StackPanel Orientation="Horizontal" >
-                                            <Image Width="20" Height="20" Margin="5,0,0,0" Source="include/X.png"/>
-                                            <TextBlock Text="{Binding Name}" Margin="5,2,5,2" FontSize="16" Foreground="White"/>
-                                        </StackPanel>
-                                    </Border>
-                                </HierarchicalDataTemplate>
-                                <!-- TIMER NODE STYLE ############################################################# -->
-                                <HierarchicalDataTemplate DataType="{x:Type local:IteTIMER_VM}" ItemsSource="{Binding Items}" >
-                                    <HierarchicalDataTemplate.Resources>
-                                        <Style TargetType="{x:Type Border}">
-                                            <Setter Property="CornerRadius" Value="4" />
-                                            <Setter Property="BorderThickness" Value="1" />
-                                            <Setter Property="Background" Value="Transparent" />
-                                            <Style.Triggers>
-                                                <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter Property="BorderBrush" Value="White" />
-                                                    <Setter Property="Background" Value="#FF515151" />
-                                                </Trigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </HierarchicalDataTemplate.Resources>
-                                    <Border>
-                                        <StackPanel Orientation="Horizontal" >
-                                            <Image Width="20" Height="20" Margin="5,0,0,0" Source="include/mode.png"/>
-                                            <TextBlock Text="{Binding Name}" Margin="5,2,5,2" FontSize="16" Foreground="White"/>
-                                        </StackPanel>
-                                    </Border>
-                                </HierarchicalDataTemplate>
-                            </TreeView.Resources>
-                            <TreeView.ItemContainerStyle>
-                                <Style TargetType="{x:Type TreeViewItem}">
-                                    <EventSetter Event="UIElement.GotFocus" Handler="tvi_GotFocus"/>
-                                    <EventSetter Event="UIElement.DragEnter" Handler="tvi_DragEnter"/>
-                                    <EventSetter Event="UIElement.DragOver" Handler="tvi_DragOver"/>
-                                    <EventSetter Event="UIElement.Drop" Handler="tvi_Drop"/>
-                                    <EventSetter Event="UIElement.DragLeave" Handler="tvi_DragLeave"/>
-                                    <Setter Property="AllowDrop" Value="True" />
-                                    <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
-                                    <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
-                                </Style>
-
-                            </TreeView.ItemContainerStyle>
-
-                        </TreeView>
-                    </Grid>
-                    <GridSplitter Grid.Column="1" Width="5" Background="#FF555555" HorizontalAlignment="Center" />
-                    <GridSplitter Grid.Column="3" Width="5" Background="#FF555555" HorizontalAlignment="Center" />
-                    <DockPanel Grid.Column="2">
-                        <StackPanel DockPanel.Dock="Top">
-                            <Button x:Name="btnReset" BorderThickness="1" Click="btnReset_Click">
-                                <Button.BorderBrush>
-                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                                        <GradientStop Color="#FF292929" Offset="0.6"/>
-                                        <GradientStop Color="White" Offset="1"/>
-                                    </LinearGradientBrush>
-                                </Button.BorderBrush>
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                    <Canvas Width="26" Height="26">
-                                        <Canvas.Background>
-                                            <ImageBrush ImageSource="include/x.png"/>
-                                        </Canvas.Background>
-                                    </Canvas>
-                                    <Label Foreground="White" Content="Reset"/>
-                                </StackPanel>
-                            </Button>
-                            <StackPanel Orientation="Horizontal" PreviewMouseLeftButtonDown="_PreviewMouseLeftButtonDown" PreviewMouseMove="Mode_PreviewMouseMove">
-                                <Canvas Width="26" Height="26">
-                                    <Canvas.Background>
-                                        <ImageBrush ImageSource="include/mode.png"/>
-                                    </Canvas.Background>
-                                </Canvas>
-                                <Label Foreground="White" Content="Mode"/>
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal" PreviewMouseLeftButtonDown="_PreviewMouseLeftButtonDown" PreviewMouseMove="Condition_PreviewMouseMove">
-                                <Canvas Width="26" Height="26">
-                                    <Canvas.Background>
-                                        <ImageBrush ImageSource="include/bandersnatch.png"/>
-                                    </Canvas.Background>
-                                </Canvas>
-                                <Label Foreground="White" Content="Condition"/>
-                            </StackPanel>
-                        </StackPanel>
-                        <Grid DockPanel.Dock="Bottom" >
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition/>
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition/>
-                            </Grid.RowDefinitions>
-                            <TextBlock x:Name="txtSelectedNodeInfo" FontSize="12" Padding="5" TextWrapping="Wrap" xml:space="preserve" ><Run Text="• Select a sequence item to get more information.&#xA;&#xA;• To add items, drag and drop one of the above items into the sequence."/></TextBlock>
-                            <ContentPresenter x:Name="NodeOptions" Grid.Row="1"/>
-                        </Grid>
-                    </DockPanel>
-                    <DockPanel Grid.Column="4" >
-                        <StackPanel DockPanel.Dock="Top">
-                            <Button x:Name="btnAddVariable" BorderThickness="1" VerticalAlignment="Top" Click="BtnAddVariable_Click">
-                                <Button.BorderBrush>
-                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                                        <GradientStop Color="#FF292929" Offset="0.6"/>
-                                        <GradientStop Color="White" Offset="1"/>
-                                    </LinearGradientBrush>
-                                </Button.BorderBrush>
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                    <Canvas Width="26" Height="26">
-                                        <Canvas.Background>
-                                            <ImageBrush ImageSource="include/add.png"/>
-                                        </Canvas.Background>
-                                    </Canvas>
-                                    <Label Foreground="White" Content="Add"/>
-                                </StackPanel>
-                            </Button>
-                            <ListView x:Name="listVars" >
-                                <ListView.ItemContainerStyle>
-                                    <Style TargetType="ListViewItem" BasedOn="{StaticResource {x:Type ListViewItem}}">
-                                        <EventSetter Event="MouseDoubleClick" Handler="ListViewItem_MouseDoubleClick"/>
-                                    </Style>
-                                </ListView.ItemContainerStyle>
-                                <ListView.View>
-                                    <GridView>
-                                        <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}"/>
-                                        <GridViewColumn Header="Value" DisplayMemberBinding="{Binding Value}"/>
-                                        <GridViewColumn Header="Note" DisplayMemberBinding="{Binding Note}"/>
-                                    </GridView>
-                                </ListView.View>
-                            </ListView>
-                        </StackPanel>
-                    </DockPanel>
-                </Grid>
-            </Grid>
+            <TextBlock Text="{Binding Path=selectedNode.Node.Evaluation, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}},Mode=OneWay}" HorizontalAlignment="Right" Margin="5"/>
+          </StackPanel>
+        </ScrollViewer>
+      </Border>
+    </DataTemplate>
+  </Window.Resources>
+  <DockPanel Margin="0">
+    <Grid Height="35" DockPanel.Dock="Top">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="35"/>
+        <ColumnDefinition/>
+        <ColumnDefinition Width="35"/>
+        <ColumnDefinition Width="35"/>
+      </Grid.ColumnDefinitions>
+      <Border MouseDown="_MouseDown" Grid.Column="1" BorderThickness="1" CornerRadius="2" BorderBrush="White">
+        <Grid>
+          <DockPanel>
+            <TextBlock x:Name="txtName" Text="Rox" VerticalAlignment="Center" Margin="10,0,0,0" DockPanel.Dock="Left" />
+            <TextBlock/>
+            <TextBlock x:Name="txtVer" FontSize="12" FontStyle="Italic" Text="1.0.0" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0" />
+            <Border BorderThickness="1,0" CornerRadius="2" BorderBrush="#FF97B3CB" Margin="10,0">
+              <TextBlock x:Name="txtTitle" Margin="5,0" Text="" Padding="6"/>
+            </Border>
+          </DockPanel>
         </Grid>
-    </DockPanel>
+      </Border>
+      <Border BorderBrush="White" BorderThickness="1" CornerRadius="2">
+        <Button Template="{DynamicResource ButtonBaseControlTemplate}" x:Name="btnMenu" Click="toggleMenu">
+          <Canvas Width="30" Height="30">
+            <Canvas.Background>
+              <ImageBrush ImageSource="include/ite.ico"/>
+            </Canvas.Background>
+          </Canvas>
+        </Button>
+      </Border>
+      <Border Grid.Column="2" BorderBrush="White" BorderThickness="1" CornerRadius="2">
+        <Button Template="{DynamicResource ButtonBaseControlTemplate}" x:Name="btnMinimize" Content="_" Click="btnMinimize_Click" Foreground="lightgray" VerticalContentAlignment="Stretch" HorizontalContentAlignment="Center"/>
+      </Border>
+      <Border Grid.Column="3" BorderBrush="White" BorderThickness="1" CornerRadius="2">
+        <Button Template="{DynamicResource ButtonBaseControlTemplate}" x:Name="btnClose" Content="X" Click="btnClose_Click" Foreground="Red" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+      </Border>
+    </Grid>
+    <Grid DockPanel.Dock="Bottom" >
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="Auto"/>
+        <ColumnDefinition Width="Auto"/>
+        <ColumnDefinition />
+      </Grid.ColumnDefinitions>
+      <Grid x:Name="gridMenu" >
+          <StackPanel>
+            <Button x:Name="btnFiles" Template="{DynamicResource ButtonBaseControlTemplate}" Content="files" Height="30" VerticalAlignment="Top"  Foreground="White" Click="toggleFiles" Grid.Row="1"/>
+        <Border x:Name="brdrRun">
+           <Button AllowDrop="True" x:Name="btnToggleRun" Template="{DynamicResource ButtonBaseControlTemplate}" Height="120" VerticalAlignment="Top" Click="toggleRun" Margin="2" Width="60" >
+            <TextBlock x:Name="txtblkRunDefault" TextAlignment="Center"><Run Text="load"/><LineBreak/><Run Text="file"/></TextBlock>
+          </Button>
+        </Border>
+
+          </StackPanel>
+      </Grid>
+      <Grid x:Name="gridFiles" Margin="2,2,0,2" Width="150" Grid.Column="1">
+        <Grid>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="110"/>
+            <RowDefinition/>
+            <RowDefinition Height="Auto"/>
+          </Grid.RowDefinitions>
+          <Button Template="{DynamicResource ButtonBaseControlTemplate}" x:Name="btnLoadFile" Height="40" VerticalAlignment="Top" Click="btnLoadFile_Click" Margin="2" Background="#FF5A5A5A" BorderBrush="White" BorderThickness="2" >
+            <TextBlock x:Name="btnLoadFileText" TextTrimming="CharacterEllipsis" Text="load"/>
+          </Button>
+          <Button Template="{DynamicResource ButtonBaseControlTemplate}" x:Name="btnUnloadFile" Height="40" VerticalAlignment="Top" Click="BtnUnloadFile_Click" Margin="2" Background="#FF5A5A5A" BorderBrush="White" BorderThickness="2" Grid.Row="1" >
+            <TextBlock  TextTrimming="CharacterEllipsis" Text="unload"/>
+          </Button>
+          <Label Content="recent:" Grid.Row="2" Foreground="White" />
+          <ListBox x:Name="listRecentFiles" Grid.Row="2" Background="#FF343434" Margin="2,26,2,2" Foreground="White" SelectionChanged="Files_SelectionChanged" GotFocus="Files_GotFocus" LostFocus="Files_LostFocus" />
+          <ListBox x:Name="listFiles" Background="#FF343434" Margin="2" Foreground="White" SelectionChanged="Files_SelectionChanged" GotFocus="Files_GotFocus" Grid.Row="3" LostFocus="Files_LostFocus"/>
+          <Button x:Name="btnSaveAs" VerticalAlignment="Bottom" Grid.Row="4" Margin="2" Click="btnSaveAs_Click">
+            <TextBlock TextTrimming="CharacterEllipsis" Text="save as"/>
+          </Button>
+        </Grid>
+      </Grid>
+      <Grid Grid.Column="2">
+        <Grid Grid.Row="1">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition x:Name="colTree"/>
+            <ColumnDefinition Width="5"/>
+            <ColumnDefinition x:Name="colOptions"/>
+            <ColumnDefinition Width="5"/>
+            <ColumnDefinition x:Name="colVars"/>
+          </Grid.ColumnDefinitions>
+          <Grid>
+            <TreeView x:Name="tree" Margin="0" ItemsSource="{Binding Modes}" AllowDrop="True" DragEnter="Tree_DragEnter" Drop="Tree_Drop" DragLeave="Tree_DragLeave">
+
+              <TreeView.Resources>
+                <!-- GENERIC NODE STYLE ############################################################# -->
+                <HierarchicalDataTemplate DataType="{x:Type local:IteNodeViewModel}" ItemsSource="{Binding Items}" >
+                  <HierarchicalDataTemplate.Resources>
+                    <Style TargetType="{x:Type Border}">
+                      <Setter Property="CornerRadius" Value="4" />
+                      <Setter Property="BorderThickness" Value="1" />
+                      <Setter Property="Background" Value="Transparent" />
+                      <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                          <Setter Property="BorderBrush" Value="White" />
+                          <Setter Property="Background" Value="#FF515151" />
+                        </Trigger>
+                      </Style.Triggers>
+                    </Style>
+                  </HierarchicalDataTemplate.Resources>
+                  <Border>
+                    <StackPanel Orientation="Horizontal" >
+                      <Image Width="20" Height="20" Margin="5,0,0,0" Source="include/X.png"/>
+                      <TextBlock Text="{Binding Name}" Margin="5,2,5,2" FontSize="16" Foreground="White"/>
+                    </StackPanel>
+                  </Border>
+                </HierarchicalDataTemplate>
+                <!-- INITIALIZE NODE STYLE ############################################################# -->
+                <HierarchicalDataTemplate DataType="{x:Type local:IteFIRST_VM}" ItemsSource="{Binding Items}" >
+                  <HierarchicalDataTemplate.Resources>
+                    <Style TargetType="{x:Type Border}">
+                      <Setter Property="CornerRadius" Value="4" />
+                      <Setter Property="BorderThickness" Value="1" />
+                      <Setter Property="Background" Value="Transparent" />
+                      <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                          <Setter Property="BorderBrush" Value="White" />
+                          <Setter Property="Background" Value="#FF515151" />
+                        </Trigger>
+                      </Style.Triggers>
+                    </Style>
+                  </HierarchicalDataTemplate.Resources>
+                  <Border>
+                    <StackPanel Orientation="Horizontal">
+                      <Image Width="20" Height="20" Margin="5,0,0,0" Source="include/once.png" />
+                      <TextBlock Text="{Binding Name}" Margin="5,2,5,2" FontSize="16" Foreground="White" />
+                    </StackPanel>
+                  </Border>
+                </HierarchicalDataTemplate>
+                <!-- CONTINUOUS NODE STYLE ############################################################# -->
+                <HierarchicalDataTemplate DataType="{x:Type local:IteCONTINUOUS_VM}" ItemsSource="{Binding Items}" >
+                  <HierarchicalDataTemplate.Resources>
+                    <Style TargetType="{x:Type Border}">
+                      <Setter Property="CornerRadius" Value="4" />
+                      <Setter Property="BorderThickness" Value="1" />
+                      <Setter Property="Background" Value="Transparent" />
+                      <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                          <Setter Property="BorderBrush" Value="White" />
+                          <Setter Property="Background" Value="#FF515151" />
+                        </Trigger>
+                      </Style.Triggers>
+                    </Style>
+                  </HierarchicalDataTemplate.Resources>
+                  <Border>
+                    <StackPanel Orientation="Horizontal">
+                      <Image Width="20" Height="20" Margin="5,0,0,0" Source="include/continue.png" />
+                      <TextBlock Text="{Binding Name}" Margin="5,2,5,2" FontSize="16" Foreground="White" />
+                    </StackPanel>
+                  </Border>
+                </HierarchicalDataTemplate>
+                <!-- MODE NODE STYLE ############################################################# -->
+                <HierarchicalDataTemplate DataType="{x:Type local:IteMODE_VM}" ItemsSource="{Binding Items}" >
+                  <HierarchicalDataTemplate.Resources>
+                    <Style TargetType="{x:Type Border}">
+                      <Setter Property="CornerRadius" Value="4" />
+                      <Setter Property="BorderThickness" Value="1" />
+                      <Setter Property="Background" Value="Transparent" />
+                      <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                          <Setter Property="BorderBrush" Value="White" />
+                          <Setter Property="Background" Value="#FF515151" />
+                        </Trigger>
+                      </Style.Triggers>
+                    </Style>
+                  </HierarchicalDataTemplate.Resources>
+                  <Border>
+                    <StackPanel Orientation="Horizontal" >
+                      <Image Width="20" Height="20" Margin="5,0,0,0" Source="include/mode.png" />
+                      <TextBlock Text="{Binding Name}" Margin="5,2,5,2" FontSize="16" Foreground="White" />
+                    </StackPanel>
+                  </Border>
+                </HierarchicalDataTemplate>
+                <!-- CONDITION NODE STYLE ############################################################# -->
+                <HierarchicalDataTemplate DataType="{x:Type local:IteCONDITION_VM}" ItemsSource="{Binding Items}" >
+                  <HierarchicalDataTemplate.Resources>
+                    <Style TargetType="{x:Type Border}">
+                      <Setter Property="CornerRadius" Value="4" />
+                      <Setter Property="BorderThickness" Value="1" />
+                      <Setter Property="Background" Value="Transparent" />
+                      <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                          <Setter Property="BorderBrush" Value="White" />
+                          <Setter Property="Background" Value="#FF515151" />
+                        </Trigger>
+                      </Style.Triggers>
+                    </Style>
+                  </HierarchicalDataTemplate.Resources>
+                  <Border>
+                    <StackPanel Orientation="Horizontal" >
+                      <Image Width="20" Height="20" Margin="5,0,0,0" Source="include/Bandersnatch.png"/>
+                      <TextBlock Text="{Binding Name}" Margin="5,2,5,2" FontSize="16" Foreground="White"/>
+                    </StackPanel>
+                  </Border>
+                </HierarchicalDataTemplate>
+                <!-- CONDITION NODE STYLE ############################################################# -->
+                <HierarchicalDataTemplate DataType="{x:Type local:IteTRUE_VM}" ItemsSource="{Binding Items}" >
+                  <HierarchicalDataTemplate.Resources>
+                    <Style TargetType="{x:Type Border}">
+                      <Setter Property="CornerRadius" Value="4" />
+                      <Setter Property="BorderThickness" Value="1" />
+                      <Setter Property="Background" Value="Transparent" />
+                      <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                          <Setter Property="BorderBrush" Value="White" />
+                          <Setter Property="Background" Value="#FF515151" />
+                        </Trigger>
+                      </Style.Triggers>
+                    </Style>
+                  </HierarchicalDataTemplate.Resources>
+                  <Border>
+                    <StackPanel Orientation="Horizontal" >
+                      <Image Width="20" Height="20" Margin="5,0,0,0" Source="include/check.png"/>
+                      <TextBlock Text="{Binding Name}" Margin="5,2,5,2" FontSize="16" Foreground="White"/>
+                    </StackPanel>
+                  </Border>
+                </HierarchicalDataTemplate>
+                <!-- CONDITION NODE STYLE ############################################################# -->
+                <HierarchicalDataTemplate DataType="{x:Type local:IteFALSE_VM}" ItemsSource="{Binding Items}" >
+                  <HierarchicalDataTemplate.Resources>
+                    <Style TargetType="{x:Type Border}">
+                      <Setter Property="CornerRadius" Value="4" />
+                      <Setter Property="BorderThickness" Value="1" />
+                      <Setter Property="Background" Value="Transparent" />
+                      <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                          <Setter Property="BorderBrush" Value="White" />
+                          <Setter Property="Background" Value="#FF515151" />
+                        </Trigger>
+                      </Style.Triggers>
+                    </Style>
+                  </HierarchicalDataTemplate.Resources>
+                  <Border>
+                    <StackPanel Orientation="Horizontal" >
+                      <Image Width="20" Height="20" Margin="5,0,0,0" Source="include/X.png"/>
+                      <TextBlock Text="{Binding Name}" Margin="5,2,5,2" FontSize="16" Foreground="White"/>
+                    </StackPanel>
+                  </Border>
+                </HierarchicalDataTemplate>
+                <!-- TIMER NODE STYLE ############################################################# -->
+                <HierarchicalDataTemplate DataType="{x:Type local:IteTIMER_VM}" ItemsSource="{Binding Items}" >
+                  <HierarchicalDataTemplate.Resources>
+                    <Style TargetType="{x:Type Border}">
+                      <Setter Property="CornerRadius" Value="4" />
+                      <Setter Property="BorderThickness" Value="1" />
+                      <Setter Property="Background" Value="Transparent" />
+                      <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                          <Setter Property="BorderBrush" Value="White" />
+                          <Setter Property="Background" Value="#FF515151" />
+                        </Trigger>
+                      </Style.Triggers>
+                    </Style>
+                  </HierarchicalDataTemplate.Resources>
+                  <Border>
+                    <StackPanel Orientation="Horizontal" >
+                      <Image Width="20" Height="20" Margin="5,0,0,0" Source="include/mode.png"/>
+                      <TextBlock Text="{Binding Name}" Margin="5,2,5,2" FontSize="16" Foreground="White"/>
+                    </StackPanel>
+                  </Border>
+                </HierarchicalDataTemplate>
+              </TreeView.Resources>
+              <TreeView.ItemContainerStyle>
+                <Style TargetType="{x:Type TreeViewItem}">
+                  <EventSetter Event="UIElement.GotFocus" Handler="tvi_GotFocus"/>
+                  <EventSetter Event="UIElement.DragEnter" Handler="tvi_DragEnter"/>
+                  <EventSetter Event="UIElement.DragOver" Handler="tvi_DragOver"/>
+                  <EventSetter Event="UIElement.Drop" Handler="tvi_Drop"/>
+                  <EventSetter Event="UIElement.DragLeave" Handler="tvi_DragLeave"/>
+                  <Setter Property="AllowDrop" Value="True" />
+                  <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                  <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+                </Style>
+
+              </TreeView.ItemContainerStyle>
+
+            </TreeView>
+          </Grid>
+          <GridSplitter Grid.Column="1" Width="5" Background="#FF555555" HorizontalAlignment="Center" />
+          <GridSplitter Grid.Column="3" Width="5" Background="#FF555555" HorizontalAlignment="Center" />
+          <DockPanel Grid.Column="2">
+            <StackPanel DockPanel.Dock="Top">
+              <Button x:Name="btnReset" BorderThickness="1" Click="btnReset_Click">
+                <Button.BorderBrush>
+                  <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                    <GradientStop Color="#FF292929" Offset="0.6"/>
+                    <GradientStop Color="White" Offset="1"/>
+                  </LinearGradientBrush>
+                </Button.BorderBrush>
+                <StackPanel Orientation="Horizontal">
+                  <Canvas Width="26" Height="26">
+                    <Canvas.Background>
+                      <ImageBrush ImageSource="include/x.png"/>
+                    </Canvas.Background>
+                  </Canvas>
+                  <TextBlock TextTrimming="CharacterEllipsis" Text="Reset Sequence" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                </StackPanel>
+              </Button>
+              <StackPanel Orientation="Horizontal" PreviewMouseLeftButtonDown="_PreviewMouseLeftButtonDown" PreviewMouseMove="Mode_PreviewMouseMove">
+                <Canvas Width="26" Height="26">
+                  <Canvas.Background>
+                    <ImageBrush ImageSource="include/mode.png"/>
+                  </Canvas.Background>
+                </Canvas>
+                <Label Foreground="White" Content="Mode"/>
+              </StackPanel>
+              <StackPanel Orientation="Horizontal" PreviewMouseLeftButtonDown="_PreviewMouseLeftButtonDown" PreviewMouseMove="Condition_PreviewMouseMove">
+                <Canvas Width="26" Height="26">
+                  <Canvas.Background>
+                    <ImageBrush ImageSource="include/bandersnatch.png"/>
+                  </Canvas.Background>
+                </Canvas>
+                <Label Foreground="White" Content="Condition"/>
+              </StackPanel>
+            </StackPanel>
+            <Grid DockPanel.Dock="Bottom" >
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+              </Grid.ColumnDefinitions>
+              <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition/>
+              </Grid.RowDefinitions>
+              <TextBlock x:Name="txtSelectedNodeInfo" FontSize="12" Padding="5" TextWrapping="Wrap" xml:space="preserve" ><Run Text="• Select a sequence item to get more information.&#xA;&#xA;• To add items, drag and drop one of the above items into the sequence."/></TextBlock>
+              <ContentPresenter x:Name="NodeOptions" Grid.Row="1"/>
+            </Grid>
+          </DockPanel>
+          <DockPanel Grid.Column="4" >
+            <StackPanel DockPanel.Dock="Top">
+              <Button x:Name="btnAddVariable" BorderThickness="1" Click="BtnAddVariable_Click">
+                <Button.BorderBrush>
+                  <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                    <GradientStop Color="#FF292929" Offset="0.6"/>
+                    <GradientStop Color="White" Offset="1"/>
+                  </LinearGradientBrush>
+                </Button.BorderBrush>
+                <StackPanel Orientation="Horizontal">
+                  <Canvas Width="26" Height="26">
+                    <Canvas.Background>
+                      <ImageBrush ImageSource="include/add.png"/>
+                    </Canvas.Background>
+                  </Canvas>
+                  <TextBlock TextTrimming="CharacterEllipsis" Text="Add Variable" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                </StackPanel>
+              </Button>
+              <ListView x:Name="listVars">
+                <ListView.ItemContainerStyle>
+                  <Style TargetType="ListViewItem" BasedOn="{StaticResource {x:Type ListViewItem}}">
+                    <EventSetter Event="MouseDoubleClick" Handler="ListViewItem_MouseDoubleClick"/>
+                    <EventSetter Event="PreviewMouseLeftButtonDown" Handler="_PreviewMouseLeftButtonDown"/>
+                    <EventSetter Event="PreviewMouseMove" Handler="ListViewItem_PreviewMouseMove"/>
+                  </Style>
+                </ListView.ItemContainerStyle>
+                <ListView.View>
+                  <GridView>
+                    <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" Width="100"/>
+                    <GridViewColumn Header="Value" DisplayMemberBinding="{Binding Value}" Width="50"/>
+                    <GridViewColumn Header="Note" DisplayMemberBinding="{Binding Note}" Width="100"/>
+                  </GridView>
+                </ListView.View>
+              </ListView>
+            </StackPanel>
+          </DockPanel>
+        </Grid>
+      </Grid>
+    </Grid>
+  </DockPanel>
 </Window>

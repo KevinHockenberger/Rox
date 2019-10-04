@@ -58,5 +58,88 @@ namespace Rox.Properties {
                 this["LastWindowRect"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("100")]
+        public double VarColNameWidth {
+            get {
+                return ((double)(this["VarColNameWidth"]));
+            }
+            set {
+                this["VarColNameWidth"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("50")]
+        public double VarColValueWidth {
+            get {
+                return ((double)(this["VarColValueWidth"]));
+            }
+            set {
+                this["VarColValueWidth"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("100")]
+        public double VarColNoteWidth {
+            get {
+                return ((double)(this["VarColNoteWidth"]));
+            }
+            set {
+                this["VarColNoteWidth"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string ProgramPath {
+            get {
+                return ((string)(this["ProgramPath"]));
+            }
+            set {
+                this["ProgramPath"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        public global::System.Collections.Specialized.StringCollection MruFiles {
+            get {
+                return ((global::System.Collections.Specialized.StringCollection)(this["MruFiles"]));
+            }
+            set {
+                this["MruFiles"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("200")]
+        public double TreePanelWidth {
+            get {
+                return ((double)(this["TreePanelWidth"]));
+            }
+            set {
+                this["TreePanelWidth"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("200")]
+        public double OptionPanelWidth {
+            get {
+                return ((double)(this["OptionPanelWidth"]));
+            }
+            set {
+                this["OptionPanelWidth"] = value;
+            }
+        }
     }
 }
