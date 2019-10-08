@@ -141,5 +141,17 @@ namespace Rox.Properties {
                 this["OptionPanelWidth"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("30")]
+        public double VarColTypeWidth {
+            get {
+                return ((double)(this["VarColTypeWidth"]));
+            }
+            set {
+                this["VarColTypeWidth"] = value;
+            }
+        }
     }
 }

@@ -9,6 +9,7 @@ namespace Rox
   {
     public new static bool Equals(dynamic a, dynamic b)
     {
+      if (a.GetType() != b.GetType()) { throw new Exception("Type Mismatch"); }
       return a.Equals(b);
     }
     public static bool GreaterThan(dynamic a, dynamic b)
@@ -130,6 +131,45 @@ namespace Rox
 
       }
     }
+    protected virtual void OnPropertyChanged(string propertyName)
+    {
+      this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+  }
+  public class IteTimer : INode, INotifyPropertyChanged
+  {
+    private double _timeElapsed;
+    private double _interval;
+    private bool _expired;
+    private DateTime? _lastTimeCalculated;
+
+    public event PropertyChangedEventHandler PropertyChanged;
+    public NodeTypes NodeType { get; } = NodeTypes.Timer;
+    public string Name { get; set; }
+    public List<NodeTypes> AllowedNodes { get; } = new List<NodeTypes>() { };
+    public Collection<INode> Items { get; set; } = new Collection<INode>();
+    public string Description() { return "{ Timer } TODO: Populate this content."; }
+    public IteTimer(string name)
+    {
+      Name = name;
+    }
+    public double Interval { get { return _interval; } set { if (_interval != value) { _interval = value; OnPropertyChanged("Interval"); } } }
+    public double TimeElapsed { get { return _timeElapsed; } private set { if (_timeElapsed != value) { _timeElapsed = value; OnPropertyChanged("TimeElapsed"); } } }
+    public DateTime LastTimeCalculated { get { return _lastTimeCalculated ?? DateTime.Now; } private set { _lastTimeCalculated = value; } }
+    public bool Expired
+    {
+      get { return _expired; }
+      private set { if (_expired != value) { _expired = value; OnPropertyChanged("Expired"); } }
+    }
+    public void UpdateTime()
+    {
+      DateTime now = DateTime.Now;
+      double timeFromLastCheck = (now - LastTimeCalculated).TotalMilliseconds;
+      LastTimeCalculated = now;
+       TimeElapsed += timeFromLastCheck;
+      Expired = _timeElapsed >= _interval;
+    }
+    public void Stop() { _lastTimeCalculated = null; TimeElapsed = 0; Expired = false; }
     protected virtual void OnPropertyChanged(string propertyName)
     {
       this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -269,6 +309,25 @@ namespace Rox
         if (_isExpanded && Parent != null) { Parent.IsExpanded = true; }
       }
     }
+    private System.Windows.Media.Brush _background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Transparent);
+    public System.Windows.Media.Brush Background
+    {
+      get
+      {
+        return _background;
+      }
+      set
+      {
+        //if (!(_background as System.Windows.Media.SolidColorBrush).Equals(value))
+        //{
+        //if (_background.ToString()!=value.ToString())
+        //{
+        _background = value;
+        this.OnPropertyChanged("Background");
+        //}
+        //}
+      }
+    }
   }
   public class IteCONTINUOUS_VM : IteNodeViewModel
   {
@@ -300,7 +359,7 @@ namespace Rox
   }
   public class Variable : INotifyPropertyChanged
   {
-    public VarType VarType { get; private set; }
+    public VariableType VarType { get; private set; }
     private dynamic _value;
     public dynamic Value
     {
@@ -310,15 +369,15 @@ namespace Rox
         var t = value.GetType();
         if (t == typeof(bool))
         {
-          VarType = VarType.boolType;
+          VarType = VariableTypes.boolType;
         }
         else if (t == typeof(decimal) || t == typeof(int) || t == typeof(long) || t == typeof(short))
         {
-          VarType = VarType.numberType;
+          VarType = VariableTypes.numberType;
         }
         if (t == typeof(string))
         {
-          VarType = VarType.stringType;
+          VarType = VariableTypes.stringType;
         }
         if (value != _value)
         {
@@ -364,5 +423,33 @@ namespace Rox
     boolType,
     stringType,
     numberType
+  }
+  public struct VariableType
+  {
+    private readonly string _friendlyName;
+    public readonly int Value;
+    public override string ToString() { return _friendlyName; }
+    public VariableType(VarType type)
+    {
+      Value = (int)type;
+      switch (type)
+      {
+        default:
+          _friendlyName = "bit";
+          break;
+        case VarType.stringType:
+          _friendlyName = "text";
+          break;
+        case VarType.numberType:
+          _friendlyName = "number";
+          break;
+      }
+    }
+  }
+  public static class VariableTypes
+  {
+    public static VariableType boolType = new VariableType(VarType.boolType);
+    public static VariableType stringType = new VariableType(VarType.stringType);
+    public static VariableType numberType = new VariableType(VarType.numberType);
   }
 }

@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Xml;
 
 namespace Rox
@@ -16,16 +18,26 @@ namespace Rox
   /// </summary>
   public partial class MainWindow : Window
   {
+    private bool highlight;
+    private System.Threading.Tasks.Task Seq;
     BindingList<Variable> Vars = new BindingList<Variable>();
     private static SolidColorBrush treeBackground = new SolidColorBrush(Color.FromRgb(41, 41, 41));
     private static SolidColorBrush treeBackgroundAllowDrop = new SolidColorBrush(Color.FromRgb(71, 125, 30));
     private static SolidColorBrush textboxBackground = new SolidColorBrush(Color.FromRgb(241, 241, 241));
+    //private static SolidColorBrush processedNodeBackground = new SolidColorBrush(Color.FromRgb(0, 107, 21));
+    //private static SolidColorBrush processedNodeBackground = new SolidColorBrush(Color.FromRgb(85, 87, 68));
+    private static SolidColorBrush processedNodeBackground = new SolidColorBrush(Color.FromRgb(88, 94, 45));
+    private static SolidColorBrush unprocessedNodeBackground = new SolidColorBrush(Colors.Black);
+    private static SolidColorBrush trueNodeBackground = new SolidColorBrush(Color.FromRgb(0, 107, 21));
+    private static SolidColorBrush falseNodeBackground = new SolidColorBrush(Color.FromRgb(107, 0, 66));
     //private static SolidColorBrush textboxBackgroundAllowDrop = new SolidColorBrush(Color.FromRgb(71, 125, 30));
     public static List<NodeTypes> SequenceNodes = new List<NodeTypes>() { NodeTypes.Condition, NodeTypes.General, NodeTypes.Timer };
     public List<IteNodeViewModel> Modes;// : INotifyPropertyChanged;
     public IteNodeViewModel selectedNode { get; set; }
     System.Threading.Timer closeMnu;
     System.Threading.Timer clrHeader;
+    public string processingMode { get; set; } = null; // initialize processingMode and curMode to different values so initialize sequence will run on startup
+    public string curMode { get; set; } = string.Empty;
     private bool? _running;
     public bool? Running
     {
@@ -47,6 +59,7 @@ namespace Rox
           brdrRun.Background = new SolidColorBrush(Colors.OrangeRed);
           btnToggleRun.BorderBrush = new SolidColorBrush(Colors.OrangeRed);
           btnToggleRun.Foreground = new SolidColorBrush(Colors.Red);
+          curMode = "Auto";
         }
         else
         {
@@ -55,8 +68,33 @@ namespace Rox
           brdrRun.Background = new SolidColorBrush(Colors.LightGreen);
           btnToggleRun.BorderBrush = new SolidColorBrush(Colors.LightGreen);
           btnToggleRun.Foreground = new SolidColorBrush(Colors.LawnGreen);
+          curMode = "Stop";
         }
         _running = value;
+      }
+    }
+    private bool _paused = false;
+    public bool Paused
+    {
+      get { return _paused; }
+      set
+      {
+        if (_paused != value)
+        {
+          _paused = value;
+          if (value)
+          {
+            imgSeq.Source = new BitmapImage(new Uri(@"pack://application:,,,/include/Continuous.png", UriKind.Absolute));
+            btnAbort.BorderBrush = new SolidColorBrush(Colors.LightGreen);
+          }
+          else
+          {
+            processingMode = null;
+            Seq = RunSequence();
+            imgSeq.Source = new BitmapImage(new Uri(@"pack://application:,,,/include/Stop.png", UriKind.Absolute));
+            btnAbort.BorderBrush = new SolidColorBrush(Colors.OrangeRed);
+          }
+        }
       }
     }
     string loadedFile;
@@ -72,18 +110,17 @@ namespace Rox
     }
     private void Window_Initialized(object sender, EventArgs e)
     {
-      //gridMenu.Visibility = Visibility.Visible;
-      //gridFiles.Visibility = Visibility.Collapsed;
-      //btnSaveAs.Visibility = Visibility.Collapsed;
       ApplySettings();
       txtVer.Text = Assembly.GetExecutingAssembly().GetName().Version.ToString();
       closeMnu = new System.Threading.Timer(new System.Threading.TimerCallback(closeMenu), null, 10000, System.Threading.Timeout.Infinite);
       PopulateFilelists();
       resetForm(true);
       listVars.ItemsSource = Vars;
+      Paused = true;
     }
     private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
     {
+      Paused = true; // redundant, yes
       FileUnload(false);
       SaveSettings();
     }
@@ -129,6 +166,7 @@ namespace Rox
         gv.Columns[0].Width = Properties.Settings.Default.VarColNameWidth;
         gv.Columns[1].Width = Properties.Settings.Default.VarColValueWidth;
         gv.Columns[2].Width = Properties.Settings.Default.VarColNoteWidth;
+        gv.Columns[3].Width = Properties.Settings.Default.VarColTypeWidth;
       }
     }
     private void SaveSettings()
@@ -147,6 +185,7 @@ namespace Rox
         Properties.Settings.Default.VarColNameWidth = gv.Columns[0].Width;
         Properties.Settings.Default.VarColValueWidth = gv.Columns[1].Width;
         Properties.Settings.Default.VarColNoteWidth = gv.Columns[2].Width;
+        Properties.Settings.Default.VarColTypeWidth = gv.Columns[3].Width;
       }
       Properties.Settings.Default.Save();
     }
@@ -230,8 +269,10 @@ namespace Rox
     private string xmlTag_Condition { get { return "condition"; } }
     private string xmlTag_ConditionTrue { get { return "c1"; } }
     private string xmlTag_ConditionFalse { get { return "c0"; } }
+    private string xmlTag_Timer { get { return "time"; } }
     private void FileLoad(string filename)
     {
+      Paused = true;
       resetCloseMenuTimer();
       FileUnload(false);
       var filespec = Properties.Settings.Default.ProgramPath.TrimEnd('\\') + @"\" + filename + ".rox";
@@ -241,7 +282,7 @@ namespace Rox
         Vars.Clear();
         using (XmlReader reader = XmlReader.Create(filespec))
         {
-          Console.WriteLine(" ------ START READING ------- ");
+          //Console.WriteLine(" ------ START READING ------- ");
           ParseFile(reader, fileRead);
           Modes = fileRead;
           tree.DataContext = null;
@@ -251,8 +292,11 @@ namespace Rox
         Properties.Settings.Default.MruFiles.Insert(0, filename); PopulateRecentFilelist();
         loadedFile = filename;
         UpdateHeader(string.Format("{0} loaded.", filename));
-        Running = false;
         btnUnloadFile.Visibility = Visibility.Visible;
+        processingMode = null;
+        curMode = string.Empty;
+        Paused = false;
+        Running = false;
       }
       else
       {
@@ -270,7 +314,7 @@ namespace Rox
       IteNodeViewModel curNode = null;
       while (reader.Read())
       {
-        Console.WriteLine("type: {0}, name: {1}, value: {2}, attr(name): {3}", reader.NodeType, reader.Name, reader.Value, reader.GetAttribute("name"));
+        //Console.WriteLine("type: {0}, name: {1}, value: {2}, attr(name): {3}", reader.NodeType, reader.Name, reader.Value, reader.GetAttribute("name"));
         if (reader.NodeType == XmlNodeType.Element)
         {
           if (reader.Name == xmlTag_Var)
@@ -370,6 +414,21 @@ namespace Rox
               curNode = subNode;
             }
           }
+          // ----------------------------------------------------- TIMER
+          else if (reader.Name == xmlTag_Timer)
+          {
+            if (curNode != null)
+            {
+              var subNode = new IteTIMER_VM(new IteTimer(reader.GetAttribute("name"))
+              {
+                Interval = double.TryParse(reader.GetAttribute("i"),out double d)?d:0
+              })
+              { Parent = curNode };
+              curNode.Items.Add(subNode);
+              curNode = subNode;
+            }
+          }
+
         }
         else if (reader.NodeType == XmlNodeType.EndElement)
         {
@@ -382,6 +441,7 @@ namespace Rox
     }
     private void FileUnload(bool unselectProgram)
     {
+      Paused = true;
       resetCloseMenuTimer();
       btnUnloadFile.Visibility = Visibility.Collapsed;
       btnSaveAs.Visibility = Visibility.Collapsed;
@@ -437,8 +497,10 @@ namespace Rox
           sw.Write("</{0}>", xmlTag_Condition);
           break;
         case NodeTypes.Timer:
-          sw.Write("<timer name='{0}' type='{1}'>", n.Name, n.NodeType);
+          var t = (IteTimer)n.Node;
+          sw.Write("<{0} name='{1}' type='{2}' i='{3}'>", xmlTag_Timer, n.Name, n.NodeType, t.Interval);
           AppendChildren(sw, n);
+          sw.Write("</{0}>", xmlTag_Timer);
           break;
         case NodeTypes.Initialized:
           sw.Write("<{0} name='{1}' type='{2}'>", xmlTag_Init, n.Name, n.NodeType);
@@ -624,7 +686,6 @@ namespace Rox
       switch (s.NodeType)
       {
         case NodeTypes.General:
-        case NodeTypes.Timer:
         case NodeTypes.Initialized:
         case NodeTypes.Continuous:
         case NodeTypes.ConditionTrue:
@@ -644,6 +705,13 @@ namespace Rox
           if (!s.IsLocked)
           {
             SetNodeOptionsPanel_Condition(s.Name);
+          }
+          break;
+        case NodeTypes.Timer:
+          ClearNodeOptionsPanel();
+          if (!s.IsLocked)
+          {
+            SetNodeOptionsPanel_Timer(s.Name);
           }
           break;
       }
@@ -673,6 +741,10 @@ namespace Rox
     {
       NodeOptions.ContentTemplate = (DataTemplate)Application.Current.MainWindow.FindResource("NodeOptionsCondition");
     }
+    private void SetNodeOptionsPanel_Timer(string Name)
+    {
+      NodeOptions.ContentTemplate = (DataTemplate)Application.Current.MainWindow.FindResource("NodeOptionsTimer");
+    }
     private void _PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
       startDragPoint = e.GetPosition(null);
@@ -694,6 +766,16 @@ namespace Rox
       {
         // Initialize the drag & drop operation
         DataObject dragData = new DataObject("iteNode", new IteCondition("Condition") { Items = { new IteTrue("True"), new IteFalse("False") } });
+        DragDrop.DoDragDrop((StackPanel)sender, dragData, DragDropEffects.Move);
+      }
+    }
+    private void Timer_PreviewMouseMove(object sender, MouseEventArgs e)
+    {
+      Vector diff = startDragPoint - e.GetPosition(null);
+      if (e.LeftButton == MouseButtonState.Pressed && (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance || Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance))
+      {
+        // Initialize the drag & drop operation
+        DataObject dragData = new DataObject("iteNode", new IteTimer("Timer") { });
         DragDrop.DoDragDrop((StackPanel)sender, dragData, DragDropEffects.Move);
       }
     }
@@ -763,6 +845,12 @@ namespace Rox
             dc.Items.Add(N); success = true;
             //Modes.Add(new IteCONDITION_VM(source)); success = true;
           }
+          else if (T == typeof(IteTimer))
+          {
+            N = new IteTIMER_VM(source) { IsSelected = true };
+            dc.Items.Add(N); success = true;
+            //Modes.Add(new IteCONDITION_VM(source)); success = true;
+          }
           else
           {
             N = new IteNodeViewModel(null);
@@ -791,17 +879,17 @@ namespace Rox
     }
     private void Tree_DragEnter(object sender, DragEventArgs e)
     {
-      Console.WriteLine(sender != e.Source);
+      //Console.WriteLine(sender != e.Source);
       if (e.Data.GetDataPresent("iteNode"))
       {
-        Console.WriteLine(2);
+        //Console.WriteLine(2);
         // test if node can be dropped here
         if (((INode)e.Data.GetData("iteNode")).NodeType == NodeTypes.Mode)
         {
-          Console.WriteLine(3);
+          //Console.WriteLine(3);
           e.Effects = DragDropEffects.Copy;
           tree.Background = treeBackgroundAllowDrop;
-          Console.WriteLine(4);
+          //Console.WriteLine(4);
         }
         else
         {
@@ -874,7 +962,7 @@ namespace Rox
     {
       var n = ((ListViewItem)sender).Content as Variable;
 
-      var d = new VarParamsWindow() { Owner = this, VarName = n.Name, VarNote = n.Note, VarType = n.VarType };
+      var d = new VarParamsWindow() { Owner = this, VarName = n.Name, VarNote = n.Note, VarType = (VarType)n.VarType.Value };
       d.VarValue = n.Value;
       d.ShowDialog();
       if (d.DialogResult == true && !string.IsNullOrWhiteSpace(d.VarName))
@@ -889,7 +977,7 @@ namespace Rox
     {
       if (((ComboBox)sender).SelectedIndex < 0) { return; }
       var l = ((ComboBoxItem)((ComboBox)sender).SelectedValue).Content.ToString();
-      Console.WriteLine(l);
+      //Console.WriteLine(l);
       var o = (selectedNode.Node as IteCondition);
       o.EvalMethodText = l;
       o.EvalMethod = GetEvalMethodFromString(l);
@@ -972,13 +1060,13 @@ namespace Rox
             o.DesiredValue = o.DesiredValue.ToString();
           }
         }
-        Console.WriteLine("Compare = {0} | desired value = {1} | current value = {2} | typeof desired = {3} | typeof current = {4}"
-          , o.EvalMethod(o.DesiredValue, CurrentValue)
-          , o.DesiredValue
-          , CurrentValue
-          , o.DesiredValue.GetType()
-          , CurrentValue.GetType()
-          );
+        //Console.WriteLine("Compare = {0} | desired value = {1} | current value = {2} | typeof desired = {3} | typeof current = {4}"
+        //  , o.EvalMethod(o.DesiredValue, CurrentValue)
+        //  , o.DesiredValue
+        //  , CurrentValue
+        //  , o.DesiredValue.GetType()
+        //  , CurrentValue.GetType()
+        //  );
         o.Evaluation = o.EvalMethod(o.DesiredValue, CurrentValue);
       }
       catch (Exception)
@@ -997,7 +1085,7 @@ namespace Rox
     }
     private void Var_Drop(object sender, DragEventArgs e)
     {
-      Console.WriteLine("drop");
+      //Console.WriteLine("drop");
       if (e.Data.GetDataPresent("iteVar"))
       {
         var source = (Variable)e.Data.GetData("iteVar");
@@ -1029,6 +1117,152 @@ namespace Rox
     private void BtnUnloadFile_Click(object sender, RoutedEventArgs e)
     {
       FileUnload(true);
+    }
+    private void BtnAbort_Click(object sender, RoutedEventArgs e)
+    {
+      Paused = !Paused;
+    }
+    private async Task RunSequence()
+    {
+      while (!Paused)
+      {
+        await Task.Delay(1);
+        bool modeChanged = curMode != processingMode;
+        processingMode = curMode;
+        foreach (var mode in Modes)
+        {
+          //if (highlight) { ResetHighlight(mode); }
+          try
+          {
+            if ((mode.NodeType == NodeTypes.Continuous) || (curMode == mode.Name) || (mode.NodeType == NodeTypes.Initialized && modeChanged && processingMode == string.Empty)) // Always, current mode, 1st scan
+            {
+              ProcessValidNodeSequence(mode, modeChanged);
+            }
+            else
+            {
+              ProcessInvalidNodeSequence(mode);
+              //Console.WriteLine("SKIP: " + mode.Name);
+            }
+          }
+          catch (Exception)
+          {
+          }
+        }
+      }
+    }
+    private void ResetHighlight(IteNodeViewModel node)
+    {
+      node.Background = new SolidColorBrush(Colors.Transparent);
+      foreach (var sub in node.Items)
+      {
+        node.Background = new SolidColorBrush(Colors.Transparent);
+        ResetHighlight(sub);
+      }
+    }
+    private void ProcessInvalidNodeSequence(IteNodeViewModel node)
+    {
+      switch (node.NodeType)
+      {
+        default:
+          if (highlight) { node.Background = unprocessedNodeBackground; }
+          //Console.WriteLine(node.Name + " - NOT IMPLEMENTED");
+          foreach (var sub in node.Items)
+          {
+            ProcessInvalidNodeSequence(sub);
+          }
+          break;
+        case NodeTypes.Timer:
+          ((IteTimer)node.Node).Stop();
+          break;
+      }
+    }
+    private void ProcessValidNodeSequence(IteNodeViewModel node, bool initialize)
+    {
+      //Console.WriteLine("PROCESSING: " + node.Name);
+      switch (node.NodeType)
+      {
+        default:
+          if (highlight) { node.Background = processedNodeBackground; }
+          //Console.WriteLine(node.Name + " - NOT IMPLEMENTED");
+          foreach (var sub in node.Items)
+          {
+            ProcessValidNodeSequence(sub, initialize);
+          }
+          break;
+        case NodeTypes.Condition:
+          // get current value
+          var curVal = Vars.Where(p => p.Name == ((IteCondition)node.Node).VariableName).FirstOrDefault().Value;
+          if (highlight) { node.Background = processedNodeBackground; }
+          //var thisNode = node;
+          try
+          {
+            var eval = ((IteCondition)node.Node).EvalMethod(curVal, ((IteCondition)node.Node).DesiredValue);
+            //Console.WriteLine((node.Parent == null ? "root" : node.Parent.Name) + "." + node.Name + " condition. eval = " + eval);
+            if (eval)
+            {
+              //node = node.Items.First(p => p.NodeType == NodeTypes.ConditionTrue);
+              //node = node.Items[0];
+              if (highlight) { node.Items[0].Background = trueNodeBackground; }
+              foreach (var sub in node.Items[0].Items)
+              {
+                ProcessValidNodeSequence(sub, initialize);
+              }
+              ProcessInvalidNodeSequence(node.Items[1]);
+            }
+            else
+            {
+              //node = node.Items.First(p => p.NodeType == NodeTypes.ConditionFalse);
+              //node = node.Items[1];
+              if (highlight) { node.Items[1].Background = falseNodeBackground; }
+              foreach (var sub in node.Items[1].Items)
+              {
+                ProcessValidNodeSequence(sub, initialize);
+              }
+              ProcessInvalidNodeSequence(node.Items[0]);
+            }
+          }
+          catch (Exception)
+          {
+            SetAndEvaluateLogicStatement((IteCondition)node.Node);
+          }
+          break;
+        case NodeTypes.Initialized:
+          if (initialize)
+          {
+            if (highlight) { node.Background = processedNodeBackground; }
+            //Console.WriteLine((node.Parent == null ? "root" : node.Parent.Name) + "." + node.Name + " diff-up.");
+            foreach (var sub in node.Items)
+            {
+              ProcessValidNodeSequence(sub, initialize);
+            }
+          }
+          else
+          {
+            ProcessInvalidNodeSequence(node);
+          }
+          break;
+        case NodeTypes.Timer:
+          ((IteTimer)node.Node).UpdateTime();
+
+          //((IteTimer)node.Node).TimeElapsed += 1;
+          //Console.WriteLine(((IteTimer)node.Node).TimeElapsed);
+          break;
+      }
+    }
+
+    private void ChkHighlight_Checked(object sender, RoutedEventArgs e)
+    {
+      highlight = true;
+    }
+
+    private void ChkHighlight_Unchecked(object sender, RoutedEventArgs e)
+    {
+      highlight = false;
+      System.Threading.Thread.Sleep(250);
+      foreach (var mode in Modes)
+      {
+        ResetHighlight(mode);
+      }
     }
   }
 }

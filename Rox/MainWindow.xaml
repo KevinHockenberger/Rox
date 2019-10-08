@@ -292,6 +292,23 @@
         </ScrollViewer>
       </Border>
     </DataTemplate>
+    <DataTemplate x:Key="NodeOptionsTimer" >
+      <Border Margin="0,10,0,0" BorderThickness="2" BorderBrush="DarkGray" Padding="5" Background="#424242">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" >
+          <StackPanel>
+            <Label Style="{StaticResource lblDescriptor}" Content="Name"/>
+            <TextBox x:Name="txtNodeName"  AllowDrop="True" KeyUp="txtNodeName_KeyUp" Text="{Binding selectedNode.Name, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}"/>
+                <Label AllowDrop="True" Style="{StaticResource lblDescriptor}" Content="Interval" DockPanel.Dock="Top" />
+                <TextBox Text="{Binding Path=selectedNode.Node.Interval, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" 
+                         VerticalContentAlignment="Center" />
+            <Label Style="{StaticResource lblDescriptor}" Content="Current Value"/>
+            <TextBlock Text="{Binding Path=selectedNode.Node.TimeElapsed, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}},StringFormat={}{0:N1}}"/>
+            <Label Style="{StaticResource lblDescriptor}" Content="Expired"/>
+            <TextBlock Text="{Binding Path=selectedNode.Node.Expired, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}"/>
+          </StackPanel>
+        </ScrollViewer>
+      </Border>
+    </DataTemplate>
   </Window.Resources>
   <DockPanel Margin="0">
     <Grid Height="35" DockPanel.Dock="Top">
@@ -336,15 +353,22 @@
         <ColumnDefinition />
       </Grid.ColumnDefinitions>
       <Grid x:Name="gridMenu" >
-          <StackPanel>
-            <Button x:Name="btnFiles" Template="{DynamicResource ButtonBaseControlTemplate}" Content="files" Height="30" VerticalAlignment="Top"  Foreground="White" Click="toggleFiles" Grid.Row="1"/>
-        <Border x:Name="brdrRun">
-           <Button AllowDrop="True" x:Name="btnToggleRun" Template="{DynamicResource ButtonBaseControlTemplate}" Height="120" VerticalAlignment="Top" Click="toggleRun" Margin="2" Width="60" >
+          <DockPanel LastChildFill="False">
+            <Button x:Name="btnFiles" Template="{DynamicResource ButtonBaseControlTemplate}" Content="files" Height="30" VerticalAlignment="Top"  Foreground="White" Click="toggleFiles" Grid.Row="1" DockPanel.Dock="Top"/>
+        <Border x:Name="brdrRun" DockPanel.Dock="Top">
+           <Button x:Name="btnToggleRun" Template="{DynamicResource ButtonBaseControlTemplate}" Height="120" Click="toggleRun" Margin="2" Width="60" >
             <TextBlock x:Name="txtblkRunDefault" TextAlignment="Center"><Run Text="load"/><LineBreak/><Run Text="file"/></TextBlock>
           </Button>
         </Border>
-
-          </StackPanel>
+          <Border DockPanel.Dock="Bottom">
+            <Button x:Name="btnAbort" Template="{DynamicResource ButtonBaseControlTemplate}" Height="35" Click="BtnAbort_Click" Margin="2" Width="60" BorderBrush="#FFFFC500" >
+              <Image x:Name="imgSeq" Source="include/Continuous.png" Width="30" Height="30" Stretch="Fill"/>
+              <!--<TextBlock x:Name="btnAbortText" TextAlignment="Center" Foreground="#FFFFC500" HorizontalAlignment="Center" VerticalAlignment="Center">abort</TextBlock>-->
+          </Button>
+          </Border>
+          <CheckBox x:Name="chkHighlight" VerticalContentAlignment="Center" Margin="0,10,0,0" Checked="ChkHighlight_Checked" Unchecked="ChkHighlight_Unchecked" DockPanel.Dock="Bottom">
+            <TextBlock Foreground="White" FontSize="10"><Run Text="highlight"/><LineBreak/><Run Text="node"/><LineBreak/><Run Text="value"/></TextBlock></CheckBox>
+        </DockPanel>
       </Grid>
       <Grid x:Name="gridFiles" Margin="2,2,0,2" Width="150" Grid.Column="1">
         <Grid>
@@ -388,7 +412,7 @@
                     <Style TargetType="{x:Type Border}">
                       <Setter Property="CornerRadius" Value="4" />
                       <Setter Property="BorderThickness" Value="1" />
-                      <Setter Property="Background" Value="Transparent" />
+                      <Setter Property="Background" Value="{Binding Background}" />
                       <Style.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                           <Setter Property="BorderBrush" Value="White" />
@@ -410,7 +434,7 @@
                     <Style TargetType="{x:Type Border}">
                       <Setter Property="CornerRadius" Value="4" />
                       <Setter Property="BorderThickness" Value="1" />
-                      <Setter Property="Background" Value="Transparent" />
+                      <Setter Property="Background" Value="{Binding Background}" />
                       <Style.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                           <Setter Property="BorderBrush" Value="White" />
@@ -432,7 +456,7 @@
                     <Style TargetType="{x:Type Border}">
                       <Setter Property="CornerRadius" Value="4" />
                       <Setter Property="BorderThickness" Value="1" />
-                      <Setter Property="Background" Value="Transparent" />
+                      <Setter Property="Background" Value="{Binding Background}" />
                       <Style.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                           <Setter Property="BorderBrush" Value="White" />
@@ -454,7 +478,7 @@
                     <Style TargetType="{x:Type Border}">
                       <Setter Property="CornerRadius" Value="4" />
                       <Setter Property="BorderThickness" Value="1" />
-                      <Setter Property="Background" Value="Transparent" />
+                      <Setter Property="Background" Value="{Binding Background}" />
                       <Style.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                           <Setter Property="BorderBrush" Value="White" />
@@ -476,7 +500,7 @@
                     <Style TargetType="{x:Type Border}">
                       <Setter Property="CornerRadius" Value="4" />
                       <Setter Property="BorderThickness" Value="1" />
-                      <Setter Property="Background" Value="Transparent" />
+                      <Setter Property="Background" Value="{Binding Background}" />
                       <Style.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                           <Setter Property="BorderBrush" Value="White" />
@@ -498,7 +522,7 @@
                     <Style TargetType="{x:Type Border}">
                       <Setter Property="CornerRadius" Value="4" />
                       <Setter Property="BorderThickness" Value="1" />
-                      <Setter Property="Background" Value="Transparent" />
+                      <Setter Property="Background" Value="{Binding Background}" />
                       <Style.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                           <Setter Property="BorderBrush" Value="White" />
@@ -520,7 +544,7 @@
                     <Style TargetType="{x:Type Border}">
                       <Setter Property="CornerRadius" Value="4" />
                       <Setter Property="BorderThickness" Value="1" />
-                      <Setter Property="Background" Value="Transparent" />
+                      <Setter Property="Background" Value="{Binding Background}" />
                       <Style.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                           <Setter Property="BorderBrush" Value="White" />
@@ -542,7 +566,7 @@
                     <Style TargetType="{x:Type Border}">
                       <Setter Property="CornerRadius" Value="4" />
                       <Setter Property="BorderThickness" Value="1" />
-                      <Setter Property="Background" Value="Transparent" />
+                      <Setter Property="Background" Value="{Binding Background}" />
                       <Style.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                           <Setter Property="BorderBrush" Value="White" />
@@ -553,7 +577,7 @@
                   </HierarchicalDataTemplate.Resources>
                   <Border>
                     <StackPanel Orientation="Horizontal" >
-                      <Image Width="20" Height="20" Margin="5,0,0,0" Source="include/mode.png"/>
+                      <Image Width="20" Height="20" Margin="5,0,0,0" Source="include/stopwatch.png"/>
                       <TextBlock Text="{Binding Name}" Margin="5,2,5,2" FontSize="16" Foreground="White"/>
                     </StackPanel>
                   </Border>
@@ -611,6 +635,14 @@
                 </Canvas>
                 <Label Foreground="White" Content="Condition"/>
               </StackPanel>
+              <StackPanel Orientation="Horizontal" PreviewMouseLeftButtonDown="_PreviewMouseLeftButtonDown" PreviewMouseMove="Timer_PreviewMouseMove">
+                <Canvas Width="26" Height="26">
+                  <Canvas.Background>
+                    <ImageBrush ImageSource="include/stopwatch.png"/>
+                  </Canvas.Background>
+                </Canvas>
+                <Label Foreground="White" Content="Timer"/>
+              </StackPanel>
             </StackPanel>
             <Grid DockPanel.Dock="Bottom" >
               <Grid.ColumnDefinitions>
@@ -654,6 +686,7 @@
                   <GridView>
                     <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" Width="100"/>
                     <GridViewColumn Header="Value" DisplayMemberBinding="{Binding Value}" Width="50"/>
+                    <GridViewColumn Header="Type" DisplayMemberBinding="{Binding VarType}" Width="30"/>
                     <GridViewColumn Header="Note" DisplayMemberBinding="{Binding Note}" Width="100"/>
                   </GridView>
                 </ListView.View>

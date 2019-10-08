@@ -154,5 +154,14 @@
   <ItemGroup>
     <Resource Include="include\check.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="include\Continuous.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="include\Stop.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="include\stopwatch.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
