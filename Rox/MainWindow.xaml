@@ -298,13 +298,27 @@
           <StackPanel>
             <Label Style="{StaticResource lblDescriptor}" Content="Name"/>
             <TextBox x:Name="txtNodeName"  AllowDrop="True" KeyUp="txtNodeName_KeyUp" Text="{Binding selectedNode.Name, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}"/>
-                <Label AllowDrop="True" Style="{StaticResource lblDescriptor}" Content="Interval" DockPanel.Dock="Top" />
-                <TextBox Text="{Binding Path=selectedNode.Node.Interval, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" 
-                         VerticalContentAlignment="Center" />
+            <Label AllowDrop="True" Style="{StaticResource lblDescriptor}" Content="Interval" DockPanel.Dock="Top" />
+            <TextBox Text="{Binding Path=selectedNode.Node.Interval, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" 
+                      VerticalContentAlignment="Center" />
             <Label Style="{StaticResource lblDescriptor}" Content="Current Value"/>
             <TextBlock Text="{Binding Path=selectedNode.Node.TimeElapsed, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}},StringFormat={}{0:N1}}"/>
             <Label Style="{StaticResource lblDescriptor}" Content="Expired"/>
             <TextBlock Text="{Binding Path=selectedNode.Node.Expired, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}"/>
+          </StackPanel>
+        </ScrollViewer>
+      </Border>
+    </DataTemplate>
+    <DataTemplate x:Key="SetNodeOptionsPanel_SetVar" >
+      <Border Margin="0,10,0,0" BorderThickness="2" BorderBrush="DarkGray" Padding="5" Background="#424242">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" >
+          <StackPanel>
+            <Label Style="{StaticResource lblDescriptor}" Content="Name" />
+            <TextBox x:Name="txtNodeName"  AllowDrop="True" KeyUp="txtNodeName_KeyUp" Text="{Binding selectedNode.Name, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}"/>
+            <Label AllowDrop="True" Style="{StaticResource lblDescriptor}" Content="Variable" DockPanel.Dock="Top" Margin="0,5,0,0"/>
+            <TextBox Text="{Binding Path=selectedNode.Node.VariableName, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" VerticalContentAlignment="Center" />
+            <Label Style="{StaticResource lblDescriptor}" Content="Value" Margin="0,5,0,0"/>
+            <TextBox Text="{Binding Path=selectedNode.Node.Value, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" VerticalContentAlignment="Center" />
           </StackPanel>
         </ScrollViewer>
       </Border>
@@ -626,6 +640,28 @@
                     </StackPanel>
                   </Border>
                 </HierarchicalDataTemplate>
+                <!-- SETVAR NODE STYLE ############################################################# -->
+                <HierarchicalDataTemplate DataType="{x:Type local:IteSETVAR_VM}" ItemsSource="{Binding Items}" >
+                  <HierarchicalDataTemplate.Resources>
+                    <Style TargetType="{x:Type Border}">
+                      <Setter Property="CornerRadius" Value="4" />
+                      <Setter Property="BorderThickness" Value="1" />
+                      <Setter Property="Background" Value="{Binding Background}" />
+                      <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                          <Setter Property="BorderBrush" Value="White" />
+                          <Setter Property="Background" Value="#FF515151" />
+                        </Trigger>
+                      </Style.Triggers>
+                    </Style>
+                  </HierarchicalDataTemplate.Resources>
+                  <Border>
+                    <StackPanel Orientation="Horizontal" >
+                      <Image Width="20" Height="20" Margin="5,0,0,0" Source="include/IO.png"/>
+                      <TextBlock Text="{Binding Name}" Margin="5,2,5,2" FontSize="16" Foreground="White"/>
+                    </StackPanel>
+                  </Border>
+                </HierarchicalDataTemplate>
               </TreeView.Resources>
               <TreeView.ItemContainerStyle>
                 <Style TargetType="{x:Type TreeViewItem}">
@@ -687,8 +723,33 @@
                 </Canvas>
                 <Label Foreground="White" Content="Timer"/>
               </StackPanel>
+              <StackPanel Orientation="Horizontal" PreviewMouseLeftButtonDown="_PreviewMouseLeftButtonDown" PreviewMouseMove="SetVar_PreviewMouseMove">
+                <Canvas Width="26" Height="26">
+                  <Canvas.Background>
+                    <ImageBrush ImageSource="include/IO.png"/>
+                  </Canvas.Background>
+                </Canvas>
+                <Label Foreground="White" Content="Set Variable"/>
+              </StackPanel>
             </StackPanel>
-            <Grid DockPanel.Dock="Bottom" >
+            <Button x:Name="btnDeleteSelectedNode" BorderThickness="1" Click="BtnDeleteSelectedNode_Click" DockPanel.Dock="Bottom">
+              <Button.BorderBrush>
+                <LinearGradientBrush EndPoint="0.5,0" StartPoint="0.5,1">
+                  <GradientStop Color="#FF292929" Offset="0.6"/>
+                  <GradientStop Color="White" Offset="1"/>
+                </LinearGradientBrush>
+              </Button.BorderBrush>
+              <StackPanel Orientation="Horizontal">
+                <Canvas Width="26" Height="26">
+                  <Canvas.Background>
+                    <ImageBrush ImageSource="include/x.png"/>
+                  </Canvas.Background>
+                </Canvas>
+                <TextBlock TextTrimming="CharacterEllipsis" Text="Delete Node" VerticalAlignment="Center" Margin="5,0,0,0"/>
+              </StackPanel>
+            </Button>
+
+            <Grid DockPanel.Dock="Top" >
               <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
               </Grid.ColumnDefinitions>

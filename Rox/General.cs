@@ -9,12 +9,19 @@ namespace Rox
   {
     public new static bool Equals(dynamic a, dynamic b)
     {
-      if (a.GetType() != b.GetType()) { throw new Exception("Type Mismatch"); }
+      if (a.GetType() != b.GetType()) { return false; }
       return a.Equals(b);
     }
     public static bool GreaterThan(dynamic a, dynamic b)
     {
-      return b > a;
+      try
+      {
+        return b > a;
+      }
+      catch (Exception)
+      {
+        return false;
+      }
     }
     public static bool LessThan(dynamic a, dynamic b)
     {
@@ -22,15 +29,36 @@ namespace Rox
     }
     public static bool GreaterThanOrEqual(dynamic a, dynamic b)
     {
-      return b >= a;
+      try
+      {
+        return b >= a;
+      }
+      catch (Exception)
+      {
+        return false;
+      }
     }
     public static bool LessThanOrEqual(dynamic a, dynamic b)
     {
-      return b <= a;
+      try
+      {
+        return b <= a;
+      }
+      catch (Exception)
+      {
+        return false;
+      }
     }
     public static bool NotEqual(dynamic a, dynamic b)
     {
-      return b != a;
+      try
+      {
+        return b != a;
+      }
+      catch (Exception)
+      {
+        return false;
+      }
     }
   }
 
@@ -54,6 +82,7 @@ namespace Rox
     ConditionFalse = 7,
     ConditionTrue1 = 8,
     ConditionFalse1 = 9,
+    SetVariable = 10,
   }
   public class IteMode : INode
   {
@@ -138,6 +167,26 @@ namespace Rox
       this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
   }
+  public class IteSetVar : INode, INotifyPropertyChanged
+  {
+    public event PropertyChangedEventHandler PropertyChanged;
+    public NodeTypes NodeType { get; } = NodeTypes.SetVariable;
+    public string Name { get; set; }
+    public List<NodeTypes> AllowedNodes { get; } = new List<NodeTypes>() { };
+    public Collection<INode> Items { get; set; } = new Collection<INode>();
+    public string Description() { return "{ Set Variable } This assigns a value to a variable. Sequence items are not allowed."; }
+    public IteSetVar(string name)
+    {
+      Name = name;
+    }
+    public string VariableName { get; set; }
+    public dynamic Value { get; set; }
+    public VariableType Vartype { get; set; }
+    protected virtual void OnPropertyChanged(string propertyName)
+    {
+      this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+  }
   public class IteTimer : INode, INotifyPropertyChanged
   {
     private double _timeElapsed;
@@ -168,7 +217,7 @@ namespace Rox
       DateTime now = DateTime.Now;
       double timeFromLastCheck = (now - LastTimeCalculated).TotalMilliseconds;
       LastTimeCalculated = now;
-       TimeElapsed += timeFromLastCheck;
+      TimeElapsed += timeFromLastCheck;
       Expired = _timeElapsed >= _interval;
     }
     public void Stop() { _lastTimeCalculated = null; TimeElapsed = 0; Expired = false; }
@@ -250,28 +299,31 @@ namespace Rox
             Items.Add(new IteMODE_VM(item));
             break;
           case NodeTypes.Condition:
-            Items.Add(new IteNodeViewModel(item));
+            Items.Add(new IteCONDITION_VM(item));
             break;
           case NodeTypes.Timer:
             Items.Add(new IteTIMER_VM(item));
             break;
           case NodeTypes.Initialized:
-            Items.Add(new IteFIRST_VM(item));
+            Items.Add(new IteFIRST_VM(item) { IsLocked = true });
             break;
           case NodeTypes.Continuous:
-            Items.Add(new IteCONTINUOUS_VM(item));
+            Items.Add(new IteCONTINUOUS_VM(item) { IsLocked = true });
             break;
           case NodeTypes.ConditionTrue:
-            Items.Add(new IteTRUE_VM(item));
+            Items.Add(new IteTRUE_VM(item) { IsLocked = true });
             break;
           case NodeTypes.ConditionFalse:
-            Items.Add(new IteFALSE_VM(item));
+            Items.Add(new IteFALSE_VM(item) { IsLocked = true });
             break;
           case NodeTypes.ConditionTrue1:
-            Items.Add(new IteTRUE1_VM(item));
+            Items.Add(new IteTRUE1_VM(item) { IsLocked = true });
             break;
           case NodeTypes.ConditionFalse1:
-            Items.Add(new IteFALSE1_VM(item));
+            Items.Add(new IteFALSE1_VM(item) { IsLocked = true });
+            break;
+          case NodeTypes.SetVariable:
+            Items.Add(new IteSETVAR_VM(item));
             break;
           default:
             break;
@@ -397,6 +449,10 @@ namespace Rox
   {
     public IteTIMER_VM(INode node) : base(node) { }
   }
+  public class IteSETVAR_VM : IteNodeViewModel
+  {
+    public IteSETVAR_VM(INode node) : base(node) { }
+  }
   public class Variable : INotifyPropertyChanged
   {
     public VariableType VarType { get; private set; }
@@ -419,7 +475,7 @@ namespace Rox
         {
           VarType = VariableTypes.stringType;
         }
-        if (value != _value)
+        if (!value.Equals(_value))
         {
           _value = value;
           NotifyPropertyChanged("Value");

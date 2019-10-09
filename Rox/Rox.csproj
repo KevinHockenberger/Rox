@@ -169,5 +169,8 @@
   <ItemGroup>
     <Resource Include="include\DiffUp.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="include\IO.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

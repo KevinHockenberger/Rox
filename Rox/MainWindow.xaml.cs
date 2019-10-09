@@ -31,7 +31,7 @@ namespace Rox
     private static SolidColorBrush trueNodeBackground = new SolidColorBrush(Color.FromRgb(0, 107, 21));
     private static SolidColorBrush falseNodeBackground = new SolidColorBrush(Color.FromRgb(107, 0, 66));
     //private static SolidColorBrush textboxBackgroundAllowDrop = new SolidColorBrush(Color.FromRgb(71, 125, 30));
-    public static List<NodeTypes> SequenceNodes = new List<NodeTypes>() { NodeTypes.Condition, NodeTypes.General, NodeTypes.Timer };
+    public static List<NodeTypes> SequenceNodes = new List<NodeTypes>() { NodeTypes.Condition, NodeTypes.General, NodeTypes.Timer, NodeTypes.SetVariable };
     public List<IteNodeViewModel> Modes;// : INotifyPropertyChanged;
     public IteNodeViewModel selectedNode { get; set; }
     System.Threading.Timer closeMnu;
@@ -272,6 +272,7 @@ namespace Rox
     private string xmlTag_ConditionFalse1 { get { return "cn1"; } }
     private string xmlTag_ConditionFalse { get { return "cn"; } }
     private string xmlTag_Timer { get { return "time"; } }
+    private string xmlTag_SetVar { get { return "set"; } }
     private void FileLoad(string filename)
     {
       Paused = true;
@@ -451,6 +452,31 @@ namespace Rox
               curNode = subNode;
             }
           }
+          // ----------------------------------------------------- SET VARIABLE
+          else if (reader.Name == xmlTag_SetVar)
+          {
+            if (curNode != null)
+            {
+              var subNode = new IteSETVAR_VM(new IteSetVar(reader.GetAttribute("name")) { VariableName= reader.GetAttribute("varname") }) { Parent = curNode };
+              switch (GetVarTypeFromString(reader.GetAttribute("type")))
+              {
+                case VarType.boolType:
+                  ((IteSetVar)subNode.Node).Value = bool.TryParse(reader.GetAttribute("val"), out bool b) ? b : false;
+                  break;
+                case VarType.stringType:
+                  ((IteSetVar)subNode.Node).Value = reader.GetAttribute("val");
+                  break;
+                case VarType.numberType:
+                  ((IteSetVar)subNode.Node).Value = decimal.TryParse(reader.GetAttribute("val"), out decimal d) ? d : 0;
+                  break;
+                default:
+                  break;
+              }
+
+              curNode.Items.Add(subNode);
+              //curNode = subNode;
+            }
+          }
 
         }
         else if (reader.NodeType == XmlNodeType.EndElement)
@@ -467,7 +493,7 @@ namespace Rox
       Paused = true;
       resetCloseMenuTimer();
       btnUnloadFile.Visibility = Visibility.Collapsed;
-      btnSaveAs.Visibility = Visibility.Collapsed;
+      //btnSaveAs.Visibility = Visibility.Collapsed;
       Running = null;
       resetForm(unselectProgram);
     }
@@ -505,58 +531,63 @@ namespace Rox
       switch (n.NodeType)
       {
         case NodeTypes.General:
-          sw.Write("<general name='{0}' type='{1}'>", n.Name, n.NodeType);
+          sw.Write("\n<general name='{0}' type='{1}'>", n.Name, n.NodeType);
           AppendChildren(sw, n);
+          sw.Write("\n</general>");
           break;
         case NodeTypes.Mode:
-          sw.Write("<{0} name='{1}' type='{2}'>", xmlTag_Mode, n.Name, n.NodeType);
+          sw.Write("\n<{0} name='{1}' type='{2}'>", xmlTag_Mode, n.Name, n.NodeType);
           AppendChildren(sw, n);
-          sw.Write("</{0}>", xmlTag_Mode);
+          sw.Write("\n</{0}>", xmlTag_Mode);
           break;
         case NodeTypes.Condition:
           var p = (IteCondition)n.Node;
-          sw.Write("<{0} name='{1}' varname='{2}' method='{3}' desired='{4}'>", xmlTag_Condition, p.Name, p.VariableName, p.EvalMethodText, p.DesiredValue);
+          sw.Write("\n<{0} name='{1}' varname='{2}' method='{3}' desired='{4}'>", xmlTag_Condition, p.Name, p.VariableName, p.EvalMethodText, p.DesiredValue);
           AppendChildren(sw, n);
-          sw.Write("</{0}>", xmlTag_Condition);
+          sw.Write("\n</{0}>", xmlTag_Condition);
           break;
         case NodeTypes.Timer:
           var t = (IteTimer)n.Node;
-          sw.Write("<{0} name='{1}' type='{2}' i='{3}'>", xmlTag_Timer, n.Name, n.NodeType, t.Interval);
+          sw.Write("\n<{0} name='{1}' type='{2}' i='{3}'>", xmlTag_Timer, n.Name, n.NodeType, t.Interval);
           AppendChildren(sw, n);
-          sw.Write("</{0}>", xmlTag_Timer);
+          sw.Write("\n</{0}>", xmlTag_Timer);
           break;
         case NodeTypes.Initialized:
-          sw.Write("<{0} name='{1}' type='{2}'>", xmlTag_Init, n.Name, n.NodeType);
+          sw.Write("\n<{0} name='{1}' type='{2}'>", xmlTag_Init, n.Name, n.NodeType);
           AppendChildren(sw, n);
-          sw.Write("</{0}>", xmlTag_Init);
+          sw.Write("\n</{0}>", xmlTag_Init);
           break;
         case NodeTypes.Continuous:
-          sw.Write("<{0} name='{1}' type='{2}'>", xmlTag_Continuous, n.Name, n.NodeType);
+          sw.Write("\n<{0} name='{1}' type='{2}'>", xmlTag_Continuous, n.Name, n.NodeType);
           AppendChildren(sw, n);
-          sw.Write("</{0}>", xmlTag_Continuous);
+          sw.Write("\n</{0}>", xmlTag_Continuous);
           break;
         case NodeTypes.ConditionTrue1:
-          sw.Write("<{0} name='{1}' type='{2}'>", xmlTag_ConditionTrue1, n.Name, n.NodeType);
+          sw.Write("\n<{0} name='{1}' type='{2}'>", xmlTag_ConditionTrue1, n.Name, n.NodeType);
           AppendChildren(sw, n);
-          sw.Write("</{0}>", xmlTag_ConditionTrue1);
+          sw.Write("\n</{0}>", xmlTag_ConditionTrue1);
           break;
         case NodeTypes.ConditionTrue:
-          sw.Write("<{0} name='{1}' type='{2}'>", xmlTag_ConditionTrue, n.Name, n.NodeType);
+          sw.Write("\n<{0} name='{1}' type='{2}'>", xmlTag_ConditionTrue, n.Name, n.NodeType);
           AppendChildren(sw, n);
-          sw.Write("</{0}>", xmlTag_ConditionTrue);
+          sw.Write("\n</{0}>", xmlTag_ConditionTrue);
           break;
         case NodeTypes.ConditionFalse1:
-          sw.Write("<{0} name='{1}' type='{2}'>", xmlTag_ConditionFalse1, n.Name, n.NodeType);
+          sw.Write("\n<{0} name='{1}' type='{2}'>", xmlTag_ConditionFalse1, n.Name, n.NodeType);
           AppendChildren(sw, n);
-          sw.Write("</{0}>", xmlTag_ConditionFalse1);
+          sw.Write("\n</{0}>", xmlTag_ConditionFalse1);
           break;
         case NodeTypes.ConditionFalse:
-          sw.Write("<{0} name='{1}' type='{2}'>", xmlTag_ConditionFalse, n.Name, n.NodeType);
+          sw.Write("\n<{0} name='{1}' type='{2}'>", xmlTag_ConditionFalse, n.Name, n.NodeType);
           AppendChildren(sw, n);
-          sw.Write("</{0}>", xmlTag_ConditionFalse);
+          sw.Write("\n</{0}>", xmlTag_ConditionFalse);
+          break;
+        case NodeTypes.SetVariable:
+          var v = (IteSetVar)n.Node;
+          sw.Write("\n<{0} name='{1}' varname='{2}' type='{3}' val='{4}'/>", xmlTag_SetVar, v.Name, v.VariableName, v.Vartype, v.Value);
           break;
         default:
-          sw.Write("<unknown name='{0}' type='{1}'>", n.Name, n.NodeType);
+          sw.Write("\n<unknown name='{0}' type='{1}'/>", n.Name, n.NodeType);
           AppendChildren(sw, n);
           break;
       }
@@ -603,8 +634,8 @@ namespace Rox
     {
       Modes = new List<IteNodeViewModel>()
             {
-                new IteFIRST_VM( new IteFirstScan("1st scan")),
-                new IteCONTINUOUS_VM( new IteContinuous("Always")),
+                new IteFIRST_VM( new IteFirstScan("1st scan")){IsLocked=true },
+                new IteCONTINUOUS_VM( new IteContinuous("Always")){IsLocked=true },
                 new IteMODE_VM( new IteMode("Stop"){Items={new IteIntialize("Initialize"),new IteContinuous("Continuous") } }){ IsLocked=true },
                 new IteMODE_VM( new IteMode("Auto"){Items={new IteIntialize("Initialize"),new IteContinuous("Continuous") } }){ IsLocked=true },
             };
@@ -730,21 +761,28 @@ namespace Rox
           ClearNodeOptionsPanel();
           if (!s.IsLocked)
           {
-            SetNodeOptionsPanel_Basic(s.Name);
+            SetNodeOptionsPanel("NodeOptionsBasic");
           }
           break;
         case NodeTypes.Condition:
           ClearNodeOptionsPanel();
           if (!s.IsLocked)
           {
-            SetNodeOptionsPanel_Condition(s.Name);
+            SetNodeOptionsPanel("NodeOptionsCondition");
           }
           break;
         case NodeTypes.Timer:
           ClearNodeOptionsPanel();
           if (!s.IsLocked)
           {
-            SetNodeOptionsPanel_Timer(s.Name);
+            SetNodeOptionsPanel("NodeOptionsTimer");
+          }
+          break;
+        case NodeTypes.SetVariable:
+          ClearNodeOptionsPanel();
+          if (!s.IsLocked)
+          {
+            SetNodeOptionsPanel("SetNodeOptionsPanel_SetVar");
           }
           break;
       }
@@ -766,17 +804,9 @@ namespace Rox
     {
       NodeOptions.ContentTemplate = null;
     }
-    private void SetNodeOptionsPanel_Basic(string Name)
+    private void SetNodeOptionsPanel(string Name)
     {
-      NodeOptions.ContentTemplate = (DataTemplate)Application.Current.MainWindow.FindResource("NodeOptionsBasic");
-    }
-    private void SetNodeOptionsPanel_Condition(string Name)
-    {
-      NodeOptions.ContentTemplate = (DataTemplate)Application.Current.MainWindow.FindResource("NodeOptionsCondition");
-    }
-    private void SetNodeOptionsPanel_Timer(string Name)
-    {
-      NodeOptions.ContentTemplate = (DataTemplate)Application.Current.MainWindow.FindResource("NodeOptionsTimer");
+      NodeOptions.ContentTemplate = (DataTemplate)Application.Current.MainWindow.FindResource(Name);
     }
     private void _PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
@@ -809,6 +839,16 @@ namespace Rox
       {
         // Initialize the drag & drop operation
         DataObject dragData = new DataObject("iteNode", new IteTimer("Timer") { Items = { new IteTrue("Expired"), new IteFalse("Waiting") } });
+        DragDrop.DoDragDrop((StackPanel)sender, dragData, DragDropEffects.Move);
+      }
+    }
+    private void SetVar_PreviewMouseMove(object sender, MouseEventArgs e)
+    {
+      Vector diff = startDragPoint - e.GetPosition(null);
+      if (e.LeftButton == MouseButtonState.Pressed && (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance || Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance))
+      {
+        // Initialize the drag & drop operation
+        DataObject dragData = new DataObject("iteNode", new IteSetVar("Assign") { });
         DragDrop.DoDragDrop((StackPanel)sender, dragData, DragDropEffects.Move);
       }
     }
@@ -884,9 +924,15 @@ namespace Rox
             dc.Items.Add(N); success = true;
             //Modes.Add(new IteCONDITION_VM(source)); success = true;
           }
+          else if (T == typeof(IteSetVar))
+          {
+            N = new IteSETVAR_VM(source) { IsSelected = true };
+            dc.Items.Add(N); success = true;
+            //Modes.Add(new IteCONDITION_VM(source)); success = true;
+          }
           else
           {
-            N = new IteNodeViewModel(null);
+            //N = new IteNodeViewModel(null);
           }
           if (success)
           {
@@ -1037,6 +1083,7 @@ namespace Rox
     private VarType GetVarTypeFromString(string s)
     {
       if (string.IsNullOrEmpty(s)) { return VarType.boolType; }
+      if (s.StartsWith("System.")) { s = s.Substring(7); }
       switch (s.ToLower())
       {
         default:
@@ -1159,7 +1206,7 @@ namespace Rox
     {
       while (!Paused)
       {
-        //System.Threading.Thread.Sleep(1);
+        System.Threading.Thread.Sleep(1);
         //await Task.Delay(1);
         bool modeChanged = curMode != processingMode;
         processingMode = curMode;
@@ -1231,78 +1278,78 @@ namespace Rox
         case NodeTypes.Condition: // ############################################################################################ CONDITION
           // get current value
           var v = Vars.Where(p => p.Name == ((IteCondition)node.Node).VariableName).FirstOrDefault();
-          if (v!=null)
+          if (v != null)
           {
-          if (highlight) { node.Background = processedNodeBackground; }
-          //var thisNode = node;
-          try
-          {
-            var eval = ((IteCondition)node.Node).EvalMethod(v.Value, ((IteCondition)node.Node).DesiredValue);
-            //Console.WriteLine((node.Parent == null ? "root" : node.Parent.Name) + "." + node.Name + " condition. eval = " + eval);
-            if (eval)
+            if (highlight) { node.Background = processedNodeBackground; }
+            //var thisNode = node;
+            try
             {
-              if (v.Value != v.UsersLastValue)
+              var eval = ((IteCondition)node.Node).EvalMethod(v.Value, ((IteCondition)node.Node).DesiredValue);
+              //Console.WriteLine((node.Parent == null ? "root" : node.Parent.Name) + "." + node.Name + " condition. eval = " + eval);
+              if (eval)
               {
-                // initialized true
-                Console.WriteLine("{0} - {1}", v.Value, v.UsersLastValue);
-                v.UsersLastValue = v.Value;
-                //node = node.Items.First(p => p.NodeType == NodeTypes.ConditionTrue);
-                if (highlight) { node.Items[0].Background = trueNodeBackground; }
-                foreach (var sub in node.Items[0].Items)
+                if (v.Value != v.UsersLastValue)
                 {
-                  ProcessValidNodeSequence(sub, initialize);
+                  // initialized true
+                  //Console.WriteLine("{0} - {1}", v.Value, v.UsersLastValue);
+                  v.UsersLastValue = v.Value;
+                  //node = node.Items.First(p => p.NodeType == NodeTypes.ConditionTrue);
+                  if (highlight) { node.Items[0].Background = trueNodeBackground; }
+                  foreach (var sub in node.Items[0].Items)
+                  {
+                    ProcessValidNodeSequence(sub, initialize);
+                  }
+                  ProcessInvalidNodeSequence(node.Items[1]);
+                  ProcessInvalidNodeSequence(node.Items[2]);
+                  ProcessInvalidNodeSequence(node.Items[3]);
                 }
-                ProcessInvalidNodeSequence(node.Items[1]);
-                ProcessInvalidNodeSequence(node.Items[2]);
-                ProcessInvalidNodeSequence(node.Items[3]);
+                else
+                {
+                  // true
+                  if (highlight) { node.Items[1].Background = trueNodeBackground; }
+                  foreach (var sub in node.Items[1].Items)
+                  {
+                    ProcessValidNodeSequence(sub, initialize);
+                  }
+                  ProcessInvalidNodeSequence(node.Items[0]);
+                  ProcessInvalidNodeSequence(node.Items[2]);
+                  ProcessInvalidNodeSequence(node.Items[3]);
+                }
               }
               else
               {
-                // true
-                if (highlight) { node.Items[1].Background = trueNodeBackground; }
-                foreach (var sub in node.Items[1].Items)
+                if (!v.Value.Equals(v.UsersLastValue))
                 {
-                  ProcessValidNodeSequence(sub, initialize);
+                  // initialized false
+                  //Console.WriteLine("{0} - {1}", v.Value, v.UsersLastValue);
+                  v.UsersLastValue = v.Value;
+                  if (highlight) { node.Items[2].Background = falseNodeBackground; }
+                  foreach (var sub in node.Items[2].Items)
+                  {
+                    ProcessValidNodeSequence(sub, initialize);
+                  }
+                  ProcessInvalidNodeSequence(node.Items[0]);
+                  ProcessInvalidNodeSequence(node.Items[1]);
+                  ProcessInvalidNodeSequence(node.Items[3]);
                 }
-                ProcessInvalidNodeSequence(node.Items[0]);
-                ProcessInvalidNodeSequence(node.Items[2]);
-                ProcessInvalidNodeSequence(node.Items[3]);
+                else
+                {
+                  // false
+                  if (highlight) { node.Items[3].Background = falseNodeBackground; }
+                  foreach (var sub in node.Items[3].Items)
+                  {
+                    ProcessValidNodeSequence(sub, initialize);
+                  }
+                  ProcessInvalidNodeSequence(node.Items[0]);
+                  ProcessInvalidNodeSequence(node.Items[1]);
+                  ProcessInvalidNodeSequence(node.Items[2]);
+                }
               }
             }
-            else
+            catch (Exception)
             {
-              if (v.Value != v.UsersLastValue)
-              {
-                // initialized false
-                Console.WriteLine("{0} - {1}", v.Value, v.UsersLastValue);
-                v.UsersLastValue = v.Value;
-                if (highlight) { node.Items[2].Background = falseNodeBackground; }
-                foreach (var sub in node.Items[2].Items)
-                {
-                  ProcessValidNodeSequence(sub, initialize);
-                }
-                ProcessInvalidNodeSequence(node.Items[0]);
-                ProcessInvalidNodeSequence(node.Items[1]);
-                ProcessInvalidNodeSequence(node.Items[3]);
-              }
-              else
-              {
-                // false
-                if (highlight) { node.Items[3].Background = falseNodeBackground; }
-                foreach (var sub in node.Items[3].Items)
-                {
-                  ProcessValidNodeSequence(sub, initialize);
-                }
-                ProcessInvalidNodeSequence(node.Items[0]);
-                ProcessInvalidNodeSequence(node.Items[1]);
-                ProcessInvalidNodeSequence(node.Items[2]);
-              }
+              SetAndEvaluateLogicStatement((IteCondition)node.Node);
             }
-          }
-          catch (Exception)
-          {
-            SetAndEvaluateLogicStatement((IteCondition)node.Node);
-          }
           }
           else
           {
@@ -1346,6 +1393,18 @@ namespace Rox
             ProcessInvalidNodeSequence(node.Items[0]);
           }
           break;
+        case NodeTypes.SetVariable:
+          try
+          {
+            var a = Vars.Where(p => p.Name == ((IteSetVar)node.Node).VariableName).FirstOrDefault();
+            var b = a.Value;
+            a.Value = ((IteSetVar)node.Node).Value;
+            if (highlight) { node.Background = processedNodeBackground; }
+          }
+          catch (Exception)
+          {
+          }
+          break;
       }
     }
     private void ChkHighlight_Checked(object sender, RoutedEventArgs e)
@@ -1359,6 +1418,46 @@ namespace Rox
       foreach (var mode in Modes)
       {
         ResetHighlight(mode);
+      }
+    }
+    private void BtnDeleteSelectedNode_Click(object sender, RoutedEventArgs e)
+    {
+      FindAndRemoveNode(selectedNode);
+    }
+    private void FindAndRemoveNode(IteNodeViewModel node)
+    {
+      if (node.IsLocked) { return; }
+      foreach (var n in Modes)
+      {
+        if (n == node && !n.IsLocked)
+        {
+          Modes.Remove(node);
+          tree.DataContext = null;
+          tree.DataContext = new { Modes };
+          return;
+        }
+        else
+        {
+          FindAndRemoveNodeFromNode(n, node);
+        }
+      }
+    }
+    private void FindAndRemoveNodeFromNode(IteNodeViewModel Source, IteNodeViewModel ToBeRemoved)
+    {
+      if (ToBeRemoved.IsLocked) { return; }
+      foreach (var node in Source.Items)
+      {
+        if (!node.IsLocked && node == ToBeRemoved)
+        {
+          Source.Items.Remove(node);
+          tree.DataContext = null;
+          tree.DataContext = new { Modes };
+          return;
+        }
+        else
+        {
+          FindAndRemoveNodeFromNode(node, ToBeRemoved);
+        }
       }
     }
   }
