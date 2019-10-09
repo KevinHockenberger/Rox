@@ -52,6 +52,8 @@ namespace Rox
     Continuous = 5,
     ConditionTrue = 6,
     ConditionFalse = 7,
+    ConditionTrue1 = 8,
+    ConditionFalse1 = 9,
   }
   public class IteMode : INode
   {
@@ -187,6 +189,18 @@ namespace Rox
       Name = name;
     }
   }
+  public class IteTrue1 : INode
+  {
+    public NodeTypes NodeType { get; } = NodeTypes.ConditionTrue1;
+    public string Name { get; set; }
+    public List<NodeTypes> AllowedNodes { get; } = Rox.MainWindow.SequenceNodes;
+    public Collection<INode> Items { get; set; } = new Collection<INode>();
+    public string Description() { return "{ Condition True Initialized branch } This sequence will run when the condition first becomes true."; }
+    public IteTrue1(string name)
+    {
+      Name = name;
+    }
+  }
   public class IteFalse : INode
   {
     public NodeTypes NodeType { get; } = NodeTypes.ConditionFalse;
@@ -195,6 +209,18 @@ namespace Rox
     public Collection<INode> Items { get; set; } = new Collection<INode>();
     public string Description() { return "{ Condition False branch } This sequence will run while the condition is not true."; }
     public IteFalse(string name)
+    {
+      Name = name;
+    }
+  }
+  public class IteFalse1 : INode
+  {
+    public NodeTypes NodeType { get; } = NodeTypes.ConditionFalse1;
+    public string Name { get; set; }
+    public List<NodeTypes> AllowedNodes { get; } = Rox.MainWindow.SequenceNodes;
+    public Collection<INode> Items { get; set; } = new Collection<INode>();
+    public string Description() { return "{ Condition False Initialized branch } This sequence will run when the condition first becomes false."; }
+    public IteFalse1(string name)
     {
       Name = name;
     }
@@ -240,6 +266,12 @@ namespace Rox
             break;
           case NodeTypes.ConditionFalse:
             Items.Add(new IteFALSE_VM(item));
+            break;
+          case NodeTypes.ConditionTrue1:
+            Items.Add(new IteTRUE1_VM(item));
+            break;
+          case NodeTypes.ConditionFalse1:
+            Items.Add(new IteFALSE1_VM(item));
             break;
           default:
             break;
@@ -345,9 +377,17 @@ namespace Rox
   {
     public IteTRUE_VM(INode node) : base(node) { }
   }
+  public class IteTRUE1_VM : IteNodeViewModel
+  {
+    public IteTRUE1_VM(INode node) : base(node) { }
+  }
   public class IteFALSE_VM : IteNodeViewModel
   {
     public IteFALSE_VM(INode node) : base(node) { }
+  }
+  public class IteFALSE1_VM : IteNodeViewModel
+  {
+    public IteFALSE1_VM(INode node) : base(node) { }
   }
   public class IteFIRST_VM : IteNodeViewModel
   {
@@ -386,6 +426,7 @@ namespace Rox
         }
       }
     }
+    public dynamic UsersLastValue { get; set; }
     private string _name;
     public string Name
     {

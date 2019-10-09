@@ -539,6 +539,28 @@
                   </Border>
                 </HierarchicalDataTemplate>
                 <!-- CONDITION NODE STYLE ############################################################# -->
+                <HierarchicalDataTemplate DataType="{x:Type local:IteTRUE1_VM}" ItemsSource="{Binding Items}" >
+                  <HierarchicalDataTemplate.Resources>
+                    <Style TargetType="{x:Type Border}">
+                      <Setter Property="CornerRadius" Value="4" />
+                      <Setter Property="BorderThickness" Value="1" />
+                      <Setter Property="Background" Value="{Binding Background}" />
+                      <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                          <Setter Property="BorderBrush" Value="White" />
+                          <Setter Property="Background" Value="#FF515151" />
+                        </Trigger>
+                      </Style.Triggers>
+                    </Style>
+                  </HierarchicalDataTemplate.Resources>
+                  <Border>
+                    <StackPanel Orientation="Horizontal" >
+                      <Image Width="20" Height="20" Margin="5,0,0,0" Source="include/DiffUp.png"/>
+                      <TextBlock Text="{Binding Name}" Margin="5,2,5,2" FontSize="16" Foreground="White"/>
+                    </StackPanel>
+                  </Border>
+                </HierarchicalDataTemplate>
+                <!-- CONDITION NODE STYLE ############################################################# -->
                 <HierarchicalDataTemplate DataType="{x:Type local:IteFALSE_VM}" ItemsSource="{Binding Items}" >
                   <HierarchicalDataTemplate.Resources>
                     <Style TargetType="{x:Type Border}">
@@ -556,6 +578,28 @@
                   <Border>
                     <StackPanel Orientation="Horizontal" >
                       <Image Width="20" Height="20" Margin="5,0,0,0" Source="include/X.png"/>
+                      <TextBlock Text="{Binding Name}" Margin="5,2,5,2" FontSize="16" Foreground="White"/>
+                    </StackPanel>
+                  </Border>
+                </HierarchicalDataTemplate>
+                <!-- CONDITION NODE STYLE ############################################################# -->
+                <HierarchicalDataTemplate DataType="{x:Type local:IteFALSE1_VM}" ItemsSource="{Binding Items}" >
+                  <HierarchicalDataTemplate.Resources>
+                    <Style TargetType="{x:Type Border}">
+                      <Setter Property="CornerRadius" Value="4" />
+                      <Setter Property="BorderThickness" Value="1" />
+                      <Setter Property="Background" Value="{Binding Background}" />
+                      <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                          <Setter Property="BorderBrush" Value="White" />
+                          <Setter Property="Background" Value="#FF515151" />
+                        </Trigger>
+                      </Style.Triggers>
+                    </Style>
+                  </HierarchicalDataTemplate.Resources>
+                  <Border>
+                    <StackPanel Orientation="Horizontal" >
+                      <Image Width="20" Height="20" Margin="5,0,0,0" Source="include/DiffDn.png"/>
                       <TextBlock Text="{Binding Name}" Margin="5,2,5,2" FontSize="16" Foreground="White"/>
                     </StackPanel>
                   </Border>

@@ -163,5 +163,11 @@
   <ItemGroup>
     <Resource Include="include\stopwatch.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="include\DiffDn.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="include\DiffUp.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
