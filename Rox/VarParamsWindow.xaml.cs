@@ -128,6 +128,15 @@ namespace Rox
     {
       LocalVarName = txtName.Text;
       VarNote = txtNote.Text;
+      if (VarType == VarType.stringType)
+      {
+        VarValue = txtValue.Text;
+      }
+      else if (VarType == VarType.numberType)
+      {
+        VarValue = decimal.TryParse(txtValue.Text, out var d) ? d : 0;
+      }
+
       this.DialogResult = true;
       this.Close();
     }
@@ -163,14 +172,6 @@ namespace Rox
     }
     private void TxtValue_KeyUp(object sender, KeyEventArgs e)
     {
-      if (VarType == VarType.stringType)
-      {
-        VarValue = txtValue.Text;
-      }
-      else if (VarType == VarType.numberType)
-      {
-        VarValue = decimal.TryParse(txtValue.Text, out var d) ? d : 0;
-      }
       Txt_KeyUp(sender, e);
     }
     private void RdoVal_Checked(object sender, RoutedEventArgs e)
@@ -188,5 +189,6 @@ namespace Rox
     {
       ((System.Windows.Controls.TextBox)sender).SelectAll();
     }
+
   }
 }

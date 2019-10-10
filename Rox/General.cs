@@ -2,9 +2,83 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Windows.Markup;
 
 namespace Rox
 {
+  public class EnumBindingSourceExtension : MarkupExtension
+  {
+    private Type _enumType;
+    public Type EnumType
+    {
+      get { return this._enumType; }
+      set
+      {
+        if (value != this._enumType)
+        {
+          if (null != value)
+          {
+            Type enumType = Nullable.GetUnderlyingType(value) ?? value;
+
+            if (!enumType.IsEnum)
+              throw new ArgumentException("Type must be for an Enum.");
+          }
+
+          this._enumType = value;
+        }
+      }
+    }
+
+    public EnumBindingSourceExtension() { }
+
+    public EnumBindingSourceExtension(Type enumType)
+    {
+      this.EnumType = enumType;
+    }
+
+    public override object ProvideValue(IServiceProvider serviceProvider)
+    {
+      if (null == this._enumType)
+        throw new InvalidOperationException("The EnumType must be specified.");
+
+      Type actualEnumType = Nullable.GetUnderlyingType(this._enumType) ?? this._enumType;
+      Array enumValues = Enum.GetValues(actualEnumType);
+
+      if (actualEnumType == this._enumType)
+        return enumValues;
+
+      Array tempArray = Array.CreateInstance(actualEnumType, enumValues.Length + 1);
+      enumValues.CopyTo(tempArray, 1);
+      return tempArray;
+    }
+  }
+  public class EnumDescriptionTypeConverter : EnumConverter
+  {
+    public EnumDescriptionTypeConverter(Type type)
+        : base(type)
+    {
+    }
+
+    public override object ConvertTo(ITypeDescriptorContext context, System.Globalization.CultureInfo culture, object value, Type destinationType)
+    {
+      if (destinationType == typeof(string))
+      {
+        if (value != null)
+        {
+          System.Reflection.FieldInfo fi = value.GetType().GetField(value.ToString());
+          if (fi != null)
+          {
+            var attributes = (DescriptionAttribute[])fi.GetCustomAttributes(typeof(DescriptionAttribute), false);
+            return ((attributes.Length > 0) && (!String.IsNullOrEmpty(attributes[0].Description))) ? attributes[0].Description : value.ToString();
+          }
+        }
+
+        return string.Empty;
+      }
+
+      return base.ConvertTo(context, culture, value, destinationType);
+    }
+  }
   public static class Logic
   {
     public new static bool Equals(dynamic a, dynamic b)
@@ -169,6 +243,33 @@ namespace Rox
   }
   public class IteSetVar : INode, INotifyPropertyChanged
   {
+    private AssignMethod _method = AssignMethod.assign;
+    public AssignMethod AssignMethod
+    {
+      get { return _method; }
+      set
+      {
+        if (value != _method)
+        {
+          _method = value;
+          this.OnPropertyChanged("AssignMethod");
+        }
+      }
+    }
+    private VariableType _vartype = VariableTypes.stringType;
+    public VariableType VarType
+    {
+      get { return _vartype; }
+      set
+      {
+        if (value.Value != _vartype.Value)
+        {
+          _vartype = value;
+          this.OnPropertyChanged("VarType");
+        }
+      }
+    }
+
     public event PropertyChangedEventHandler PropertyChanged;
     public NodeTypes NodeType { get; } = NodeTypes.SetVariable;
     public string Name { get; set; }
@@ -181,7 +282,6 @@ namespace Rox
     }
     public string VariableName { get; set; }
     public dynamic Value { get; set; }
-    public VariableType Vartype { get; set; }
     protected virtual void OnPropertyChanged(string propertyName)
     {
       this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -455,29 +555,43 @@ namespace Rox
   }
   public class Variable : INotifyPropertyChanged
   {
-    public VariableType VarType { get; private set; }
+    private VariableType _varType;
+    public VariableType VarType
+    {
+      get { return _varType; }
+      private set
+      {
+        if (_varType.Value != value.Value)
+        {
+          _varType = value;
+          NotifyPropertyChanged("VarType");
+        }
+      }
+    }
     private dynamic _value;
     public dynamic Value
     {
       get { return _value; }
       set
       {
-        var t = value.GetType();
-        if (t == typeof(bool))
-        {
-          VarType = VariableTypes.boolType;
-        }
-        else if (t == typeof(decimal) || t == typeof(int) || t == typeof(long) || t == typeof(short))
-        {
-          VarType = VariableTypes.numberType;
-        }
-        if (t == typeof(string))
-        {
-          VarType = VariableTypes.stringType;
-        }
         if (!value.Equals(_value))
         {
-          _value = value;
+          var t = value.GetType();
+          if (t == typeof(bool))
+          {
+            VarType = VariableTypes.boolType;
+            _value = (bool)value;
+          }
+          else if (t == typeof(decimal) || t == typeof(double) || t == typeof(int) || t == typeof(long) || t == typeof(short))
+          {
+            VarType = VariableTypes.numberType;
+            _value = (decimal)value;
+          }
+          if (t == typeof(string))
+          {
+            VarType = VariableTypes.stringType;
+            _value = (string)value;
+          }
           NotifyPropertyChanged("Value");
         }
       }
@@ -497,6 +611,7 @@ namespace Rox
       }
     }
     private string _note;
+
     public string Note
     {
       get { return _note; }
@@ -515,11 +630,22 @@ namespace Rox
       PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(info));
     }
   }
+    [TypeConverter(typeof(EnumDescriptionTypeConverter))]
+    public enum AssignMethod
+    {
+      [Description("assign ( = )")]
+      assign = 1,
+      [Description("increment ( + = )")]
+      increment = 2,
+      [Description("decrement ( - = )")]
+      decrement = 3
+    }
+
   public enum VarType
   {
-    boolType,
-    stringType,
-    numberType
+    boolType = 1,
+    stringType = 2,
+    numberType = 3
   }
   public struct VariableType
   {

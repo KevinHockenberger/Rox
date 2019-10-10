@@ -316,9 +316,22 @@
             <Label Style="{StaticResource lblDescriptor}" Content="Name" />
             <TextBox x:Name="txtNodeName"  AllowDrop="True" KeyUp="txtNodeName_KeyUp" Text="{Binding selectedNode.Name, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}"/>
             <Label AllowDrop="True" Style="{StaticResource lblDescriptor}" Content="Variable" DockPanel.Dock="Top" Margin="0,5,0,0"/>
-            <TextBox Text="{Binding Path=selectedNode.Node.VariableName, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" VerticalContentAlignment="Center" />
+            <TextBox Text="{Binding Path=selectedNode.Node.VariableName, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" VerticalContentAlignment="Center" 
+                     AllowDrop="True"
+                     PreviewDragLeave="TextBox_PreviewDragLeave"
+                     PreviewDragEnter="Var_PreviewDragEnter" 
+                     PreviewDragOver="Var_PreviewDragEnter"
+                     Drop="Var_Drop" />
+            <Label Style="{StaticResource lblDescriptor}" Content="method" Margin="0,5,0,0"/>
+            <ComboBox SelectedItem="{Binding Path=selectedNode.Node.AssignMethod, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" ItemsSource="{Binding Source={local:EnumBindingSource {x:Type local:AssignMethod}}}"  >
+            </ComboBox>
             <Label Style="{StaticResource lblDescriptor}" Content="Value" Margin="0,5,0,0"/>
-            <TextBox Text="{Binding Path=selectedNode.Node.Value, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" VerticalContentAlignment="Center" />
+            <ComboBox IsEditable="True" Text="{Binding Path=selectedNode.Node.Value, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" TextBoxBase.TextChanged="Datatype_TextChanged" >
+              <ComboBoxItem Content="true" />
+              <ComboBoxItem Content="false" />
+              <ComboBoxItem Content="0" />
+              <ComboBoxItem Content="1" />
+            </ComboBox>
           </StackPanel>
         </ScrollViewer>
       </Border>
@@ -790,7 +803,7 @@
                 <ListView.View>
                   <GridView>
                     <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" Width="100"/>
-                    <GridViewColumn Header="Value" DisplayMemberBinding="{Binding Value}" Width="50"/>
+                    <GridViewColumn Header="Value" DisplayMemberBinding="{Binding Value,StringFormat={}{0:#,##0.######}}" Width="50"/>
                     <GridViewColumn Header="Type" DisplayMemberBinding="{Binding VarType}" Width="30"/>
                     <GridViewColumn Header="Note" DisplayMemberBinding="{Binding Note}" Width="100"/>
                   </GridView>

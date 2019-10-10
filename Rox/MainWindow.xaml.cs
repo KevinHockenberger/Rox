@@ -27,7 +27,7 @@ namespace Rox
     //private static SolidColorBrush processedNodeBackground = new SolidColorBrush(Color.FromRgb(0, 107, 21));
     private static SolidColorBrush errorNodeBackground = new SolidColorBrush(Colors.Red);
     private static SolidColorBrush processedNodeBackground = new SolidColorBrush(Color.FromRgb(88, 94, 45));
-    private static SolidColorBrush unprocessedNodeBackground = new SolidColorBrush(Colors.Black);
+    private static SolidColorBrush unprocessedNodeBackground = new SolidColorBrush(Colors.Transparent);
     private static SolidColorBrush trueNodeBackground = new SolidColorBrush(Color.FromRgb(0, 107, 21));
     private static SolidColorBrush falseNodeBackground = new SolidColorBrush(Color.FromRgb(107, 0, 66));
     //private static SolidColorBrush textboxBackgroundAllowDrop = new SolidColorBrush(Color.FromRgb(71, 125, 30));
@@ -287,19 +287,20 @@ namespace Rox
         {
           //Console.WriteLine(" ------ START READING ------- ");
           ParseFile(reader, fileRead);
-          Modes = fileRead;
-          tree.DataContext = null;
-          tree.DataContext = new { Modes };
         }
+        Modes = fileRead;
+        tree.DataContext = null;
+        tree.DataContext = new { Modes };
+        ValidateSequenceVariableTypes();
         btnLoadFileText.Text = string.Format("Save [{0}]", filename);
         Properties.Settings.Default.MruFiles.Insert(0, filename); PopulateRecentFilelist();
         loadedFile = filename;
         UpdateHeader(string.Format("{0} loaded.", filename));
         btnUnloadFile.Visibility = Visibility.Visible;
-        processingMode = null;
-        curMode = string.Empty;
         Paused = false;
         Running = false;
+        processingMode = null;
+        curMode = string.Empty;
       }
       else
       {
@@ -457,7 +458,13 @@ namespace Rox
           {
             if (curNode != null)
             {
-              var subNode = new IteSETVAR_VM(new IteSetVar(reader.GetAttribute("name")) { VariableName= reader.GetAttribute("varname") }) { Parent = curNode };
+              var subNode = new IteSETVAR_VM(new IteSetVar(reader.GetAttribute("name"))
+              {
+                VariableName = reader.GetAttribute("varname")
+                ,
+                AssignMethod = reader.GetAttribute("method") == "3" ? AssignMethod.decrement : reader.GetAttribute("method") == "2" ? AssignMethod.increment : AssignMethod.assign
+              })
+              { Parent = curNode };
               switch (GetVarTypeFromString(reader.GetAttribute("type")))
               {
                 case VarType.boolType:
@@ -487,6 +494,50 @@ namespace Rox
 
 
       return true;
+    }
+    private void ValidateSequenceVariableTypes()
+    {
+      foreach (var mode in Modes)
+      {
+        ValidateSequenceVariableTypesForNode(mode);
+      }
+    }
+    private void ValidateSequenceVariableTypesForNode(IteNodeViewModel node)
+    {
+      var t = node.GetType();
+      if (t==typeof(IteCONDITION_VM))
+      {
+        var a = Vars.Where(p => p.Name == ((IteCondition)node.Node).VariableName);
+        if (a.Any())
+        {
+          switch (GetVarTypeFromString(a.First().VarType.ToString()))
+          {
+            case VarType.boolType:
+              ((IteCondition)node.Node).DesiredValue = bool.TryParse(((IteCondition)node.Node).DesiredValue, out bool b) ? b : false;
+              break;
+            case VarType.stringType:
+              ((IteCondition)node.Node).DesiredValue = ((IteCondition)node.Node).DesiredValue.ToString();
+              break;
+            case VarType.numberType:
+              ((IteCondition)node.Node).DesiredValue = decimal.TryParse(((IteCondition)node.Node).DesiredValue, out decimal d) ? d : 0;
+              break;
+            default:
+              break;
+          }
+        }
+      }
+      else if (t==typeof(IteSETVAR_VM))
+      {
+        var a = Vars.Where(p => p.Name == ((IteSetVar)node.Node).VariableName);
+        if(a.Any())
+        {
+          ((IteSetVar)node.Node).VarType = a.First().VarType;
+        }
+      }
+      foreach (var n in node.Items)
+      {
+        ValidateSequenceVariableTypesForNode(n);
+      }
     }
     private void FileUnload(bool unselectProgram)
     {
@@ -584,7 +635,7 @@ namespace Rox
           break;
         case NodeTypes.SetVariable:
           var v = (IteSetVar)n.Node;
-          sw.Write("\n<{0} name='{1}' varname='{2}' type='{3}' val='{4}'/>", xmlTag_SetVar, v.Name, v.VariableName, v.Vartype, v.Value);
+          sw.Write("\n<{0} name='{1}' varname='{2}' type='{3}' val='{4}' method='{5}'/>", xmlTag_SetVar, v.Name, v.VariableName, v.VarType, v.Value, (int)v.AssignMethod);
           break;
         default:
           sw.Write("\n<unknown name='{0}' type='{1}'/>", n.Name, n.NodeType);
@@ -1088,6 +1139,7 @@ namespace Rox
       {
         default:
           return VarType.boolType;
+        case "3":
         case "numbertype":
         case "n":
         case "num":
@@ -1102,6 +1154,7 @@ namespace Rox
         case "real":
         case "double":
           return VarType.numberType;
+        case "2":
         case "string":
         case "stringtype":
         case "text":
@@ -1170,9 +1223,16 @@ namespace Rox
       {
         var source = (Variable)e.Data.GetData("iteVar");
         ((TextBox)sender).Text = source.Name;
-        var o = (selectedNode.Node as IteCondition);
-        o.VariableName = source.Name;
-        SetAndEvaluateLogicStatement(o);
+        if (selectedNode.Node.GetType() == typeof(IteCondition))
+        {
+          var o = (IteCondition)selectedNode.Node;
+          o.VariableName = source.Name;
+          SetAndEvaluateLogicStatement(o);
+        }
+        else if (selectedNode.Node.GetType() == typeof(IteSetVar))
+        {
+          ((IteSetVar)selectedNode.Node).VariableName = source.Name;
+        }
       }
       e.Handled = true;
       ((TextBox)sender).Background = textboxBackground;
@@ -1204,31 +1264,45 @@ namespace Rox
     }
     private void RunSequence()
     {
-      while (!Paused)
+      try
       {
-        System.Threading.Thread.Sleep(1);
-        //await Task.Delay(1);
-        bool modeChanged = curMode != processingMode;
-        processingMode = curMode;
-        foreach (var mode in Modes)
+        while (!Paused)
         {
-          //if (highlight) { ResetHighlight(mode); }
-          try
+          System.Threading.Thread.Sleep(1);
+          //await Task.Delay(1);
+          bool firstscan = string.IsNullOrEmpty(curMode) || string.IsNullOrEmpty(processingMode);
+          bool modeChanged = curMode != processingMode;
+
+          processingMode = curMode;
+          foreach (var mode in Modes)
           {
-            if ((mode.NodeType == NodeTypes.Continuous) || (curMode == mode.Name) || (mode.NodeType == NodeTypes.Initialized && modeChanged && processingMode == string.Empty)) // Always, current mode, 1st scan
+            //if (highlight) { ResetHighlight(mode); }
+            try
             {
-              ProcessValidNodeSequence(mode, modeChanged);
+              if ((mode.NodeType == NodeTypes.Continuous) || (curMode == mode.Name) || (mode.NodeType == NodeTypes.Initialized && (modeChanged || firstscan))) // Always, current mode, 1st scan
+              {
+                ProcessValidNodeSequence(mode, modeChanged);
+              }
+              else
+              {
+                ProcessInvalidNodeSequence(mode);
+                //Console.WriteLine("SKIP: " + mode.Name);
+              }
             }
-            else
+            catch (Exception)
             {
-              ProcessInvalidNodeSequence(mode);
-              //Console.WriteLine("SKIP: " + mode.Name);
+              throw;
             }
-          }
-          catch (Exception)
-          {
           }
         }
+      }
+      catch (Exception)
+      {
+        Dispatcher.Invoke(() =>
+        {
+          Paused = true;
+          MessageBox.Show("Unhandled error while running the sequence. This is most likely caused from loading a previous version or otherwise unsupported file. The sequence is aborted. You can try to adjust the sequence and restart.", "Sequnce Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        });
       }
     }
     private void ResetHighlight(IteNodeViewModel node)
@@ -1396,9 +1470,21 @@ namespace Rox
         case NodeTypes.SetVariable:
           try
           {
-            var a = Vars.Where(p => p.Name == ((IteSetVar)node.Node).VariableName).FirstOrDefault();
-            var b = a.Value;
-            a.Value = ((IteSetVar)node.Node).Value;
+            //var var = Vars.Where(p => p.Name == ((IteSetVar)node.Node).VariableName).FirstOrDefault();
+            switch (((IteSetVar)node.Node).AssignMethod)
+            {
+              case AssignMethod.assign:
+                Vars.Where(p => p.Name == ((IteSetVar)node.Node).VariableName).FirstOrDefault().Value = ((IteSetVar)node.Node).Value;
+                break;
+              case AssignMethod.increment:
+                Vars.Where(p => p.Name == ((IteSetVar)node.Node).VariableName).FirstOrDefault().Value += ((IteSetVar)node.Node).Value;
+                break;
+              case AssignMethod.decrement:
+                Vars.Where(p => p.Name == ((IteSetVar)node.Node).VariableName).FirstOrDefault().Value -= ((IteSetVar)node.Node).Value;
+                break;
+                //default:
+                //  break;
+            }
             if (highlight) { node.Background = processedNodeBackground; }
           }
           catch (Exception)
@@ -1460,5 +1546,30 @@ namespace Rox
         }
       }
     }
+    private void Datatype_TextChanged(object sender, TextChangedEventArgs e)
+    {
+      var s = selectedNode;
+      if (s != null && s.GetType() == typeof(IteSETVAR_VM))
+      {
+        var t = ((ComboBox)sender).Text.ToLower().Trim();
+        if (t == "true" || t == "false")
+        {
+          ((IteSetVar)((IteSETVAR_VM)s).Node).VarType = VariableTypes.boolType;
+          ((IteSetVar)((IteSETVAR_VM)s).Node).Value = t == "true" ? true : false;
+        }
+        else if (decimal.TryParse(t, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.CurrentCulture, out var d))
+        {
+          ((IteSetVar)((IteSETVAR_VM)s).Node).VarType = VariableTypes.numberType;
+          ((IteSetVar)((IteSETVAR_VM)s).Node).Value = d;
+        }
+        else
+        {
+          ((IteSetVar)((IteSETVAR_VM)s).Node).VarType = VariableTypes.stringType;
+        }
+        //Console.WriteLine("Text: " + ((ComboBox)sender).Text + " | " + ((IteSetVar)((IteSETVAR_VM)s).Node).VarType);
+      }
+
+    }
+
   }
 }
