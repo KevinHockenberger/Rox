@@ -365,7 +365,7 @@ namespace Rox
           if (reader.Name == xmlTag_Mode)
           {
             var name = reader.GetAttribute("name");
-            curNode = new IteMODE_VM(new IteMode(name)); // { Items = { new IteIntialize("Initialize"), new IteContinuous("Continuous") } }
+            curNode = new IteMODE_VM(new IteMode(name)) { IsExpanded = reader.GetAttribute("exp") != "False" }; // { Items = { new IteIntialize("Initialize"), new IteContinuous("Continuous") } }
             if (name == "Stop" || name == "Auto")
             {
               curNode.IsLocked = true;
@@ -377,12 +377,12 @@ namespace Rox
           {
             if (curNode == null)
             {
-              curNode = new IteFIRST_VM(new IteFirstScan("1st scan"));
+              curNode = new IteFIRST_VM(new IteFirstScan("1st scan")) { IsLocked = true, IsExpanded = reader.GetAttribute("exp") != "False" };
               modes.Add(curNode);
             }
             else
             {
-              var subNode = new IteFIRST_VM(new IteIntialize(reader.GetAttribute("name"))) { Parent = curNode };
+              var subNode = new IteFIRST_VM(new IteIntialize(reader.GetAttribute("name"))) { Parent = curNode,IsExpanded = reader.GetAttribute("exp") != "False" };
               curNode.Items.Add(subNode);
               curNode = subNode;
             }
@@ -392,12 +392,12 @@ namespace Rox
           {
             if (curNode == null)
             {
-              curNode = new IteCONTINUOUS_VM(new IteContinuous("Always"));
+              curNode = new IteCONTINUOUS_VM(new IteContinuous("Always")) { IsLocked = true, IsExpanded = reader.GetAttribute("exp") != "False" };
               modes.Add(curNode);
             }
             else
             {
-              var subNode = new IteCONTINUOUS_VM(new IteContinuous(reader.GetAttribute("name"))) { Parent = curNode };
+              var subNode = new IteCONTINUOUS_VM(new IteContinuous(reader.GetAttribute("name"))) { Parent = curNode, IsExpanded = reader.GetAttribute("exp") != "False" };
               curNode.Items.Add(subNode);
               curNode = subNode;
             }
@@ -414,7 +414,7 @@ namespace Rox
                 EvalMethodText = reader.GetAttribute("method"),
                 EvalMethod = GetEvalMethodFromString(reader.GetAttribute("method"))
               })
-              { Parent = curNode };
+              { Parent = curNode, IsExpanded = reader.GetAttribute("exp") != "False" };
               curNode.Items.Add(subNode);
               curNode = subNode;
             }
@@ -424,7 +424,7 @@ namespace Rox
           {
             if (curNode != null)
             {
-              var subNode = new IteTRUE1_VM(new IteTrue1(reader.GetAttribute("name"))) { Parent = curNode };
+              var subNode = new IteTRUE1_VM(new IteTrue1(reader.GetAttribute("name"))) { Parent = curNode, IsExpanded = reader.GetAttribute("exp") != "False" };
               curNode.Items.Add(subNode);
               curNode = subNode;
             }
@@ -434,7 +434,7 @@ namespace Rox
           {
             if (curNode != null)
             {
-              var subNode = new IteTRUE_VM(new IteTrue(reader.GetAttribute("name"))) { Parent = curNode };
+              var subNode = new IteTRUE_VM(new IteTrue(reader.GetAttribute("name"))) { Parent = curNode, IsExpanded = reader.GetAttribute("exp") != "False" };
               curNode.Items.Add(subNode);
               curNode = subNode;
             }
@@ -444,7 +444,7 @@ namespace Rox
           {
             if (curNode != null)
             {
-              var subNode = new IteFALSE1_VM(new IteFalse1(reader.GetAttribute("name"))) { Parent = curNode };
+              var subNode = new IteFALSE1_VM(new IteFalse1(reader.GetAttribute("name"))) { Parent = curNode, IsExpanded = reader.GetAttribute("exp") != "False" };
               curNode.Items.Add(subNode);
               curNode = subNode;
             }
@@ -454,7 +454,7 @@ namespace Rox
           {
             if (curNode != null)
             {
-              var subNode = new IteFALSE_VM(new IteFalse(reader.GetAttribute("name"))) { Parent = curNode };
+              var subNode = new IteFALSE_VM(new IteFalse(reader.GetAttribute("name"))) { Parent = curNode, IsExpanded = reader.GetAttribute("exp") != "False" };
               curNode.Items.Add(subNode);
               curNode = subNode;
             }
@@ -468,7 +468,7 @@ namespace Rox
               {
                 Interval = double.TryParse(reader.GetAttribute("i"), out double d) ? d : 0
               })
-              { Parent = curNode };
+              { Parent = curNode, IsExpanded = reader.GetAttribute("exp") != "False" };
               curNode.Items.Add(subNode);
               curNode = subNode;
             }
@@ -483,7 +483,7 @@ namespace Rox
                 VariableName = reader.GetAttribute("varname"),
                 AssignMethod = reader.GetAttribute("method") == "4" ? AssignMethod.invert : reader.GetAttribute("method") == "3" ? AssignMethod.decrement : reader.GetAttribute("method") == "2" ? AssignMethod.increment : AssignMethod.assign
               })
-              { Parent = curNode };
+              { Parent = curNode, IsExpanded = reader.GetAttribute("exp") != "False" };
               switch (GetVarTypeFromString(reader.GetAttribute("type")))
               {
                 case VarType.boolType:
@@ -536,7 +536,7 @@ namespace Rox
               {
                 ModeName = reader.GetAttribute("mode"),
               })
-              { Parent = curNode };
+              { Parent = curNode, IsExpanded = reader.GetAttribute("exp") != "False" };
               curNode.Items.Add(subNode);
               //curNode = subNode;
             }
@@ -547,7 +547,7 @@ namespace Rox
             if (curNode != null)
             {
               var subNode = new IteRETURN_VM(new IteReturn(reader.GetAttribute("name")) { })
-              { Parent = curNode };
+              { Parent = curNode, IsExpanded = reader.GetAttribute("exp") != "False" };
               curNode.Items.Add(subNode);
               //curNode = subNode;
             }
@@ -599,6 +599,23 @@ namespace Rox
         if (a.Any())
         {
           ((IteSetVar)node.Node).VarType = a.First().VarType;
+          if (((IteSetVar)node.Node).OtherwiseValue != null && ((IteSetVar)node.Node).OtherwiseValue.GetType() != a.First().Value.GetType())
+          {
+            switch (a.First().VarType.enumValue)
+            {
+              case VarType.boolType:
+                ((IteSetVar)node.Node).OtherwiseValue = bool.TryParse(((IteSetVar)node.Node).OtherwiseValue, out bool b) ? b : false;
+                break;
+              case VarType.stringType:
+                ((IteSetVar)node.Node).OtherwiseValue = ((IteSetVar)node.Node).OtherwiseValue.ToString();
+                break;
+              case VarType.numberType:
+                ((IteSetVar)node.Node).OtherwiseValue = decimal.TryParse(((IteSetVar)node.Node).OtherwiseValue, out decimal d) ? d : 0;
+                break;
+              default:
+                break;
+            }
+          }
         }
       }
       foreach (var n in node.Items)
@@ -649,70 +666,70 @@ namespace Rox
       switch (n.NodeType)
       {
         case NodeTypes.General:
-          sw.Write("\n<general name='{0}' type='{1}'>", n.Name, n.NodeType);
+          sw.Write("\n<general name='{0}' type='{1}' exp='{2}'>", n.Name, n.NodeType, n.IsExpanded);
           AppendChildren(sw, n);
           sw.Write("\n</general>");
           break;
         case NodeTypes.Mode:
-          sw.Write("\n<{0} name='{1}' type='{2}'>", xmlTag_Mode, n.Name, n.NodeType);
+          sw.Write("\n<{0} name='{1}' type='{2}' exp='{3}'>", xmlTag_Mode, n.Name, n.NodeType, n.IsExpanded);
           AppendChildren(sw, n);
           sw.Write("\n</{0}>", xmlTag_Mode);
           break;
         case NodeTypes.Condition:
           var p = (IteCondition)n.Node;
-          sw.Write("\n<{0} name='{1}' varname='{2}' method='{3}' desired='{4}'>", xmlTag_Condition, p.Name, p.VariableName, p.EvalMethodText, p.DesiredValue);
+          sw.Write("\n<{0} name='{1}' varname='{2}' method='{3}' desired='{4}' exp='{5}'>", xmlTag_Condition, p.Name, p.VariableName, p.EvalMethodText, p.DesiredValue, n.IsExpanded);
           AppendChildren(sw, n);
           sw.Write("\n</{0}>", xmlTag_Condition);
           break;
         case NodeTypes.Timer:
           var t = (IteTimer)n.Node;
-          sw.Write("\n<{0} name='{1}' type='{2}' i='{3}'>", xmlTag_Timer, n.Name, n.NodeType, t.Interval);
+          sw.Write("\n<{0} name='{1}' type='{2}' i='{3}' exp='{4}'>", xmlTag_Timer, n.Name, n.NodeType, t.Interval, n.IsExpanded);
           AppendChildren(sw, n);
           sw.Write("\n</{0}>", xmlTag_Timer);
           break;
         case NodeTypes.Initialized:
-          sw.Write("\n<{0} name='{1}' type='{2}'>", xmlTag_Init, n.Name, n.NodeType);
+          sw.Write("\n<{0} name='{1}' type='{2}' exp='{3}'>", xmlTag_Init, n.Name, n.NodeType, n.IsExpanded);
           AppendChildren(sw, n);
           sw.Write("\n</{0}>", xmlTag_Init);
           break;
         case NodeTypes.Continuous:
-          sw.Write("\n<{0} name='{1}' type='{2}'>", xmlTag_Continuous, n.Name, n.NodeType);
+          sw.Write("\n<{0} name='{1}' type='{2}' exp='{3}'>", xmlTag_Continuous, n.Name, n.NodeType, n.IsExpanded);
           AppendChildren(sw, n);
           sw.Write("\n</{0}>", xmlTag_Continuous);
           break;
         case NodeTypes.ConditionTrue1:
-          sw.Write("\n<{0} name='{1}' type='{2}'>", xmlTag_ConditionTrue1, n.Name, n.NodeType);
+          sw.Write("\n<{0} name='{1}' type='{2}' exp='{3}'>", xmlTag_ConditionTrue1, n.Name, n.NodeType, n.IsExpanded);
           AppendChildren(sw, n);
           sw.Write("\n</{0}>", xmlTag_ConditionTrue1);
           break;
         case NodeTypes.ConditionTrue:
-          sw.Write("\n<{0} name='{1}' type='{2}'>", xmlTag_ConditionTrue, n.Name, n.NodeType);
+          sw.Write("\n<{0} name='{1}' type='{2}' exp='{3}'>", xmlTag_ConditionTrue, n.Name, n.NodeType, n.IsExpanded);
           AppendChildren(sw, n);
           sw.Write("\n</{0}>", xmlTag_ConditionTrue);
           break;
         case NodeTypes.ConditionFalse1:
-          sw.Write("\n<{0} name='{1}' type='{2}'>", xmlTag_ConditionFalse1, n.Name, n.NodeType);
+          sw.Write("\n<{0} name='{1}' type='{2}' exp='{3}'>", xmlTag_ConditionFalse1, n.Name, n.NodeType, n.IsExpanded);
           AppendChildren(sw, n);
           sw.Write("\n</{0}>", xmlTag_ConditionFalse1);
           break;
         case NodeTypes.ConditionFalse:
-          sw.Write("\n<{0} name='{1}' type='{2}'>", xmlTag_ConditionFalse, n.Name, n.NodeType);
+          sw.Write("\n<{0} name='{1}' type='{2}' exp='{3}'>", xmlTag_ConditionFalse, n.Name, n.NodeType, n.IsExpanded);
           AppendChildren(sw, n);
           sw.Write("\n</{0}>", xmlTag_ConditionFalse);
           break;
         case NodeTypes.SetVariable:
           var v = (IteSetVar)n.Node;
-          sw.Write("\n<{0} name='{1}' varname='{2}' type='{3}' val='{4}' method='{5}' other='{6}'/>", xmlTag_SetVar, v.Name, v.VariableName, v.VarType, v.Value, (int)v.AssignMethod, v.OtherwiseValue);
+          sw.Write("\n<{0} name='{1}' varname='{2}' type='{3}' val='{4}' method='{5}' other='{6}' exp='{7}'/>", xmlTag_SetVar, v.Name, v.VariableName, v.VarType, v.Value, (int)v.AssignMethod, v.OtherwiseValue, n.IsExpanded);
           break;
         case NodeTypes.SetMode:
           var v1 = (IteSetMode)n.Node;
-          sw.Write("\n<{0} name='{1}' mode='{2}'/>", xmlTag_SetMode, v1.Name, v1.ModeName);
+          sw.Write("\n<{0} name='{1}' mode='{2}' exp='{3}'/>", xmlTag_SetMode, v1.Name, v1.ModeName, n.IsExpanded);
           break;
         case NodeTypes.Return:
-          sw.Write("\n<{0} name='{1}'/>", xmlTag_Return, ((IteReturn)n.Node).Name);
+          sw.Write("\n<{0} name='{1}' exp='{2}'/>", xmlTag_Return, ((IteReturn)n.Node).Name, n.IsExpanded);
           break;
         default:
-          sw.Write("\n<unknown name='{0}' type='{1}'/>", n.Name, n.NodeType);
+          sw.Write("\n<unknown name='{0}' type='{1}' exp='{2}'/>", n.Name, n.NodeType, n.IsExpanded);
           AppendChildren(sw, n);
           break;
       }
@@ -1122,9 +1139,12 @@ namespace Rox
     }
     private void btnReset_Click(object sender, RoutedEventArgs e)
     {
-      if (MessageBox.Show("Delete the existing sequence and start over?", "Start over", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) == MessageBoxResult.Yes)
+      var f = new CustomMessageboxWindow(string.Format("Start over?", loadedFile), string.Format("Delete the existing sequence and start over?", loadedFile), MessageBoxButton.YesNo) { Owner = this };
+      f.ShowDialog();
+      if (f.DialogResult == true)
       {
-        SetDefaultGuiElements();
+        FileUnload(true);
+        //SetDefaultGuiElements();
       }
     }
     private void tvi_DragLeave(object sender, DragEventArgs e)
@@ -1482,7 +1502,38 @@ namespace Rox
           {
             try
             {
-              Vars.Where(p => p.Name == ((IteSetVar)node.Node).VariableName).FirstOrDefault().Value = ((IteSetVar)node.Node).OtherwiseValue;
+              var a = Vars.Where(p => p.Name == ((IteSetVar)node.Node).VariableName).FirstOrDefault();
+              if (a.Value.GetType() != ((IteSetVar)node.Node).OtherwiseValue.GetType())
+              {
+                switch (((IteSetVar)node.Node).VarType.enumValue)
+                {
+                  case VarType.boolType:
+                    ((IteSetVar)node.Node).OtherwiseValue = ((IteSetVar)node.Node).OtherwiseValue.ToString().Trim().ToLower();
+                    if (((string)((IteSetVar)node.Node).OtherwiseValue).Length > 0) { ((IteSetVar)node.Node).OtherwiseValue = ((IteSetVar)node.Node).OtherwiseValue.Substring(0, 1); }
+                    switch (((IteSetVar)node.Node).OtherwiseValue)
+                    {
+                      default:
+                        ((IteSetVar)node.Node).OtherwiseValue = false;
+                        break;
+                      case "y":
+                      case "1":
+                      case "t":
+                        ((IteSetVar)node.Node).OtherwiseValue = true;
+                        break;
+                    }
+                    break;
+                  case VarType.numberType:
+                    ((IteSetVar)node.Node).OtherwiseValue = decimal.TryParse(((IteSetVar)node.Node).OtherwiseValue, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.CurrentCulture, out decimal d) ? d : 0;
+                    break;
+                  case VarType.stringType:
+                    ((IteSetVar)node.Node).OtherwiseValue = ((IteSetVar)node.Node).OtherwiseValue.ToString();
+                    break;
+                }
+              }
+              else
+              {
+                a.Value = ((IteSetVar)node.Node).OtherwiseValue;
+              }
             }
             catch (Exception)
             {
@@ -1760,6 +1811,34 @@ namespace Rox
           PopulateFilelists();
         }
       }
+    }
+    private void SeqItem_MouseLeave(object sender, MouseEventArgs e)
+    {
+      txtSelectedNodeInfo.Text = null;
+    }
+    private void SeqItemMode_MouseEnter(object sender, MouseEventArgs e)
+    {
+      txtSelectedNodeInfo.Text = "{ MODE } A mode can be created to easily abort a running mode and start new sequencing. Stop and Auto modes will run with Start/Stop button. No items can be added directly. Add items to Initialize or Continuous branches. \nDrag and Drop to add this item";
+    }
+    private void SeqItemSetMode_MouseEnter(object sender, MouseEventArgs e)
+    {
+      txtSelectedNodeInfo.Text = "{ Set Mode } Changes the current mode to the assigned value. Sequence items are not allowed but remaining nodes and subsequent branches will still be processed for the current iteration. Use a Return to abandon remaining sequence. \nDrag and Drop to add this item.";
+    }
+    private void SeqItemCondition_MouseEnter(object sender, MouseEventArgs e)
+    {
+      txtSelectedNodeInfo.Text = "{ Condition } This will evaluate a statement to true or false and run the appropriate sequence. Add items to True / False branches. \nDrag and Drop to add this item.";
+    }
+    private void SeqItemTimer_MouseEnter(object sender, MouseEventArgs e)
+    {
+      txtSelectedNodeInfo.Text = "{ Timer } An accumulating millisecond timer. The timer can be running or expired and sequence items can be added to these conditions. The timer is reset if containing sequence is not executing. \nDrag and Drop to add this item.";
+    }
+    private void SeqItemSetVar_MouseEnter(object sender, MouseEventArgs e)
+    {
+      txtSelectedNodeInfo.Text = "{ Set Variable } This assigns a value to a variable. Sequence items are not allowed.\nDrag and Drop to add this item.";
+    }
+    private void SeqItemReturn_MouseEnter(object sender, MouseEventArgs e)
+    {
+      txtSelectedNodeInfo.Text = "{ Return } Aborts the current iteration. \nDrag and Drop to add this item.";
     }
   }
 }

@@ -283,9 +283,12 @@ namespace Rox
     public string VariableName { get; set; }
     public dynamic Value { get; set; }
     public dynamic _otherwise = null;
-    public dynamic OtherwiseValue { get { return _otherwise; } set {
+    public dynamic OtherwiseValue {
+      get { return _otherwise; }
+      set {
         _otherwise = (value==null || string.IsNullOrEmpty(value.ToString())) ? null : value;
-      } }
+      }
+    }
     protected virtual void OnPropertyChanged(string propertyName)
     {
       this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -339,7 +342,7 @@ namespace Rox
     public string Name { get; set; }
     public List<NodeTypes> AllowedNodes { get; } = new List<NodeTypes>() { };
     public Collection<INode> Items { get; set; } = new Collection<INode>();
-    public string Description() { return "{ Timer } TODO: Populate this content."; }
+    public string Description() { return "{ Timer } An accumulating millisecond timer. The timer can be running or expired and sequence items can be added to these conditions. The timer is reset if containing sequence is not executing."; }
     public IteTimer(string name)
     {
       Name = name;
@@ -707,6 +710,7 @@ namespace Rox
   {
     private readonly string _friendlyName;
     public readonly int Value;
+    public readonly VarType enumValue;
     public override string ToString() { return _friendlyName; }
     public VariableType(VarType type)
     {
@@ -715,12 +719,15 @@ namespace Rox
       {
         default:
           _friendlyName = "bit";
+          enumValue = VarType.boolType;
           break;
         case VarType.stringType:
           _friendlyName = "text";
+          enumValue = VarType.stringType;
           break;
         case VarType.numberType:
           _friendlyName = "number";
+          enumValue = VarType.numberType;
           break;
       }
     }

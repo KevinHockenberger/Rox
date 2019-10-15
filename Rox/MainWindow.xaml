@@ -797,7 +797,7 @@
                   <TextBlock TextTrimming="CharacterEllipsis" Text="Reset Sequence" VerticalAlignment="Center" Margin="5,0,0,0"/>
                 </StackPanel>
               </Button>
-              <StackPanel Orientation="Horizontal" PreviewMouseLeftButtonDown="_PreviewMouseLeftButtonDown" PreviewMouseMove="Mode_PreviewMouseMove">
+              <StackPanel Orientation="Horizontal" PreviewMouseLeftButtonDown="_PreviewMouseLeftButtonDown" PreviewMouseMove="Mode_PreviewMouseMove"  MouseEnter="SeqItemMode_MouseEnter" MouseLeave="SeqItem_MouseLeave">
                 <Canvas Width="26" Height="26">
                   <Canvas.Background>
                     <ImageBrush ImageSource="include/mode.png"/>
@@ -806,7 +806,7 @@
                 <Label Foreground="White" Content="Mode"/>
               </StackPanel>
 
-              <StackPanel Orientation="Horizontal" PreviewMouseLeftButtonDown="_PreviewMouseLeftButtonDown" PreviewMouseMove="SetMode_PreviewMouseMove">
+              <StackPanel Orientation="Horizontal" PreviewMouseLeftButtonDown="_PreviewMouseLeftButtonDown" PreviewMouseMove="SetMode_PreviewMouseMove" MouseEnter="SeqItemSetMode_MouseEnter" MouseLeave="SeqItem_MouseLeave">
                 <Canvas Width="26" Height="26">
                   <Canvas.Background>
                     <ImageBrush ImageSource="include/set mode.png"/>
@@ -815,7 +815,7 @@
                 <Label Foreground="White" Content="Set Mode"/>
               </StackPanel>
 
-              <StackPanel Orientation="Horizontal" PreviewMouseLeftButtonDown="_PreviewMouseLeftButtonDown" PreviewMouseMove="Condition_PreviewMouseMove">
+              <StackPanel Orientation="Horizontal" PreviewMouseLeftButtonDown="_PreviewMouseLeftButtonDown" PreviewMouseMove="Condition_PreviewMouseMove" MouseEnter="SeqItemCondition_MouseEnter" MouseLeave="SeqItem_MouseLeave">
                 <Canvas Width="26" Height="26">
                   <Canvas.Background>
                     <ImageBrush ImageSource="include/bandersnatch.png"/>
@@ -823,7 +823,7 @@
                 </Canvas>
                 <Label Foreground="White" Content="Condition"/>
               </StackPanel>
-              <StackPanel Orientation="Horizontal" PreviewMouseLeftButtonDown="_PreviewMouseLeftButtonDown" PreviewMouseMove="Timer_PreviewMouseMove">
+              <StackPanel Orientation="Horizontal" PreviewMouseLeftButtonDown="_PreviewMouseLeftButtonDown" PreviewMouseMove="Timer_PreviewMouseMove" MouseEnter="SeqItemTimer_MouseEnter" MouseLeave="SeqItem_MouseLeave">
                 <Canvas Width="26" Height="26">
                   <Canvas.Background>
                     <ImageBrush ImageSource="include/stopwatch.png"/>
@@ -831,7 +831,7 @@
                 </Canvas>
                 <Label Foreground="White" Content="Timer"/>
               </StackPanel>
-              <StackPanel Orientation="Horizontal" PreviewMouseLeftButtonDown="_PreviewMouseLeftButtonDown" PreviewMouseMove="SetVar_PreviewMouseMove">
+              <StackPanel Orientation="Horizontal" PreviewMouseLeftButtonDown="_PreviewMouseLeftButtonDown" PreviewMouseMove="SetVar_PreviewMouseMove" MouseEnter="SeqItemSetVar_MouseEnter" MouseLeave="SeqItem_MouseLeave">
                 <Canvas Width="26" Height="26">
                   <Canvas.Background>
                     <ImageBrush ImageSource="include/IO.png"/>
@@ -839,7 +839,7 @@
                 </Canvas>
                 <Label Foreground="White" Content="Set Variable"/>
               </StackPanel>
-              <StackPanel Orientation="Horizontal" PreviewMouseLeftButtonDown="_PreviewMouseLeftButtonDown" PreviewMouseMove="Return_PreviewMouseMove">
+              <StackPanel Orientation="Horizontal" PreviewMouseLeftButtonDown="_PreviewMouseLeftButtonDown" PreviewMouseMove="Return_PreviewMouseMove" MouseEnter="SeqItemReturn_MouseEnter" MouseLeave="SeqItem_MouseLeave">
                 <Canvas Width="26" Height="26">
                   <Canvas.Background>
                     <ImageBrush ImageSource="include/BackArrow.png"/>
