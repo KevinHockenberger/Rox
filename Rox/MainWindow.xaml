@@ -309,7 +309,7 @@
         </ScrollViewer>
       </Border>
     </DataTemplate>
-    <DataTemplate x:Key="SetNodeOptionsPanel_SetVar" >
+    <DataTemplate x:Key="NodeOptionsPanel_SetVar" >
       <Border Margin="0,10,0,0" BorderThickness="2" BorderBrush="DarkGray" Padding="5" Background="#424242">
         <ScrollViewer VerticalScrollBarVisibility="Auto" >
           <StackPanel>
@@ -332,6 +332,26 @@
               <ComboBoxItem Content="0" />
               <ComboBoxItem Content="1" />
             </ComboBox>
+            <Label Style="{StaticResource lblDescriptor}" Content="Otherwise set to" Margin="0,5,0,0"/>
+            <ComboBox IsEditable="True" Text="{Binding Path=selectedNode.Node.OtherwiseValue, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" >
+              <ComboBoxItem Content="" />
+              <ComboBoxItem Content="true" />
+              <ComboBoxItem Content="false" />
+              <ComboBoxItem Content="0" />
+              <ComboBoxItem Content="1" />
+            </ComboBox>
+          </StackPanel>
+        </ScrollViewer>
+      </Border>
+    </DataTemplate>
+    <DataTemplate x:Key="NodeOptionsPanel_SetMode" >
+      <Border Margin="0,10,0,0" BorderThickness="2" BorderBrush="DarkGray" Padding="5" Background="#424242">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" >
+          <StackPanel>
+            <Label Style="{StaticResource lblDescriptor}" Content="Name" />
+            <TextBox x:Name="txtNodeName"  AllowDrop="True" KeyUp="txtNodeName_KeyUp" Text="{Binding selectedNode.Name, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}"/>
+            <Label AllowDrop="True" Style="{StaticResource lblDescriptor}" Content="Mode" DockPanel.Dock="Top" Margin="0,5,0,0"/>
+            <ComboBox IsEditable="True" Text="{Binding Path=selectedNode.Node.ModeName, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" ItemsSource="{Binding AvailModes, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" />
           </StackPanel>
         </ScrollViewer>
       </Border>
@@ -380,21 +400,22 @@
         <ColumnDefinition />
       </Grid.ColumnDefinitions>
       <Grid x:Name="gridMenu" >
-          <DockPanel LastChildFill="False">
-            <Button x:Name="btnFiles" Template="{DynamicResource ButtonBaseControlTemplate}" Content="files" Height="30" VerticalAlignment="Top"  Foreground="White" Click="toggleFiles" Grid.Row="1" DockPanel.Dock="Top"/>
-        <Border x:Name="brdrRun" DockPanel.Dock="Top">
-           <Button x:Name="btnToggleRun" Template="{DynamicResource ButtonBaseControlTemplate}" Height="120" Click="toggleRun" Margin="2" Width="60" >
-            <TextBlock x:Name="txtblkRunDefault" TextAlignment="Center"><Run Text="load"/><LineBreak/><Run Text="file"/></TextBlock>
-          </Button>
-        </Border>
+        <DockPanel LastChildFill="False">
+          <Button x:Name="btnFiles" Template="{DynamicResource ButtonBaseControlTemplate}" Content="files" Height="30" VerticalAlignment="Top"  Foreground="White" Click="toggleFiles" Grid.Row="1" DockPanel.Dock="Top"/>
+          <Border x:Name="brdrRun" DockPanel.Dock="Top">
+            <Button x:Name="btnToggleRun" Template="{DynamicResource ButtonBaseControlTemplate}" Height="120" Click="toggleRun" Margin="2" Width="60" >
+              <TextBlock x:Name="txtblkRunDefault" TextAlignment="Center"><Run Text="load"/><LineBreak/><Run Text="file"/></TextBlock>
+            </Button>
+          </Border>
           <Border DockPanel.Dock="Bottom">
             <Button x:Name="btnAbort" Template="{DynamicResource ButtonBaseControlTemplate}" Height="35" Click="BtnAbort_Click" Margin="2" Width="60" BorderBrush="#FFFFC500" >
               <Image x:Name="imgSeq" Source="include/Continuous.png" Width="30" Height="30" Stretch="Fill"/>
               <!--<TextBlock x:Name="btnAbortText" TextAlignment="Center" Foreground="#FFFFC500" HorizontalAlignment="Center" VerticalAlignment="Center">abort</TextBlock>-->
-          </Button>
+            </Button>
           </Border>
           <CheckBox x:Name="chkHighlight" VerticalContentAlignment="Center" Margin="0,10,0,0" Checked="ChkHighlight_Checked" Unchecked="ChkHighlight_Unchecked" DockPanel.Dock="Bottom">
-            <TextBlock Foreground="White" FontSize="10"><Run Text="highlight"/><LineBreak/><Run Text="node"/><LineBreak/><Run Text="value"/></TextBlock></CheckBox>
+            <TextBlock Foreground="White" FontSize="10"><Run Text="highlights"/></TextBlock>
+          </CheckBox>
         </DockPanel>
       </Grid>
       <Grid x:Name="gridFiles" Margin="2,2,0,2" Width="150" Grid.Column="1">
@@ -412,12 +433,32 @@
           <Button Template="{DynamicResource ButtonBaseControlTemplate}" x:Name="btnUnloadFile" Height="40" VerticalAlignment="Top" Click="BtnUnloadFile_Click" Margin="2" Background="#FF5A5A5A" BorderBrush="White" BorderThickness="2" Grid.Row="1" >
             <TextBlock  TextTrimming="CharacterEllipsis" Text="unload"/>
           </Button>
-          <Label Content="recent:" Grid.Row="2" Foreground="White" />
-          <ListBox x:Name="listRecentFiles" Grid.Row="2" Background="#FF343434" Margin="2,26,2,2" Foreground="White" SelectionChanged="Files_SelectionChanged" GotFocus="Files_GotFocus" LostFocus="Files_LostFocus" />
+          <Label Content="recent" Grid.Row="2" Foreground="White" FontSize="12"/>
+          <ListBox x:Name="listRecentFiles" Grid.Row="2" Background="#FF343434" Margin="2,20,2,2" Foreground="White" SelectionChanged="Files_SelectionChanged" GotFocus="Files_GotFocus" LostFocus="Files_LostFocus" />
           <ListBox x:Name="listFiles" Background="#FF343434" Margin="2" Foreground="White" SelectionChanged="Files_SelectionChanged" GotFocus="Files_GotFocus" Grid.Row="3" LostFocus="Files_LostFocus"/>
-          <Button x:Name="btnSaveAs" VerticalAlignment="Bottom" Grid.Row="4" Margin="2" Click="btnSaveAs_Click">
-            <TextBlock TextTrimming="CharacterEllipsis" Text="save as"/>
+          <Button Template="{DynamicResource ButtonBaseControlTemplate}" x:Name="btnSaveAs" VerticalAlignment="Bottom" Grid.Row="4" Margin="2,0,2,30" Click="btnSaveAs_Click" BorderBrush="White">
+              <StackPanel Orientation="Horizontal">
+                <Image Width="24" Height="24" Margin="0,0,10,0" Source="include/SaveAs.png" />
+              <TextBlock TextTrimming="CharacterEllipsis" Text="file save as" VerticalAlignment="Center" />
+              </StackPanel>
           </Button>
+          <Border VerticalAlignment="Bottom" Grid.Row="4" Margin="2" BorderThickness="1">
+            <Border.BorderBrush>
+              <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                <GradientStop Color="Yellow" Offset="0"/>
+                <GradientStop Color="Red" Offset=".4"/>
+                <GradientStop Color="Red" Offset=".6"/>
+                <GradientStop Color="Yellow" Offset="1"/>
+              </LinearGradientBrush>
+            </Border.BorderBrush>
+            <Button Template="{DynamicResource ButtonBaseControlTemplate}" x:Name="btnDelete" Click="btnDelete_Click" Background="Transparent" BorderThickness="1" BorderBrush="Transparent">
+              <StackPanel Orientation="Horizontal">
+                <Image Width="20" Height="20" Margin="0,0,10,0" Source="include/X.png" />
+                <TextBlock TextTrimming="CharacterEllipsis" Text="delete file" FontSize="14"  VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+            
+          </Border>
         </Grid>
       </Grid>
       <Grid Grid.Column="2">
@@ -517,7 +558,7 @@
                   <Border>
                     <StackPanel Orientation="Horizontal" >
                       <Image Width="20" Height="20" Margin="5,0,0,0" Source="include/mode.png" />
-                      <TextBlock Text="{Binding Name}" Margin="5,2,5,2" FontSize="16" Foreground="White" />
+                      <TextBlock Text="{Binding Name}" Margin="5,2,5,2" FontSize="16" Foreground="#FFf3ff96" />
                     </StackPanel>
                   </Border>
                 </HierarchicalDataTemplate>
@@ -543,7 +584,7 @@
                     </StackPanel>
                   </Border>
                 </HierarchicalDataTemplate>
-                <!-- CONDITION NODE STYLE ############################################################# -->
+                <!-- CONDITION TRUE NODE STYLE ############################################################# -->
                 <HierarchicalDataTemplate DataType="{x:Type local:IteTRUE_VM}" ItemsSource="{Binding Items}" >
                   <HierarchicalDataTemplate.Resources>
                     <Style TargetType="{x:Type Border}">
@@ -565,7 +606,7 @@
                     </StackPanel>
                   </Border>
                 </HierarchicalDataTemplate>
-                <!-- CONDITION NODE STYLE ############################################################# -->
+                <!-- DIFF UP NODE STYLE ############################################################# -->
                 <HierarchicalDataTemplate DataType="{x:Type local:IteTRUE1_VM}" ItemsSource="{Binding Items}" >
                   <HierarchicalDataTemplate.Resources>
                     <Style TargetType="{x:Type Border}">
@@ -587,7 +628,7 @@
                     </StackPanel>
                   </Border>
                 </HierarchicalDataTemplate>
-                <!-- CONDITION NODE STYLE ############################################################# -->
+                <!-- CONDITION FALSE NODE STYLE ############################################################# -->
                 <HierarchicalDataTemplate DataType="{x:Type local:IteFALSE_VM}" ItemsSource="{Binding Items}" >
                   <HierarchicalDataTemplate.Resources>
                     <Style TargetType="{x:Type Border}">
@@ -609,7 +650,7 @@
                     </StackPanel>
                   </Border>
                 </HierarchicalDataTemplate>
-                <!-- CONDITION NODE STYLE ############################################################# -->
+                <!-- DIFF DOWN NODE STYLE ############################################################# -->
                 <HierarchicalDataTemplate DataType="{x:Type local:IteFALSE1_VM}" ItemsSource="{Binding Items}" >
                   <HierarchicalDataTemplate.Resources>
                     <Style TargetType="{x:Type Border}">
@@ -675,6 +716,50 @@
                     </StackPanel>
                   </Border>
                 </HierarchicalDataTemplate>
+                <!-- SET MODE STYLE ############################################################# -->
+                <HierarchicalDataTemplate DataType="{x:Type local:IteSETMODE_VM}" ItemsSource="{Binding Items}" >
+                  <HierarchicalDataTemplate.Resources>
+                    <Style TargetType="{x:Type Border}">
+                      <Setter Property="CornerRadius" Value="4" />
+                      <Setter Property="BorderThickness" Value="1" />
+                      <Setter Property="Background" Value="{Binding Background}" />
+                      <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                          <Setter Property="BorderBrush" Value="White" />
+                          <Setter Property="Background" Value="#FF515151" />
+                        </Trigger>
+                      </Style.Triggers>
+                    </Style>
+                  </HierarchicalDataTemplate.Resources>
+                  <Border>
+                    <StackPanel Orientation="Horizontal" >
+                      <Image Width="20" Height="20" Margin="5,0,0,0" Source="include/set mode.png"/>
+                      <TextBlock Text="{Binding Name}" Margin="5,2,5,2" FontSize="16" Foreground="White"/>
+                    </StackPanel>
+                  </Border>
+                </HierarchicalDataTemplate>
+                <!-- RETURN STYLE ############################################################# -->
+                <HierarchicalDataTemplate DataType="{x:Type local:IteRETURN_VM}" ItemsSource="{Binding Items}" >
+                  <HierarchicalDataTemplate.Resources>
+                    <Style TargetType="{x:Type Border}">
+                      <Setter Property="CornerRadius" Value="4" />
+                      <Setter Property="BorderThickness" Value="1" />
+                      <Setter Property="Background" Value="{Binding Background}" />
+                      <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                          <Setter Property="BorderBrush" Value="White" />
+                          <Setter Property="Background" Value="#FF515151" />
+                        </Trigger>
+                      </Style.Triggers>
+                    </Style>
+                  </HierarchicalDataTemplate.Resources>
+                  <Border>
+                    <StackPanel Orientation="Horizontal" >
+                      <Image Width="20" Height="20" Margin="5,0,0,0" Source="include/BackArrow.png"/>
+                      <TextBlock Text="{Binding Name}" Margin="5,2,5,2" FontSize="16" Foreground="White"/>
+                    </StackPanel>
+                  </Border>
+                </HierarchicalDataTemplate>
               </TreeView.Resources>
               <TreeView.ItemContainerStyle>
                 <Style TargetType="{x:Type TreeViewItem}">
@@ -720,6 +805,16 @@
                 </Canvas>
                 <Label Foreground="White" Content="Mode"/>
               </StackPanel>
+
+              <StackPanel Orientation="Horizontal" PreviewMouseLeftButtonDown="_PreviewMouseLeftButtonDown" PreviewMouseMove="SetMode_PreviewMouseMove">
+                <Canvas Width="26" Height="26">
+                  <Canvas.Background>
+                    <ImageBrush ImageSource="include/set mode.png"/>
+                  </Canvas.Background>
+                </Canvas>
+                <Label Foreground="White" Content="Set Mode"/>
+              </StackPanel>
+
               <StackPanel Orientation="Horizontal" PreviewMouseLeftButtonDown="_PreviewMouseLeftButtonDown" PreviewMouseMove="Condition_PreviewMouseMove">
                 <Canvas Width="26" Height="26">
                   <Canvas.Background>
@@ -744,6 +839,15 @@
                 </Canvas>
                 <Label Foreground="White" Content="Set Variable"/>
               </StackPanel>
+              <StackPanel Orientation="Horizontal" PreviewMouseLeftButtonDown="_PreviewMouseLeftButtonDown" PreviewMouseMove="Return_PreviewMouseMove">
+                <Canvas Width="26" Height="26">
+                  <Canvas.Background>
+                    <ImageBrush ImageSource="include/BackArrow.png"/>
+                  </Canvas.Background>
+                </Canvas>
+                <Label Foreground="White" Content="Return"/>
+              </StackPanel>
+
             </StackPanel>
             <Button x:Name="btnDeleteSelectedNode" BorderThickness="1" Click="BtnDeleteSelectedNode_Click" DockPanel.Dock="Bottom">
               <Button.BorderBrush>

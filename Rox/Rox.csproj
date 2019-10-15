@@ -83,7 +83,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="NodeParamsWindow.xaml">
+    <Page Include="CustomMessageboxWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -92,8 +92,8 @@
     <Compile Include="VarParamsWindow.xaml.cs">
       <DependentUpon>VarParamsWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="NodeParamsWindow.xaml.cs">
-      <DependentUpon>NodeParamsWindow.xaml</DependentUpon>
+    <Compile Include="CustomMessageboxWindow.xaml.cs">
+      <DependentUpon>CustomMessageboxWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
@@ -171,6 +171,15 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="include\IO.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="include\set mode.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="include\BackArrow.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="include\SaveAs.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

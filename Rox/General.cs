@@ -135,7 +135,6 @@ namespace Rox
       }
     }
   }
-
   public interface INode
   {
     NodeTypes NodeType { get; }
@@ -157,6 +156,8 @@ namespace Rox
     ConditionTrue1 = 8,
     ConditionFalse1 = 9,
     SetVariable = 10,
+    SetMode = 11,
+    Return = 12,
   }
   public class IteMode : INode
   {
@@ -269,7 +270,6 @@ namespace Rox
         }
       }
     }
-
     public event PropertyChangedEventHandler PropertyChanged;
     public NodeTypes NodeType { get; } = NodeTypes.SetVariable;
     public string Name { get; set; }
@@ -282,6 +282,46 @@ namespace Rox
     }
     public string VariableName { get; set; }
     public dynamic Value { get; set; }
+    public dynamic _otherwise = null;
+    public dynamic OtherwiseValue { get { return _otherwise; } set {
+        _otherwise = (value==null || string.IsNullOrEmpty(value.ToString())) ? null : value;
+      } }
+    protected virtual void OnPropertyChanged(string propertyName)
+    {
+      this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+  }
+  public class IteSetMode : INode, INotifyPropertyChanged
+  {
+    public event PropertyChangedEventHandler PropertyChanged;
+    public NodeTypes NodeType { get; } = NodeTypes.SetMode;
+    public string Name { get; set; }
+    public List<NodeTypes> AllowedNodes { get; } = new List<NodeTypes>() { };
+    public Collection<INode> Items { get; set; } = new Collection<INode>();
+    public string Description() { return "{ Set Mode } Changes the current mode to the assigned value. Sequence items are not allowed but remaining nodes and subsequent branches will still be processed for the current iteration. Use a Return to abandon remaining sequence."; }
+    public IteSetMode(string name)
+    {
+      Name = name;
+    }
+    public string ModeName { get; set; }
+    //public dynamic Value { get; set; }
+    protected virtual void OnPropertyChanged(string propertyName)
+    {
+      this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+  }
+  public class IteReturn : INode, INotifyPropertyChanged
+  {
+    public event PropertyChangedEventHandler PropertyChanged;
+    public NodeTypes NodeType { get; } = NodeTypes.Return;
+    public string Name { get; set; }
+    public List<NodeTypes> AllowedNodes { get; } = new List<NodeTypes>() { };
+    public Collection<INode> Items { get; set; } = new Collection<INode>();
+    public string Description() { return "{ Return } Aborts the current iteration."; }
+    public IteReturn(string name)
+    {
+      Name = name;
+    }
     protected virtual void OnPropertyChanged(string propertyName)
     {
       this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -425,6 +465,12 @@ namespace Rox
           case NodeTypes.SetVariable:
             Items.Add(new IteSETVAR_VM(item));
             break;
+          case NodeTypes.SetMode:
+            Items.Add(new IteSETMODE_VM(item));
+            break;
+          case NodeTypes.Return:
+            Items.Add(new IteRETURN_VM(item));
+            break;
           default:
             break;
         }
@@ -553,6 +599,14 @@ namespace Rox
   {
     public IteSETVAR_VM(INode node) : base(node) { }
   }
+  public class IteSETMODE_VM : IteNodeViewModel
+  {
+    public IteSETMODE_VM(INode node) : base(node) { }
+  }
+  public class IteRETURN_VM : IteNodeViewModel
+  {
+    public IteRETURN_VM(INode node) : base(node) { }
+  }
   public class Variable : INotifyPropertyChanged
   {
     private VariableType _varType;
@@ -630,16 +684,18 @@ namespace Rox
       PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(info));
     }
   }
-    [TypeConverter(typeof(EnumDescriptionTypeConverter))]
-    public enum AssignMethod
-    {
-      [Description("assign ( = )")]
-      assign = 1,
-      [Description("increment ( + = )")]
-      increment = 2,
-      [Description("decrement ( - = )")]
-      decrement = 3
-    }
+  [TypeConverter(typeof(EnumDescriptionTypeConverter))]
+  public enum AssignMethod
+  {
+    [Description("assign ( = )")]
+    assign = 1,
+    [Description("increment ( + = )")]
+    increment = 2,
+    [Description("decrement ( - = )")]
+    decrement = 3,
+    [Description("invert ( ! = )")]
+    invert = 4
+  }
 
   public enum VarType
   {

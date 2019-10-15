@@ -18,6 +18,10 @@ namespace Rox
   /// </summary>
   public partial class MainWindow : Window
   {
+    private class SequenceEventArgs
+    {
+      public bool Handled { get; set; }
+    }
     private bool highlight;
     private System.Threading.Tasks.Task Seq;
     BindingList<Variable> Vars = new BindingList<Variable>();
@@ -31,13 +35,27 @@ namespace Rox
     private static SolidColorBrush trueNodeBackground = new SolidColorBrush(Color.FromRgb(0, 107, 21));
     private static SolidColorBrush falseNodeBackground = new SolidColorBrush(Color.FromRgb(107, 0, 66));
     //private static SolidColorBrush textboxBackgroundAllowDrop = new SolidColorBrush(Color.FromRgb(71, 125, 30));
-    public static List<NodeTypes> SequenceNodes = new List<NodeTypes>() { NodeTypes.Condition, NodeTypes.General, NodeTypes.Timer, NodeTypes.SetVariable };
+    public static List<NodeTypes> SequenceNodes = new List<NodeTypes>() { NodeTypes.Condition, NodeTypes.General, NodeTypes.Timer, NodeTypes.SetVariable, NodeTypes.SetMode, NodeTypes.Return };
     public List<IteNodeViewModel> Modes;// : INotifyPropertyChanged;
+    public List<string> AvailModes { get { return Modes.Where(p => p.NodeType == NodeTypes.Mode).Select(p => p.Name).ToList(); } }
     public IteNodeViewModel selectedNode { get; set; }
     System.Threading.Timer closeMnu;
     System.Threading.Timer clrHeader;
     public string processingMode { get; set; } = null; // initialize processingMode and curMode to different values so initialize sequence will run on startup
-    public string curMode { get; set; } = string.Empty;
+    public string _curMode;
+    public string curMode
+    {
+      get { return _curMode; }
+      set
+      {
+        if (_curMode != value)
+        {
+          _curMode = value;
+          if (value == "Auto") { Dispatcher.Invoke(() => { Running = true; }); }
+          else if (value == "Stop") { Dispatcher.Invoke(() => { Running = false; }); }
+        }
+      }
+    }
     private bool? _running;
     public bool? Running
     {
@@ -220,18 +238,18 @@ namespace Rox
       resetCloseMenuTimer();
       if (((ListBox)sender).SelectedItem == null) { return; }
 
-      if (((ListBox)sender).SelectedItem.ToString() == "> unload <")
-      {
-        // unload file
-        btnLoadFileText.Text = "select file";
-        FileUnload(false);
-        fileToBeLoaded = null;
-      }
-      else
-      {
-        fileToBeLoaded = (string)((ListBox)sender).SelectedItem;
-        btnLoadFileText.Text = string.Format("load [{0}]", fileToBeLoaded);
-      }
+      //if (((ListBox)sender).SelectedItem.ToString() == "> unload <")
+      //{
+      //  // unload file
+      //  btnLoadFileText.Text = "select file";
+      //  FileUnload(false);
+      //  fileToBeLoaded = null;
+      //}
+      //else
+      //{
+      fileToBeLoaded = (string)((ListBox)sender).SelectedItem;
+      btnLoadFileText.Text = string.Format("load [{0}]", fileToBeLoaded);
+      //}
     }
     private void Files_GotFocus(object sender, RoutedEventArgs e)
     {
@@ -273,6 +291,8 @@ namespace Rox
     private string xmlTag_ConditionFalse { get { return "cn"; } }
     private string xmlTag_Timer { get { return "time"; } }
     private string xmlTag_SetVar { get { return "set"; } }
+    private string xmlTag_SetMode { get { return "mode"; } }
+    private string xmlTag_Return { get { return "ret"; } }
     private void FileLoad(string filename)
     {
       Paused = true;
@@ -300,7 +320,7 @@ namespace Rox
         Paused = false;
         Running = false;
         processingMode = null;
-        curMode = string.Empty;
+        //curMode = string.Empty;
       }
       else
       {
@@ -460,21 +480,44 @@ namespace Rox
             {
               var subNode = new IteSETVAR_VM(new IteSetVar(reader.GetAttribute("name"))
               {
-                VariableName = reader.GetAttribute("varname")
-                ,
-                AssignMethod = reader.GetAttribute("method") == "3" ? AssignMethod.decrement : reader.GetAttribute("method") == "2" ? AssignMethod.increment : AssignMethod.assign
+                VariableName = reader.GetAttribute("varname"),
+                AssignMethod = reader.GetAttribute("method") == "4" ? AssignMethod.invert : reader.GetAttribute("method") == "3" ? AssignMethod.decrement : reader.GetAttribute("method") == "2" ? AssignMethod.increment : AssignMethod.assign
               })
               { Parent = curNode };
               switch (GetVarTypeFromString(reader.GetAttribute("type")))
               {
                 case VarType.boolType:
                   ((IteSetVar)subNode.Node).Value = bool.TryParse(reader.GetAttribute("val"), out bool b) ? b : false;
+                  if (reader.GetAttribute("other") == string.Empty)
+                  {
+                    ((IteSetVar)subNode.Node).OtherwiseValue = null;
+                  }
+                  else
+                  {
+                    ((IteSetVar)subNode.Node).OtherwiseValue = bool.TryParse(reader.GetAttribute("other"), out b) ? b : false;
+                  }
                   break;
                 case VarType.stringType:
                   ((IteSetVar)subNode.Node).Value = reader.GetAttribute("val");
+                  if (reader.GetAttribute("other") == string.Empty)
+                  {
+                    ((IteSetVar)subNode.Node).OtherwiseValue = null;
+                  }
+                  else
+                  {
+                    ((IteSetVar)subNode.Node).OtherwiseValue = reader.GetAttribute("other");
+                  }
                   break;
                 case VarType.numberType:
                   ((IteSetVar)subNode.Node).Value = decimal.TryParse(reader.GetAttribute("val"), out decimal d) ? d : 0;
+                  if (reader.GetAttribute("other") == string.Empty)
+                  {
+                    ((IteSetVar)subNode.Node).OtherwiseValue = null;
+                  }
+                  else
+                  {
+                    ((IteSetVar)subNode.Node).OtherwiseValue = decimal.TryParse(reader.GetAttribute("other"), out d) ? d : 0;
+                  }
                   break;
                 default:
                   break;
@@ -484,7 +527,31 @@ namespace Rox
               //curNode = subNode;
             }
           }
-
+          // ----------------------------------------------------- SET MODE
+          else if (reader.Name == xmlTag_SetMode)
+          {
+            if (curNode != null)
+            {
+              var subNode = new IteSETMODE_VM(new IteSetMode(reader.GetAttribute("name"))
+              {
+                ModeName = reader.GetAttribute("mode"),
+              })
+              { Parent = curNode };
+              curNode.Items.Add(subNode);
+              //curNode = subNode;
+            }
+          }
+          // ----------------------------------------------------- RETURN
+          else if (reader.Name == xmlTag_Return)
+          {
+            if (curNode != null)
+            {
+              var subNode = new IteRETURN_VM(new IteReturn(reader.GetAttribute("name")) { })
+              { Parent = curNode };
+              curNode.Items.Add(subNode);
+              //curNode = subNode;
+            }
+          }
         }
         else if (reader.NodeType == XmlNodeType.EndElement)
         {
@@ -505,7 +572,7 @@ namespace Rox
     private void ValidateSequenceVariableTypesForNode(IteNodeViewModel node)
     {
       var t = node.GetType();
-      if (t==typeof(IteCONDITION_VM))
+      if (t == typeof(IteCONDITION_VM))
       {
         var a = Vars.Where(p => p.Name == ((IteCondition)node.Node).VariableName);
         if (a.Any())
@@ -526,10 +593,10 @@ namespace Rox
           }
         }
       }
-      else if (t==typeof(IteSETVAR_VM))
+      else if (t == typeof(IteSETVAR_VM))
       {
         var a = Vars.Where(p => p.Name == ((IteSetVar)node.Node).VariableName);
-        if(a.Any())
+        if (a.Any())
         {
           ((IteSetVar)node.Node).VarType = a.First().VarType;
         }
@@ -635,7 +702,14 @@ namespace Rox
           break;
         case NodeTypes.SetVariable:
           var v = (IteSetVar)n.Node;
-          sw.Write("\n<{0} name='{1}' varname='{2}' type='{3}' val='{4}' method='{5}'/>", xmlTag_SetVar, v.Name, v.VariableName, v.VarType, v.Value, (int)v.AssignMethod);
+          sw.Write("\n<{0} name='{1}' varname='{2}' type='{3}' val='{4}' method='{5}' other='{6}'/>", xmlTag_SetVar, v.Name, v.VariableName, v.VarType, v.Value, (int)v.AssignMethod, v.OtherwiseValue);
+          break;
+        case NodeTypes.SetMode:
+          var v1 = (IteSetMode)n.Node;
+          sw.Write("\n<{0} name='{1}' mode='{2}'/>", xmlTag_SetMode, v1.Name, v1.ModeName);
+          break;
+        case NodeTypes.Return:
+          sw.Write("\n<{0} name='{1}'/>", xmlTag_Return, ((IteReturn)n.Node).Name);
           break;
         default:
           sw.Write("\n<unknown name='{0}' type='{1}'/>", n.Name, n.NodeType);
@@ -653,6 +727,8 @@ namespace Rox
     private void resetForm(bool unselectProgram = false)
     {
       loadedFile = null;
+      btnLoadFileText.Text = "select file";
+      //fileToBeLoaded = null;
       UpdateHeader("Load a program.");
       btnUnloadFile.Visibility = Visibility.Collapsed;
       if (unselectProgram)
@@ -797,6 +873,14 @@ namespace Rox
     {
       var s = ((IteNodeViewModel)((TreeViewItem)sender).DataContext);
       selectedNode = s;
+      if (s.IsLocked)
+      {
+        btnDeleteSelectedNode.Visibility = Visibility.Collapsed;
+      }
+      else
+      {
+        btnDeleteSelectedNode.Visibility = Visibility.Visible;
+      }
       SetHelperText(s.Name + " - " + s.Description);
       switch (s.NodeType)
       {
@@ -833,7 +917,21 @@ namespace Rox
           ClearNodeOptionsPanel();
           if (!s.IsLocked)
           {
-            SetNodeOptionsPanel("SetNodeOptionsPanel_SetVar");
+            SetNodeOptionsPanel("NodeOptionsPanel_SetVar");
+          }
+          break;
+        case NodeTypes.SetMode:
+          ClearNodeOptionsPanel();
+          if (!s.IsLocked)
+          {
+            SetNodeOptionsPanel("NodeOptionsPanel_SetMode");
+          }
+          break;
+        case NodeTypes.Return:
+          ClearNodeOptionsPanel();
+          if (!s.IsLocked)
+          {
+            SetNodeOptionsPanel("NodeOptionsBasic");
           }
           break;
       }
@@ -903,6 +1001,26 @@ namespace Rox
         DragDrop.DoDragDrop((StackPanel)sender, dragData, DragDropEffects.Move);
       }
     }
+    private void SetMode_PreviewMouseMove(object sender, MouseEventArgs e)
+    {
+      Vector diff = startDragPoint - e.GetPosition(null);
+      if (e.LeftButton == MouseButtonState.Pressed && (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance || Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance))
+      {
+        // Initialize the drag & drop operation
+        DataObject dragData = new DataObject("iteNode", new IteSetMode("Set Mode") { });
+        DragDrop.DoDragDrop((StackPanel)sender, dragData, DragDropEffects.Move);
+      }
+    }
+    private void Return_PreviewMouseMove(object sender, MouseEventArgs e)
+    {
+      Vector diff = startDragPoint - e.GetPosition(null);
+      if (e.LeftButton == MouseButtonState.Pressed && (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance || Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance))
+      {
+        // Initialize the drag & drop operation
+        DataObject dragData = new DataObject("iteNode", new IteReturn("Return") { });
+        DragDrop.DoDragDrop((StackPanel)sender, dragData, DragDropEffects.Move);
+      }
+    }
     private void tvi_DragEnter(object sender, DragEventArgs e)
     {
       if (e.Data.GetDataPresent("iteNode") && sender != e.Source)
@@ -967,19 +1085,26 @@ namespace Rox
           {
             N = new IteCONDITION_VM(source) { IsSelected = true };
             dc.Items.Add(N); success = true;
-            //Modes.Add(new IteCONDITION_VM(source)); success = true;
           }
           else if (T == typeof(IteTimer))
           {
             N = new IteTIMER_VM(source) { IsSelected = true };
             dc.Items.Add(N); success = true;
-            //Modes.Add(new IteCONDITION_VM(source)); success = true;
           }
           else if (T == typeof(IteSetVar))
           {
             N = new IteSETVAR_VM(source) { IsSelected = true };
             dc.Items.Add(N); success = true;
-            //Modes.Add(new IteCONDITION_VM(source)); success = true;
+          }
+          else if (T == typeof(IteSetMode))
+          {
+            N = new IteSETMODE_VM(source) { IsSelected = true };
+            dc.Items.Add(N); success = true;
+          }
+          else if (T == typeof(IteReturn))
+          {
+            N = new IteRETURN_VM(source) { IsSelected = true };
+            dc.Items.Add(N); success = true;
           }
           else
           {
@@ -1262,26 +1387,42 @@ namespace Rox
     {
       Paused = !Paused;
     }
+    private void AssignCurrentVariableValues()
+    {
+      foreach (var v in Vars)
+      {
+
+      }
+    }
     private void RunSequence()
     {
       try
       {
         while (!Paused)
         {
+          AssignCurrentVariableValues();
           System.Threading.Thread.Sleep(1);
           //await Task.Delay(1);
-          bool firstscan = string.IsNullOrEmpty(curMode) || string.IsNullOrEmpty(processingMode);
-          bool modeChanged = curMode != processingMode;
+          //bool firstscan = string.IsNullOrEmpty(curMode) || string.IsNullOrEmpty(processingMode);
+          //bool modeChanged = curMode != processingMode;
 
-          processingMode = curMode;
           foreach (var mode in Modes)
           {
             //if (highlight) { ResetHighlight(mode); }
             try
             {
-              if ((mode.NodeType == NodeTypes.Continuous) || (curMode == mode.Name) || (mode.NodeType == NodeTypes.Initialized && (modeChanged || firstscan))) // Always, current mode, 1st scan
+              if (
+                  (mode.NodeType == NodeTypes.Continuous) ||  // Always
+                  (curMode == mode.Name) || // current mode
+                  (mode.NodeType == NodeTypes.Initialized && (string.IsNullOrEmpty(processingMode))) // 1st scan  string.IsNullOrEmpty(curMode) || 
+                  )
               {
-                ProcessValidNodeSequence(mode, modeChanged);
+                //Console.WriteLine("name: " + ( mode.Name));
+                //Console.WriteLine((mode.NodeType == NodeTypes.Initialized && (modeChanged || firstscan)) ? "----------------------------------------" : "" );
+                //Console.WriteLine("{0} - {1}",modeChanged,firstscan);
+                var e = new SequenceEventArgs();
+                ProcessValidNodeSequence(mode, curMode != processingMode, e);
+                if (e.Handled == true) { break; }
               }
               else
               {
@@ -1294,6 +1435,7 @@ namespace Rox
               throw;
             }
           }
+          processingMode = curMode;
         }
       }
       catch (Exception)
@@ -1334,10 +1476,25 @@ namespace Rox
             ProcessInvalidNodeSequence(sub);
           }
           break;
+        case NodeTypes.SetVariable:
+          if (highlight) { node.Background = unprocessedNodeBackground; }
+          if (((IteSetVar)node.Node).OtherwiseValue != null)
+          {
+            try
+            {
+              Vars.Where(p => p.Name == ((IteSetVar)node.Node).VariableName).FirstOrDefault().Value = ((IteSetVar)node.Node).OtherwiseValue;
+            }
+            catch (Exception)
+            {
+            }
+          }
+          break;
+
       }
     }
-    private void ProcessValidNodeSequence(IteNodeViewModel node, bool initialize)
+    private void ProcessValidNodeSequence(IteNodeViewModel node, bool initialize, SequenceEventArgs e)
     {
+      if (e.Handled) { return; }
       //Console.WriteLine("PROCESSING: " + node.Name);
       switch (node.NodeType)
       {
@@ -1346,7 +1503,7 @@ namespace Rox
           //Console.WriteLine(node.Name + " - NOT IMPLEMENTED");
           foreach (var sub in node.Items)
           {
-            ProcessValidNodeSequence(sub, initialize);
+            ProcessValidNodeSequence(sub, initialize, e);
           }
           break;
         case NodeTypes.Condition: // ############################################################################################ CONDITION
@@ -1371,7 +1528,7 @@ namespace Rox
                   if (highlight) { node.Items[0].Background = trueNodeBackground; }
                   foreach (var sub in node.Items[0].Items)
                   {
-                    ProcessValidNodeSequence(sub, initialize);
+                    ProcessValidNodeSequence(sub, initialize, e);
                   }
                   ProcessInvalidNodeSequence(node.Items[1]);
                   ProcessInvalidNodeSequence(node.Items[2]);
@@ -1383,7 +1540,7 @@ namespace Rox
                   if (highlight) { node.Items[1].Background = trueNodeBackground; }
                   foreach (var sub in node.Items[1].Items)
                   {
-                    ProcessValidNodeSequence(sub, initialize);
+                    ProcessValidNodeSequence(sub, initialize, e);
                   }
                   ProcessInvalidNodeSequence(node.Items[0]);
                   ProcessInvalidNodeSequence(node.Items[2]);
@@ -1400,7 +1557,7 @@ namespace Rox
                   if (highlight) { node.Items[2].Background = falseNodeBackground; }
                   foreach (var sub in node.Items[2].Items)
                   {
-                    ProcessValidNodeSequence(sub, initialize);
+                    ProcessValidNodeSequence(sub, initialize, e);
                   }
                   ProcessInvalidNodeSequence(node.Items[0]);
                   ProcessInvalidNodeSequence(node.Items[1]);
@@ -1412,7 +1569,7 @@ namespace Rox
                   if (highlight) { node.Items[3].Background = falseNodeBackground; }
                   foreach (var sub in node.Items[3].Items)
                   {
-                    ProcessValidNodeSequence(sub, initialize);
+                    ProcessValidNodeSequence(sub, initialize, e);
                   }
                   ProcessInvalidNodeSequence(node.Items[0]);
                   ProcessInvalidNodeSequence(node.Items[1]);
@@ -1437,7 +1594,7 @@ namespace Rox
             //Console.WriteLine((node.Parent == null ? "root" : node.Parent.Name) + "." + node.Name + " diff-up.");
             foreach (var sub in node.Items)
             {
-              ProcessValidNodeSequence(sub, initialize);
+              ProcessValidNodeSequence(sub, initialize, e);
             }
           }
           else
@@ -1446,6 +1603,7 @@ namespace Rox
           }
           break;
         case NodeTypes.Timer: // ############################################################################################ TIMER
+          if (highlight) { node.Background = processedNodeBackground; }
           var t = ((IteTimer)node.Node);
           t.UpdateTime();
           if (t.Expired)
@@ -1453,16 +1611,16 @@ namespace Rox
             if (highlight) { node.Items[0].Background = trueNodeBackground; }
             foreach (var sub in node.Items[0].Items)
             {
-              ProcessValidNodeSequence(sub, initialize);
+              ProcessValidNodeSequence(sub, initialize, e);
             }
             ProcessInvalidNodeSequence(node.Items[1]);
           }
           else
           {
-            if (highlight) { node.Items[1].Background = trueNodeBackground; }
+            if (highlight) { node.Items[1].Background = falseNodeBackground; }
             foreach (var sub in node.Items[1].Items)
             {
-              ProcessValidNodeSequence(sub, initialize);
+              ProcessValidNodeSequence(sub, initialize, e);
             }
             ProcessInvalidNodeSequence(node.Items[0]);
           }
@@ -1475,6 +1633,10 @@ namespace Rox
             {
               case AssignMethod.assign:
                 Vars.Where(p => p.Name == ((IteSetVar)node.Node).VariableName).FirstOrDefault().Value = ((IteSetVar)node.Node).Value;
+                break;
+              case AssignMethod.invert:
+                var v1 = Vars.Where(p => p.Name == ((IteSetVar)node.Node).VariableName).FirstOrDefault();
+                if (v1.VarType.Value == (int)VarType.boolType) { v1.Value = !v1.Value; }
                 break;
               case AssignMethod.increment:
                 Vars.Where(p => p.Name == ((IteSetVar)node.Node).VariableName).FirstOrDefault().Value += ((IteSetVar)node.Node).Value;
@@ -1491,6 +1653,14 @@ namespace Rox
           {
           }
           break;
+        case NodeTypes.SetMode:
+          curMode = ((IteSetMode)node.Node).ModeName;
+          if (highlight) { node.Background = processedNodeBackground; }
+          return;
+        case NodeTypes.Return:
+          if (highlight) { node.Background = processedNodeBackground; }
+          e.Handled = true;
+          return;
       }
     }
     private void ChkHighlight_Checked(object sender, RoutedEventArgs e)
@@ -1535,6 +1705,7 @@ namespace Rox
       {
         if (!node.IsLocked && node == ToBeRemoved)
         {
+          if (node.Parent != null) { node.Parent.IsSelected = true; }
           Source.Items.Remove(node);
           tree.DataContext = null;
           tree.DataContext = new { Modes };
@@ -1570,6 +1741,25 @@ namespace Rox
       }
 
     }
-
+    private void btnDelete_Click(object sender, RoutedEventArgs e)
+    {
+      if (string.IsNullOrEmpty(loadedFile))
+      {
+        (new CustomMessageboxWindow("No file loaded", "Please load a file to delete. Otherwise, you will need to delete it manually.", MessageBoxButton.OK) { Owner = this }).ShowDialog();
+        return;
+      }
+      var f = new CustomMessageboxWindow(string.Format("Delete file '{0}'?", loadedFile), string.Format("Please confirm file '{0}' deletion. This cannot be undone.", loadedFile), MessageBoxButton.OKCancel) { Owner = this };
+      f.ShowDialog();
+      if (f.DialogResult == true)
+      {
+        var filespec = Properties.Settings.Default.ProgramPath.TrimEnd('\\') + @"\" + loadedFile + ".rox";
+        if (System.IO.File.Exists(filespec)) // redundant, yes
+        {
+          FileUnload(true);
+          System.IO.File.Delete(filespec);
+          PopulateFilelists();
+        }
+      }
+    }
   }
 }
