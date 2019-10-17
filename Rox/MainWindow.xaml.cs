@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PluginContracts;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -18,6 +19,7 @@ namespace Rox
   /// </summary>
   public partial class MainWindow : Window
   {
+    private ICollection<IPluginContract> plugins;
     private class SequenceEventArgs
     {
       public bool Handled { get; set; }
@@ -27,6 +29,7 @@ namespace Rox
     BindingList<Variable> Vars = new BindingList<Variable>();
     private static SolidColorBrush treeBackground = new SolidColorBrush(Color.FromRgb(41, 41, 41));
     private static SolidColorBrush treeBackgroundAllowDrop = new SolidColorBrush(Color.FromRgb(71, 125, 30));
+    private static SolidColorBrush treeBackgroundAllowDropInSeq = new SolidColorBrush(Colors.LightBlue);
     private static SolidColorBrush textboxBackground = new SolidColorBrush(Color.FromRgb(241, 241, 241));
     //private static SolidColorBrush processedNodeBackground = new SolidColorBrush(Color.FromRgb(0, 107, 21));
     private static SolidColorBrush errorNodeBackground = new SolidColorBrush(Colors.Red);
@@ -121,6 +124,59 @@ namespace Rox
     public MainWindow()
     {
       InitializeComponent();
+      plugins = LoadPlugins(@"Plugins\");
+    }
+    public ICollection<IPluginContract> LoadPlugins(string path)
+    {
+      string[] dllFileNames = null;
+      if (System.IO.Directory.Exists(path))
+      {
+        dllFileNames = System.IO.Directory.GetFiles(path, "*.dll");
+        ICollection<Assembly> assemblies = new List<Assembly>(dllFileNames.Length);
+        foreach (string dllFile in dllFileNames)
+        {
+          AssemblyName an = AssemblyName.GetAssemblyName(dllFile);
+          Assembly assembly = Assembly.Load(an);
+          assemblies.Add(assembly);
+        }
+        Type pluginType = typeof(IPluginContract);
+        ICollection<Type> pluginTypes = new List<Type>();
+        foreach (Assembly assembly in assemblies)
+        {
+          if (assembly != null)
+          {
+            try
+            {
+              Type[] types = assembly.GetTypes();
+              foreach (Type type in types)
+              {
+                if (type.IsInterface || type.IsAbstract)
+                {
+                  continue;
+                }
+                else
+                {
+                  if (type.GetInterface(pluginType.FullName) != null)
+                  {
+                    pluginTypes.Add(type);
+                  }
+                }
+              }
+            }
+            catch (Exception)
+            {
+            }
+          }
+        }
+        ICollection<IPluginContract> plugins = new List<IPluginContract>(pluginTypes.Count);
+        foreach (Type type in pluginTypes)
+        {
+          IPluginContract plugin = (IPluginContract)Activator.CreateInstance(type);
+          plugins.Add(plugin);
+        }
+        return plugins;
+      }
+      return null;
     }
     private void Window_Loaded(object sender, RoutedEventArgs e)
     {
@@ -382,7 +438,7 @@ namespace Rox
             }
             else
             {
-              var subNode = new IteFIRST_VM(new IteIntialize(reader.GetAttribute("name"))) { Parent = curNode,IsExpanded = reader.GetAttribute("exp") != "False" };
+              var subNode = new IteFIRST_VM(new IteIntialize(reader.GetAttribute("name"))) { Parent = curNode, IsExpanded = reader.GetAttribute("exp") != "False" };
               curNode.Items.Add(subNode);
               curNode = subNode;
             }
@@ -1038,32 +1094,79 @@ namespace Rox
         DragDrop.DoDragDrop((StackPanel)sender, dragData, DragDropEffects.Move);
       }
     }
+    private void Node_PreviewMouseMove(object sender, MouseEventArgs e)
+    {
+      Vector diff = startDragPoint - e.GetPosition(null);
+      if (e.LeftButton == MouseButtonState.Pressed && (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance || Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance))
+      {
+        var test = (((TreeViewItem)sender).DataContext).GetType();
+        DataObject dragData = null;
+        if (test == typeof(IteCONDITION_VM) ||
+            test == typeof(IteTIMER_VM) ||
+            test == typeof(IteSETVAR_VM) ||
+            test == typeof(IteSETMODE_VM) ||
+            test == typeof(IteRETURN_VM))
+        {
+          dragData = new DataObject("iteNodeVM", (IteNodeViewModel)((TreeViewItem)sender).DataContext);
+        }
+        else
+        {
+          return;
+          //e.Handled = true;
+        }
+        try
+        {
+          // Initialize the drag & drop operation
+          DragDrop.DoDragDrop((TreeViewItem)sender, dragData, DragDropEffects.Move);
+        }
+        catch (Exception)
+        {
+        }
+      }
+    }
     private void tvi_DragEnter(object sender, DragEventArgs e)
     {
-      if (e.Data.GetDataPresent("iteNode") && sender != e.Source)
+      try
       {
-        // test if node can be dropped here
-        var target = (TreeViewItem)sender;
-        var dc = (IteNodeViewModel)target.DataContext;
-        if (dc.AllowedNodes.Contains(((INode)e.Data.GetData("iteNode")).NodeType))
+        if (sender != e.Source)
         {
-          e.Effects = DragDropEffects.Copy;
-          target.Background = treeBackgroundAllowDrop;
+          if (e.Data.GetDataPresent("iteNode") || e.Data.GetDataPresent("iteNodeVM"))
+          {
+            // test if node can be dropped here
+            var target = (TreeViewItem)sender;
+            var dc = (IteNodeViewModel)target.DataContext;
+            var nodetype = e.Data.GetDataPresent("iteNode") ? ((INode)e.Data.GetData("iteNode")).NodeType : ((IteNodeViewModel)e.Data.GetData("iteNodeVM")).Node.NodeType;
+            if (dc.AllowedNodes.Contains(nodetype))
+            {
+              e.Effects = DragDropEffects.Copy;
+              target.Background = treeBackgroundAllowDrop;
+            }
+            else if (SequenceNodes.Contains(dc.NodeType))
+            {
+              e.Effects = DragDropEffects.Copy;
+              target.Background = treeBackgroundAllowDropInSeq;
+            }
+            else
+            {
+              e.Effects = DragDropEffects.None;
+            }
+          }
         }
         else
         {
           e.Effects = DragDropEffects.None;
         }
+        e.Handled = true;
+
       }
-      else
+      catch (Exception)
       {
-        e.Effects = DragDropEffects.None;
+        e.Handled = true;
       }
-      e.Handled = true;
     }
     private void tvi_DragOver(object sender, DragEventArgs e)
     {
-      if (e.Data.GetDataPresent("iteNode") && sender != e.Source)
+      if (sender != e.Source && (e.Data.GetDataPresent("iteNode") || e.Data.GetDataPresent("iteNodeVM")))
       {
         e.Effects = DragDropEffects.Copy;
       }
@@ -1075,57 +1178,65 @@ namespace Rox
     }
     private void tvi_Drop(object sender, DragEventArgs e)
     {
-      if (e.Data.GetDataPresent("iteNode"))
+      try
       {
-        // test if node can be dropped here
-        var target = (TreeViewItem)sender;
-        var dc = (IteNodeViewModel)target.DataContext;
-        var source = (INode)e.Data.GetData("iteNode");
-        if (dc.AllowedNodes.Contains(source.NodeType))
+        if (e.Data.GetDataPresent("iteNode") || e.Data.GetDataPresent("iteNodeVM"))
         {
-          try
-          {
-            ((IteNodeViewModel)tree.SelectedItem).IsSelected = false;
-          }
-          catch (Exception)
-          {
-          }
+          // test if node can be dropped here
+          var target = (TreeViewItem)sender;
+          var dc = (IteNodeViewModel)target.DataContext;
+          INode sourceNode = (INode)e.Data.GetData("iteNode") ?? ((IteNodeViewModel)e.Data.GetData("iteNodeVM")).Node;
+          IteNodeViewModel N = (IteNodeViewModel)e.Data.GetData("iteNodeVM");
           var success = false;
-          var T = source.GetType();
-          IteNodeViewModel N = null;
-          if (T == typeof(IteMode))
+          bool IsDropInSeq = SequenceNodes.Contains(dc.NodeType);
+          if (dc.AllowedNodes.Contains(sourceNode.NodeType) || IsDropInSeq)
           {
-            N = new IteMODE_VM(source) { IsSelected = true };
-            Modes.Add(N); success = true;
-          }
-          else if (T == typeof(IteCondition))
-          {
-            N = new IteCONDITION_VM(source) { IsSelected = true };
-            dc.Items.Add(N); success = true;
-          }
-          else if (T == typeof(IteTimer))
-          {
-            N = new IteTIMER_VM(source) { IsSelected = true };
-            dc.Items.Add(N); success = true;
-          }
-          else if (T == typeof(IteSetVar))
-          {
-            N = new IteSETVAR_VM(source) { IsSelected = true };
-            dc.Items.Add(N); success = true;
-          }
-          else if (T == typeof(IteSetMode))
-          {
-            N = new IteSETMODE_VM(source) { IsSelected = true };
-            dc.Items.Add(N); success = true;
-          }
-          else if (T == typeof(IteReturn))
-          {
-            N = new IteRETURN_VM(source) { IsSelected = true };
-            dc.Items.Add(N); success = true;
-          }
-          else
-          {
-            //N = new IteNodeViewModel(null);
+            try
+            {
+              ((IteNodeViewModel)tree.SelectedItem).IsSelected = false;
+            }
+            catch (Exception)
+            {
+            }
+            var T = sourceNode.GetType();
+            if (T == typeof(IteMode))
+            {
+              N = N ?? new IteMODE_VM(sourceNode) { IsSelected = true };
+              if (N.Parent != null) { N.Parent.Items.Remove(N); } // should never happen but WTH
+              Modes.Add(N);
+              N.Parent = null;
+              success = true;
+            }
+            else if (T == typeof(IteCondition))
+            {
+              N = N ?? new IteCONDITION_VM(sourceNode) { IsSelected = true };
+              Console.WriteLine(startDragPoint - e.GetPosition(this));
+              success = InsertNode(IsDropInSeq, N, dc, (startDragPoint - e.GetPosition(this)).Y >= 0);
+            }
+            else if (T == typeof(IteTimer))
+            {
+              N = N ?? new IteTIMER_VM(sourceNode) { IsSelected = true };
+              success = InsertNode(IsDropInSeq, N, dc, (startDragPoint - e.GetPosition(this)).Y >= 0);
+            }
+            else if (T == typeof(IteSetVar))
+            {
+              N = N ?? new IteSETVAR_VM(sourceNode) { IsSelected = true };
+              success = InsertNode(IsDropInSeq, N, dc, (startDragPoint - e.GetPosition(this)).Y >= 0);
+            }
+            else if (T == typeof(IteSetMode))
+            {
+              N = N ?? new IteSETMODE_VM(sourceNode) { IsSelected = true };
+              success = InsertNode(IsDropInSeq, N, dc, (startDragPoint - e.GetPosition(this)).Y >= 0);
+            }
+            else if (T == typeof(IteReturn))
+            {
+              N = N ?? new IteRETURN_VM(sourceNode) { IsSelected = true };
+              success = InsertNode(IsDropInSeq, N, dc, (startDragPoint - e.GetPosition(this)).Y >= 0);
+            }
+            else
+            {
+              //N = new IteNodeViewModel(null);
+            }
           }
           if (success)
           {
@@ -1133,9 +1244,40 @@ namespace Rox
             tree.DataContext = new { Modes };
           }
         }
+        e.Handled = true;
+        ((TreeViewItem)sender).Background = treeBackground;
+
       }
-      e.Handled = true;
-      ((TreeViewItem)sender).Background = treeBackground;
+      catch (Exception)
+      {
+      }
+    }
+    private bool InsertNode(bool IsDropInSeq, IteNodeViewModel newOrMoved, IteNodeViewModel dropTo, bool insertAbove=true)
+    {
+      try
+      {
+        if (newOrMoved.Parent != null) { newOrMoved.Parent.Items.Remove(newOrMoved); }
+        if (IsDropInSeq)
+        {
+          // insert before or after dropped on node
+          if (dropTo.Parent != null)
+          {
+            dropTo.Parent.Items.Insert(insertAbove?dropTo.Parent.Items.IndexOf(dropTo):dropTo.Parent.Items.IndexOf(dropTo)+1, newOrMoved);
+          }
+          newOrMoved.Parent = dropTo.Parent;
+        }
+        else
+        {
+          // add to items
+          dropTo.Items.Add(newOrMoved);
+          newOrMoved.Parent = dropTo;
+        }
+        return true;
+      }
+      catch (Exception)
+      {
+        return false;
+      }
     }
     private void btnReset_Click(object sender, RoutedEventArgs e)
     {
@@ -1839,6 +1981,11 @@ namespace Rox
     private void SeqItemReturn_MouseEnter(object sender, MouseEventArgs e)
     {
       txtSelectedNodeInfo.Text = "{ Return } Aborts the current iteration. \nDrag and Drop to add this item.";
+    }
+
+    private void Button_Click(object sender, RoutedEventArgs e)
+    {
+
     }
   }
 }
