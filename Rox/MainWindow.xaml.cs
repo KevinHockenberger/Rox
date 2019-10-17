@@ -22,7 +22,7 @@ namespace Rox
     private ICollection<IPluginContract> plugins;
     private class SequenceEventArgs
     {
-      public bool Handled { get; set; }
+      public bool AbortIteration { get; set; }
     }
     private bool highlight;
     private System.Threading.Tasks.Task Seq;
@@ -1096,9 +1096,13 @@ namespace Rox
     }
     private void Node_PreviewMouseMove(object sender, MouseEventArgs e)
     {
+      Console.WriteLine("first - " + ((TreeViewItem)sender).DataContext);
       Vector diff = startDragPoint - e.GetPosition(null);
-      if (e.LeftButton == MouseButtonState.Pressed && (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance || Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance))
+      if (e.LeftButton == MouseButtonState.Pressed
+        //&& (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance || Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance)
+        )
       {
+        Console.WriteLine("second -  " + ((TreeViewItem)sender).DataContext);
         var test = (((TreeViewItem)sender).DataContext).GetType();
         DataObject dragData = null;
         if (test == typeof(IteCONDITION_VM) ||
@@ -1107,11 +1111,15 @@ namespace Rox
             test == typeof(IteSETMODE_VM) ||
             test == typeof(IteRETURN_VM))
         {
-          dragData = new DataObject("iteNodeVM", (IteNodeViewModel)((TreeViewItem)sender).DataContext);
+
+          var test1 = ((dynamic)e.OriginalSource).DataContext;
+
+          dragData = new DataObject("iteNodeVM", (IteNodeViewModel)test1);
+          //dragData = new DataObject("iteNodeVM", (IteNodeViewModel)((TreeViewItem)sender).DataContext);
         }
         else
         {
-          return;
+          //return;
           //e.Handled = true;
         }
         try
@@ -1252,17 +1260,24 @@ namespace Rox
       {
       }
     }
-    private bool InsertNode(bool IsDropInSeq, IteNodeViewModel newOrMoved, IteNodeViewModel dropTo, bool insertAbove=true)
+    private bool InsertNode(bool IsDropInSeq, IteNodeViewModel newOrMoved, IteNodeViewModel dropTo, bool insertAbove = true)
     {
+      if (newOrMoved == null || dropTo == null) { return false; }
       try
       {
+        // detect if the source is trying to be dropped inside itself
+          if (RecursiveCheckForParentInChild(newOrMoved, dropTo))
+          {
+          (new CustomMessageboxWindow("Invalid destination", "Unable to put the selected item here.", MessageBoxButton.OK) { Owner = this }).ShowDialog();
+          return false;
+        }
         if (newOrMoved.Parent != null) { newOrMoved.Parent.Items.Remove(newOrMoved); }
         if (IsDropInSeq)
         {
           // insert before or after dropped on node
           if (dropTo.Parent != null)
           {
-            dropTo.Parent.Items.Insert(insertAbove?dropTo.Parent.Items.IndexOf(dropTo):dropTo.Parent.Items.IndexOf(dropTo)+1, newOrMoved);
+            dropTo.Parent.Items.Insert(insertAbove ? dropTo.Parent.Items.IndexOf(dropTo) : dropTo.Parent.Items.IndexOf(dropTo) + 1, newOrMoved);
           }
           newOrMoved.Parent = dropTo.Parent;
         }
@@ -1278,6 +1293,18 @@ namespace Rox
       {
         return false;
       }
+    }
+    private bool RecursiveCheckForParentInChild(IteNodeViewModel parent, IteNodeViewModel child)
+    {
+      foreach (var n in parent.Items)
+      {
+        if (n == child)
+        {
+          return true;
+        }
+        if( RecursiveCheckForParentInChild(n, child)) { return true; }
+      }
+      return false;
     }
     private void btnReset_Click(object sender, RoutedEventArgs e)
     {
@@ -1568,6 +1595,7 @@ namespace Rox
           //bool firstscan = string.IsNullOrEmpty(curMode) || string.IsNullOrEmpty(processingMode);
           //bool modeChanged = curMode != processingMode;
 
+          var e = new SequenceEventArgs();
           foreach (var mode in Modes)
           {
             //if (highlight) { ResetHighlight(mode); }
@@ -1582,9 +1610,8 @@ namespace Rox
                 //Console.WriteLine("name: " + ( mode.Name));
                 //Console.WriteLine((mode.NodeType == NodeTypes.Initialized && (modeChanged || firstscan)) ? "----------------------------------------" : "" );
                 //Console.WriteLine("{0} - {1}",modeChanged,firstscan);
-                var e = new SequenceEventArgs();
                 ProcessValidNodeSequence(mode, curMode != processingMode, e);
-                if (e.Handled == true) { break; }
+                if (e.AbortIteration == true) { break; }
               }
               else
               {
@@ -1597,7 +1624,7 @@ namespace Rox
               throw;
             }
           }
-          processingMode = curMode;
+          if (e.AbortIteration != true) { processingMode = curMode; }
         }
       }
       catch (Exception)
@@ -1687,7 +1714,7 @@ namespace Rox
     }
     private void ProcessValidNodeSequence(IteNodeViewModel node, bool initialize, SequenceEventArgs e)
     {
-      if (e.Handled) { return; }
+      if (e.AbortIteration) { return; }
       //Console.WriteLine("PROCESSING: " + node.Name);
       switch (node.NodeType)
       {
@@ -1852,7 +1879,7 @@ namespace Rox
           return;
         case NodeTypes.Return:
           if (highlight) { node.Background = processedNodeBackground; }
-          e.Handled = true;
+          e.AbortIteration = true;
           return;
       }
     }
@@ -1982,7 +2009,6 @@ namespace Rox
     {
       txtSelectedNodeInfo.Text = "{ Return } Aborts the current iteration. \nDrag and Drop to add this item.";
     }
-
     private void Button_Click(object sender, RoutedEventArgs e)
     {
 

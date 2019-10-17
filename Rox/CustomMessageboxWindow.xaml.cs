@@ -22,26 +22,26 @@ namespace Rox
       switch (messageBoxButton)
       {
         case MessageBoxButton.OK:
-          btnOk.Visibility = Visibility.Visible;
+          btnOk.Visibility = Visibility.Visible; btnOk.IsDefault = true; btnOk.IsCancel = true;
           btnCancel.Visibility = Visibility.Collapsed;
           btnYes.Visibility = Visibility.Collapsed;
           btnNo.Visibility = Visibility.Collapsed;
           break;
         case MessageBoxButton.OKCancel:
-          btnOk.Visibility = Visibility.Visible;
-          btnCancel.Visibility = Visibility.Visible;
+          btnOk.Visibility = Visibility.Visible; btnOk.IsDefault = true;
+          btnCancel.Visibility = Visibility.Visible; btnCancel.IsCancel = true;
           btnYes.Visibility = Visibility.Collapsed;
           btnNo.Visibility = Visibility.Collapsed;
           break;
         case MessageBoxButton.YesNoCancel:
           btnYes.Visibility = Visibility.Visible;
-          btnNo.Visibility = Visibility.Visible;
-          btnCancel.Visibility = Visibility.Visible;
+          btnNo.Visibility = Visibility.Visible; btnNo.IsDefault = true;
+          btnCancel.Visibility = Visibility.Visible; btnCancel.IsCancel = true;
           btnOk.Visibility = Visibility.Collapsed;
           break;
         case MessageBoxButton.YesNo:
-          btnYes.Visibility = Visibility.Visible;
-          btnNo.Visibility = Visibility.Visible;
+          btnYes.Visibility = Visibility.Visible; btnYes.IsDefault = true;
+          btnNo.Visibility = Visibility.Visible; btnNo.IsCancel = true;
           btnOk.Visibility = Visibility.Collapsed;
           btnCancel.Visibility = Visibility.Collapsed;
           break;

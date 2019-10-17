@@ -455,10 +455,9 @@
             <Button Template="{DynamicResource ButtonBaseControlTemplate}" x:Name="btnDelete" Click="btnDelete_Click" Background="Transparent" BorderThickness="1" BorderBrush="Transparent">
               <StackPanel Orientation="Horizontal">
                 <Image Width="20" Height="20" Margin="0,0,10,0" Source="include/X.png" />
-                <TextBlock TextTrimming="CharacterEllipsis" Text="delete file" FontSize="14"  VerticalAlignment="Center" />
+                <TextBlock TextTrimming="CharacterEllipsis" Text="delete file" FontSize="14" VerticalAlignment="Center" />
               </StackPanel>
             </Button>
-            
           </Border>
         </Grid>
       </Grid>
@@ -473,7 +472,6 @@
           </Grid.ColumnDefinitions>
           <Grid>
             <TreeView x:Name="tree" Margin="0" ItemsSource="{Binding Modes}" AllowDrop="True" DragEnter="Tree_DragEnter" Drop="Tree_Drop" DragLeave="Tree_DragLeave">
-
               <TreeView.Resources>
                 <!-- GENERIC NODE STYLE ############################################################# -->
                 <HierarchicalDataTemplate DataType="{x:Type local:IteNodeViewModel}" ItemsSource="{Binding Items}" >
@@ -776,9 +774,7 @@
                   <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
                   <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
                 </Style>
-
               </TreeView.ItemContainerStyle>
-
             </TreeView>
           </Grid>
           <GridSplitter Grid.Column="1" Width="5" Background="#FF555555" HorizontalAlignment="Center" />
@@ -809,7 +805,6 @@
                 </Canvas>
                 <Label Foreground="White" Content="Mode"/>
               </StackPanel>
-
               <StackPanel Orientation="Horizontal" PreviewMouseLeftButtonDown="_PreviewMouseLeftButtonDown" PreviewMouseMove="SetMode_PreviewMouseMove" MouseEnter="SeqItemSetMode_MouseEnter" MouseLeave="SeqItem_MouseLeave">
                 <Canvas Width="26" Height="26">
                   <Canvas.Background>
@@ -818,7 +813,6 @@
                 </Canvas>
                 <Label Foreground="White" Content="Set Mode"/>
               </StackPanel>
-
               <StackPanel Orientation="Horizontal" PreviewMouseLeftButtonDown="_PreviewMouseLeftButtonDown" PreviewMouseMove="Condition_PreviewMouseMove" MouseEnter="SeqItemCondition_MouseEnter" MouseLeave="SeqItem_MouseLeave">
                 <Canvas Width="26" Height="26">
                   <Canvas.Background>
@@ -851,7 +845,6 @@
                 </Canvas>
                 <Label Foreground="White" Content="Return"/>
               </StackPanel>
-
             </StackPanel>
             <Button x:Name="btnDeleteSelectedNode" BorderThickness="1" Click="BtnDeleteSelectedNode_Click" DockPanel.Dock="Bottom">
               <Button.BorderBrush>
@@ -869,7 +862,6 @@
                 <TextBlock TextTrimming="CharacterEllipsis" Text="Delete Node" VerticalAlignment="Center" Margin="5,0,0,0"/>
               </StackPanel>
             </Button>
-
             <Grid DockPanel.Dock="Top" >
               <Grid.ColumnDefinitions>
                 <ColumnDefinition/>

@@ -41,7 +41,7 @@
         <TextBlock x:Name="txtPrompt" Text="PROMPT" Padding="5,2" TextWrapping="Wrap" MaxWidth="800" Margin="0,0,0,12"/>
       </Grid>
       <StackPanel Grid.Row="2" Orientation="Horizontal" FlowDirection="RightToLeft">
-        <Button x:Name="btnCancel" Template="{DynamicResource ButtonBaseControlTemplate}" Width="100" Margin="0" Click="Cancel_Click" >
+        <Button x:Name="btnCancel" Template="{DynamicResource ButtonBaseControlTemplate}" Width="100" Margin="0" Click="Cancel_Click" IsCancel="True" >
           <StackPanel Orientation="Horizontal" Width="90" FlowDirection="LeftToRight">
             <Canvas Width="24" Height="24" Margin="0,0,0,0">
               <Canvas.Background>
@@ -51,7 +51,7 @@
             <Label Foreground="White">Cancel</Label>
           </StackPanel>
         </Button>
-        <Button x:Name="btnOk" Template="{DynamicResource ButtonBaseControlTemplate}" Width="100" Margin="0" Click="OK_Click" >
+        <Button x:Name="btnOk" Template="{DynamicResource ButtonBaseControlTemplate}" Width="100" Margin="0" Click="OK_Click" IsDefault="True" >
           <StackPanel Orientation="Horizontal" Width="90" FlowDirection="LeftToRight">
             <Canvas Width="24" Height="24">
               <Canvas.Background>
