@@ -478,14 +478,6 @@ namespace Rox
             break;
         }
       }
-      //Items = new Collection<IteNodeViewModel>((from item in node.Items select new IteNodeViewModel(item, this)).ToList<IteNodeViewModel>());
-      //_clickCommand = new DelegateCommand<string>(
-      //           (s) =>
-      //           {
-      //               Console.WriteLine(node.Description());
-      //           }, //Execute
-      //           (s) => { return true; } //CanExecute
-      //           );
     }
     public string Name
     {
@@ -668,7 +660,6 @@ namespace Rox
       }
     }
     private string _note;
-
     public string Note
     {
       get { return _note; }
@@ -678,6 +669,32 @@ namespace Rox
         {
           _note = value;
           NotifyPropertyChanged("Note");
+        }
+      }
+    }
+    private short _channel;
+    public short Channel
+    {
+      get { return _channel; }
+      set
+      {
+        if (value != _channel)
+        {
+          _channel = value;
+          NotifyPropertyChanged("Channel");
+        }
+      }
+    }
+    private bool? _isOutput;
+    public bool? IsOutput
+    {
+      get { return _isOutput; }
+      set
+      {
+        if (value != _isOutput)
+        {
+          _isOutput = value;
+          NotifyPropertyChanged("IsOutput");
         }
       }
     }
@@ -699,7 +716,6 @@ namespace Rox
     [Description("invert ( ! = )")]
     invert = 4
   }
-
   public enum VarType
   {
     boolType = 1,

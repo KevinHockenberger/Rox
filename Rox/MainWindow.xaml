@@ -905,6 +905,39 @@
                     <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" Width="100"/>
                     <GridViewColumn Header="Value" DisplayMemberBinding="{Binding Value,StringFormat={}{0:#,##0.######}}" Width="50"/>
                     <GridViewColumn Header="Type" DisplayMemberBinding="{Binding VarType}" Width="30"/>
+                    <GridViewColumn Header="I/O" Width="28">
+                      <GridViewColumn.CellTemplate>
+                        <DataTemplate>
+                          <Image Name="IOimg" Width="14" Height="14"/>
+                          <DataTemplate.Triggers>
+                            <DataTrigger Binding="{Binding IsOutput}" Value="True">
+                              <Setter TargetName="IOimg" Property="Source" Value="include/RedDot.png"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsOutput}" Value="False">
+                              <Setter TargetName="IOimg" Property="Source" Value="include/GreenDot.png"/>
+                            </DataTrigger>
+                            <!--<DataTrigger Binding="{Binding IsOutput}" Value="Null">
+                              <Setter TargetName="IOimg" Property="Source" Value="include/x.png"/>
+                            </DataTrigger>-->
+                          </DataTemplate.Triggers>
+                        </DataTemplate>
+                      </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="#" Width="28">
+                      <GridViewColumn.CellTemplate>
+                        <DataTemplate>
+                          <TextBlock Name="txtChannel" Text="{Binding Channel}"/>
+                          <DataTemplate.Triggers>
+                            <DataTrigger Binding="{Binding Channel}" Value="-1">
+                              <Setter TargetName="txtChannel" Property="Text" Value=""/>
+                            </DataTrigger>
+                            <!--<DataTrigger Binding="{Binding Channel}" Value="1">
+                              <Setter TargetName="txtChannel" Property="Text" Value="1"/>
+                            </DataTrigger>-->
+                          </DataTemplate.Triggers>
+                        </DataTemplate>
+                      </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
                     <GridViewColumn Header="Note" DisplayMemberBinding="{Binding Note}" Width="100"/>
                   </GridView>
                 </ListView.View>

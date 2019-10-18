@@ -38,6 +38,10 @@
     <ApplicationIcon>ite.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Advantech.Adam, Version=8.2.12.0, Culture=neutral, PublicKeyToken=c24039c75946be9c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>R3P\Advantech.Adam.DLL</HintPath>
+    </Reference>
     <Reference Include="PluginContracts">
       <HintPath>..\PluginContracts\bin\Debug\PluginContracts.dll</HintPath>
     </Reference>
@@ -80,6 +84,7 @@
       <DependentUpon>FileSavePrompt.xaml</DependentUpon>
     </Compile>
     <Compile Include="General.cs" />
+    <Compile Include="IoAdams.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -132,9 +137,7 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="R3P\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <Resource Include="include\ite.ico" />
   </ItemGroup>
@@ -191,6 +194,11 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="include\SaveAs.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="include\GreenDot.png" />
+    <Resource Include="include\RedDot.png" />
+    <Content Include="R3P\Advantech.Adam.DLL" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

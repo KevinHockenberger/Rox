@@ -97,10 +97,21 @@ namespace Rox
         //}
       }
     }
-    public VarParamsWindow() : this(null, VarType.boolType, null, false)
+    private short _channel = -1;
+    public short Channel
+    {
+      get { return _channel; }
+      set { if (value >= 0) { _channel = value; txtChannel.Text = Channel.ToString(); } }
+    }
+    public bool? IsOutput
+    {
+      get { return cmbIO.Text == "Output" ? (bool?)true : cmbIO.Text == "Input" ? (bool?)false : null; }
+      set { cmbIO.Text = value == true ? "Output" : value == false ? "Input" : ""; }
+    }
+    public VarParamsWindow() : this(null, VarType.boolType, null, false, null, -1)
     {
     }
-    public VarParamsWindow(string Name, VarType varType, string Note, object Value)
+    public VarParamsWindow(string Name, VarType varType, string Note, object Value, bool? IsOutput, short Channel)
     {
       InitializeComponent();
       VarName = Name;
@@ -118,6 +129,8 @@ namespace Rox
           rdoDecimal.IsChecked = true; VarType = VarType.numberType;
           break;
       }
+      this.IsOutput = IsOutput;
+      this.Channel = Channel;
     }
     private void Button_Click(object sender, RoutedEventArgs e)
     {
@@ -136,7 +149,7 @@ namespace Rox
       {
         VarValue = decimal.TryParse(txtValue.Text, out var d) ? d : 0;
       }
-
+      Channel = short.TryParse(txtChannel.Text, out short s) ? s : (short)-1;
       this.DialogResult = true;
       this.Close();
     }
@@ -190,5 +203,9 @@ namespace Rox
       ((System.Windows.Controls.TextBox)sender).SelectAll();
     }
 
+    private void TxtChannel_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+    {
+      //Channel =short.TryParse( txtChannel.Text, out short s)?s:(short)-1;
+    }
   }
 }

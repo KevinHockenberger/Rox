@@ -5,186 +5,203 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Rox"
         mc:Ignorable="d"
-        Title="Parameters" WindowStartupLocation="CenterOwner" ShowInTaskbar="False" WindowStyle="None" Background="#FF292929" Padding="6,5,5,5" Width="480" Height="300" ResizeMode="CanResizeWithGrip" MinWidth="480" MinHeight="300" Loaded="Window_Loaded">
-    <Window.Resources>
-        <Style TargetType="{x:Type local:VarParamsWindow}">
-            <Setter Property="FontFamily" Value="arial" />
-            <Setter Property="FontSize" Value="18"></Setter>
-            <Setter Property="Background" Value="#FF292929"></Setter>
-            <Setter Property="Foreground" Value="White"></Setter>
-        </Style>
-        <Style TargetType="{x:Type Button}">
-            <Setter Property="Background" Value="#FF292929"></Setter>
-            <Setter Property="Foreground" Value="White"></Setter>
-        </Style>
-        <Style x:Key="FocusVisual">
-            <Setter Property="Control.Template">
-                <Setter.Value>
-                    <ControlTemplate>
-                        <Rectangle Margin="2" SnapsToDevicePixels="true" Stroke="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" StrokeThickness="1" StrokeDashArray="1 2"/>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-        <SolidColorBrush x:Key="RadioButton.Static.Background" Color="#FFFFFFFF"/>
-        <SolidColorBrush x:Key="RadioButton.Static.Border" Color="#FF707070"/>
-        <Style x:Key="OptionMarkFocusVisual">
-            <Setter Property="Control.Template">
-                <Setter.Value>
-                    <ControlTemplate>
-                        <Rectangle Margin="14,0,0,0" SnapsToDevicePixels="true" Stroke="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" StrokeThickness="1" StrokeDashArray="1 2"/>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-        <SolidColorBrush x:Key="RadioButton.MouseOver.Background" Color="#FFF3F9FF"/>
-        <SolidColorBrush x:Key="RadioButton.MouseOver.Border" Color="#FF5593FF"/>
-        <SolidColorBrush x:Key="RadioButton.MouseOver.Glyph" Color="#FF212121"/>
-        <SolidColorBrush x:Key="RadioButton.Disabled.Background" Color="#FFE6E6E6"/>
-        <SolidColorBrush x:Key="RadioButton.Disabled.Border" Color="#FFBCBCBC"/>
-        <SolidColorBrush x:Key="RadioButton.Disabled.Glyph" Color="#FF707070"/>
-        <SolidColorBrush x:Key="RadioButton.Pressed.Background" Color="#FFD9ECFF"/>
-        <SolidColorBrush x:Key="RadioButton.Pressed.Border" Color="#FF3C77DD"/>
-        <SolidColorBrush x:Key="RadioButton.Pressed.Glyph" Color="#FF212121"/>
-        <SolidColorBrush x:Key="RadioButton.Static.Glyph" Color="#FF212121"/>
-        <Style TargetType="{x:Type RadioButton}">
-            <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}"/>
-            <Setter Property="Background" Value="{StaticResource RadioButton.Static.Background}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource RadioButton.Static.Border}"/>
-            <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type RadioButton}">
-                        <Grid x:Name="templateRoot" Background="Transparent" SnapsToDevicePixels="True">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Border x:Name="radioButtonBorder" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" CornerRadius="100" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="1,1,2,1" VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
-                                <Grid x:Name="markGrid" Margin="3">
-                                    <Ellipse x:Name="optionMark" Fill="{StaticResource RadioButton.Static.Glyph}" MinWidth="14" MinHeight="14" Opacity="0"/>
-                                </Grid>
-                            </Border>
-                            <ContentPresenter x:Name="contentPresenter" Grid.Column="1" Focusable="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
-                        </Grid>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="HasContent" Value="true">
-                                <Setter Property="FocusVisualStyle" Value="{StaticResource OptionMarkFocusVisual}"/>
-                                <Setter Property="Padding" Value="4,-1,0,0"/>
-                            </Trigger>
-                            <Trigger Property="IsMouseOver" Value="true">
-                                <Setter Property="Background" TargetName="radioButtonBorder" Value="{StaticResource RadioButton.MouseOver.Background}"/>
-                                <Setter Property="BorderBrush" TargetName="radioButtonBorder" Value="{StaticResource RadioButton.MouseOver.Border}"/>
-                                <Setter Property="Fill" TargetName="optionMark" Value="{StaticResource RadioButton.MouseOver.Glyph}"/>
-                            </Trigger>
-                            <Trigger Property="IsEnabled" Value="false">
-                                <Setter Property="Background" TargetName="radioButtonBorder" Value="{StaticResource RadioButton.Disabled.Background}"/>
-                                <Setter Property="BorderBrush" TargetName="radioButtonBorder" Value="{StaticResource RadioButton.Disabled.Border}"/>
-                                <Setter Property="Fill" TargetName="optionMark" Value="{StaticResource RadioButton.Disabled.Glyph}"/>
-                            </Trigger>
-                            <Trigger Property="IsPressed" Value="true">
-                                <Setter Property="Background" TargetName="radioButtonBorder" Value="{StaticResource RadioButton.Pressed.Background}"/>
-                                <Setter Property="BorderBrush" TargetName="radioButtonBorder" Value="{StaticResource RadioButton.Pressed.Border}"/>
-                                <Setter Property="Fill" TargetName="optionMark" Value="{StaticResource RadioButton.Pressed.Glyph}"/>
-                            </Trigger>
-                            <Trigger Property="IsChecked" Value="true">
-                                <Setter Property="Opacity" TargetName="optionMark" Value="1"/>
-                            </Trigger>
-                            <Trigger Property="IsChecked" Value="{x:Null}">
-                                <Setter Property="Opacity" TargetName="optionMark" Value="0.56"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-    </Window.Resources>
-    <Border BorderBrush="#FFACACAC" Background="#FF404040" BorderThickness="2" Margin="5" Padding="20">
-        <Border BorderThickness="1" Padding="5">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-                <Border BorderThickness="1" Background="#FF343434"  >
-                    <Border.BorderBrush>
-                        <LinearGradientBrush EndPoint="1,1" StartPoint="1,0">
-                            <GradientStop Color="#FF1B1B1B" Offset="0"/>
-                            <GradientStop Color="#FFDADADA" Offset="1"/>
-                        </LinearGradientBrush>
-                    </Border.BorderBrush>
-                    <Grid>
-                        <Label Content="⬐ Variable properties ⬎" Foreground="White" HorizontalContentAlignment="Center"/>
-                    </Grid>
-                </Border>
-                <Grid Grid.Row="1">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition/>
-                    </Grid.ColumnDefinitions>
-                    <Grid Grid.ColumnSpan="2" >
-                        <Border BorderBrush="#FFA4A4A4" BorderThickness="1" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="0" Margin="2">
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                <RadioButton x:Name="rdoBool" Content="bit" Margin="15,5,15,5" Foreground="White" Checked="RdoVarType_Checked" VerticalContentAlignment="Center"  />
-                                <RadioButton x:Name="rdoDecimal" Content="number" Margin="15,5,15,5" Foreground="White" Checked="RdoVarType_Checked" VerticalContentAlignment="Center"  />
-                                <RadioButton x:Name="rdoString" Content="text" Margin="15,5,15,5" Foreground="White" Checked="RdoVarType_Checked" VerticalContentAlignment="Center"  />
-                            </StackPanel>
-                        </Border>
-                    </Grid>
-                    <Label Grid.Row="1" Content="Name:" VerticalAlignment="Top" HorizontalAlignment="Right"/>
-                    <TextBox x:Name="txtName" Grid.Row="1" KeyUp="Txt_KeyUp" Height="23" Grid.Column="1" Margin="10,4" GotFocus="Txt_GotFocus"/>
-                    <Label Content="Value:" VerticalAlignment="Top" HorizontalAlignment="Right" Grid.Row="2"/>
-                    <Grid x:Name="gValkey" Grid.Row="2" Grid.Column="1" >
-                        <TextBox x:Name="txtValue" Height="23" Margin="10,5" KeyUp="TxtValue_KeyUp" GotFocus="Txt_GotFocus" />
-                    </Grid>
-                    <Grid x:Name="gValrdo" Grid.Row="2" Grid.Column="1">
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                            <RadioButton x:Name="rdoValTrue" Margin="15,5,15,5" Foreground="White" VerticalAlignment="Center" VerticalContentAlignment="Center" Checked="RdoVal_Checked" KeyUp="Txt_KeyUp" >
-                                <RadioButton.Content>
-                                    <TextBlock VerticalAlignment="Center">True<TextBlock FontSize="12" Margin="5,0,0,0">(On, Yes, 1)</TextBlock></TextBlock>
-                                </RadioButton.Content>
-                            </RadioButton>
-                            <RadioButton x:Name="rdoValFalse" Margin="15,5,15,5" Foreground="White" VerticalAlignment="Center" VerticalContentAlignment="Center" Checked="RdoVal_Checked" KeyUp="Txt_KeyUp" >
-                                <RadioButton.Content>
-                                    <TextBlock VerticalAlignment="Center">False<TextBlock FontSize="12" Margin="5,0,0,0">(Off, No, 0)</TextBlock></TextBlock>
-                                </RadioButton.Content>
-                            </RadioButton>
-                        </StackPanel>
-                    </Grid>
-                    <Label Content="Note:" VerticalAlignment="Top" HorizontalAlignment="Right" Grid.Row="3"/>
-                    <TextBox x:Name="txtNote"  KeyUp="Txt_KeyUp" Height="23" Grid.Column="1" Margin="10,5" Grid.Row="3" GotFocus="Txt_GotFocus" />
+        Title="Parameters" WindowStartupLocation="CenterOwner" ShowInTaskbar="False" WindowStyle="None" Background="#FF292929" Padding="6,5,5,5" Width="480" Height="292" ResizeMode="CanResizeWithGrip" MinWidth="480" MinHeight="320" Loaded="Window_Loaded">
+  <Window.Resources>
+    <Style TargetType="{x:Type local:VarParamsWindow}">
+      <Setter Property="FontFamily" Value="arial" />
+      <Setter Property="FontSize" Value="18"></Setter>
+      <Setter Property="Background" Value="#FF292929"></Setter>
+      <Setter Property="Foreground" Value="White"></Setter>
+    </Style>
+    <Style TargetType="{x:Type Button}">
+      <Setter Property="Background" Value="#FF292929"></Setter>
+      <Setter Property="Foreground" Value="White"></Setter>
+    </Style>
+    <Style x:Key="FocusVisual">
+      <Setter Property="Control.Template">
+        <Setter.Value>
+          <ControlTemplate>
+            <Rectangle Margin="2" SnapsToDevicePixels="true" Stroke="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" StrokeThickness="1" StrokeDashArray="1 2"/>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <SolidColorBrush x:Key="RadioButton.Static.Background" Color="#FFFFFFFF"/>
+    <SolidColorBrush x:Key="RadioButton.Static.Border" Color="#FF707070"/>
+    <Style x:Key="OptionMarkFocusVisual">
+      <Setter Property="Control.Template">
+        <Setter.Value>
+          <ControlTemplate>
+            <Rectangle Margin="14,0,0,0" SnapsToDevicePixels="true" Stroke="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" StrokeThickness="1" StrokeDashArray="1 2"/>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <SolidColorBrush x:Key="RadioButton.MouseOver.Background" Color="#FFF3F9FF"/>
+    <SolidColorBrush x:Key="RadioButton.MouseOver.Border" Color="#FF5593FF"/>
+    <SolidColorBrush x:Key="RadioButton.MouseOver.Glyph" Color="#FF212121"/>
+    <SolidColorBrush x:Key="RadioButton.Disabled.Background" Color="#FFE6E6E6"/>
+    <SolidColorBrush x:Key="RadioButton.Disabled.Border" Color="#FFBCBCBC"/>
+    <SolidColorBrush x:Key="RadioButton.Disabled.Glyph" Color="#FF707070"/>
+    <SolidColorBrush x:Key="RadioButton.Pressed.Background" Color="#FFD9ECFF"/>
+    <SolidColorBrush x:Key="RadioButton.Pressed.Border" Color="#FF3C77DD"/>
+    <SolidColorBrush x:Key="RadioButton.Pressed.Glyph" Color="#FF212121"/>
+    <SolidColorBrush x:Key="RadioButton.Static.Glyph" Color="#FF212121"/>
+    <Style TargetType="{x:Type RadioButton}">
+      <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}"/>
+      <Setter Property="Background" Value="{StaticResource RadioButton.Static.Background}"/>
+      <Setter Property="BorderBrush" Value="{StaticResource RadioButton.Static.Border}"/>
+      <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="{x:Type RadioButton}">
+            <Grid x:Name="templateRoot" Background="Transparent" SnapsToDevicePixels="True">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+              </Grid.ColumnDefinitions>
+              <Border x:Name="radioButtonBorder" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" CornerRadius="100" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="1,1,2,1" VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
+                <Grid x:Name="markGrid" Margin="3">
+                  <Ellipse x:Name="optionMark" Fill="{StaticResource RadioButton.Static.Glyph}" MinWidth="14" MinHeight="14" Opacity="0"/>
                 </Grid>
-                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" >
-                    <Button x:Name="btnOk" Template="{DynamicResource ButtonBaseControlTemplate}" Padding="5,1" Width="100" Click="OK_Click" Margin="0,0,5,0" >
-                        <StackPanel Orientation="Horizontal" Width="90" FlowDirection="LeftToRight">
-                            <Canvas Width="26" Height="26">
-                                <Canvas.Background>
-                                    <ImageBrush ImageSource="include/check.png"/>
-                                </Canvas.Background>
-                            </Canvas>
-                            <Label Foreground="White">OK</Label>
-                        </StackPanel>
-                    </Button>
-                    <Button x:Name="btnCancel" Template="{DynamicResource ButtonBaseControlTemplate}" Padding="5,1" Width="100" Click="Button_Click" Margin="5,0,0,0" >
-                        <StackPanel Orientation="Horizontal" Width="90" FlowDirection="LeftToRight">
-                            <Canvas Width="26" Height="26">
-                                <Canvas.Background>
-                                    <ImageBrush ImageSource="include/x.png"/>
-                                </Canvas.Background>
-                            </Canvas>
-                            <Label Foreground="White">Cancel</Label>
-                        </StackPanel>
-                    </Button>
-                </StackPanel>
+              </Border>
+              <ContentPresenter x:Name="contentPresenter" Grid.Column="1" Focusable="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
             </Grid>
+            <ControlTemplate.Triggers>
+              <Trigger Property="HasContent" Value="true">
+                <Setter Property="FocusVisualStyle" Value="{StaticResource OptionMarkFocusVisual}"/>
+                <Setter Property="Padding" Value="4,-1,0,0"/>
+              </Trigger>
+              <Trigger Property="IsMouseOver" Value="true">
+                <Setter Property="Background" TargetName="radioButtonBorder" Value="{StaticResource RadioButton.MouseOver.Background}"/>
+                <Setter Property="BorderBrush" TargetName="radioButtonBorder" Value="{StaticResource RadioButton.MouseOver.Border}"/>
+                <Setter Property="Fill" TargetName="optionMark" Value="{StaticResource RadioButton.MouseOver.Glyph}"/>
+              </Trigger>
+              <Trigger Property="IsEnabled" Value="false">
+                <Setter Property="Background" TargetName="radioButtonBorder" Value="{StaticResource RadioButton.Disabled.Background}"/>
+                <Setter Property="BorderBrush" TargetName="radioButtonBorder" Value="{StaticResource RadioButton.Disabled.Border}"/>
+                <Setter Property="Fill" TargetName="optionMark" Value="{StaticResource RadioButton.Disabled.Glyph}"/>
+              </Trigger>
+              <Trigger Property="IsPressed" Value="true">
+                <Setter Property="Background" TargetName="radioButtonBorder" Value="{StaticResource RadioButton.Pressed.Background}"/>
+                <Setter Property="BorderBrush" TargetName="radioButtonBorder" Value="{StaticResource RadioButton.Pressed.Border}"/>
+                <Setter Property="Fill" TargetName="optionMark" Value="{StaticResource RadioButton.Pressed.Glyph}"/>
+              </Trigger>
+              <Trigger Property="IsChecked" Value="true">
+                <Setter Property="Opacity" TargetName="optionMark" Value="1"/>
+              </Trigger>
+              <Trigger Property="IsChecked" Value="{x:Null}">
+                <Setter Property="Opacity" TargetName="optionMark" Value="0.56"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+  </Window.Resources>
+  <Border BorderBrush="#FFACACAC" Background="#FF404040" BorderThickness="2" Margin="5" Padding="20">
+    <Border BorderThickness="1" Padding="5">
+      <Grid>
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition/>
+          <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Border BorderThickness="1" Background="#FF343434"  >
+          <Border.BorderBrush>
+            <LinearGradientBrush EndPoint="1,1" StartPoint="1,0">
+              <GradientStop Color="#FF1B1B1B" Offset="0"/>
+              <GradientStop Color="#FFDADADA" Offset="1"/>
+            </LinearGradientBrush>
+          </Border.BorderBrush>
+          <Grid>
+            <Label Content="⬐ Variable properties ⬎" Foreground="White" HorizontalContentAlignment="Center"/>
+          </Grid>
         </Border>
+        <Grid Grid.Row="1">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+          </Grid.RowDefinitions>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition/>
+          </Grid.ColumnDefinitions>
+          <Grid Grid.ColumnSpan="2" >
+            <Border BorderBrush="#FFA4A4A4" BorderThickness="1" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="0" Margin="2">
+              <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <RadioButton x:Name="rdoBool" Content="bit" Margin="15,5,15,5" Foreground="White" Checked="RdoVarType_Checked" VerticalContentAlignment="Center"  />
+                <RadioButton x:Name="rdoDecimal" Content="number" Margin="15,5,15,5" Foreground="White" Checked="RdoVarType_Checked" VerticalContentAlignment="Center"  />
+                <RadioButton x:Name="rdoString" Content="text" Margin="15,5,15,5" Foreground="White" Checked="RdoVarType_Checked" VerticalContentAlignment="Center"  />
+              </StackPanel>
+            </Border>
+          </Grid>
+          <Label Grid.Row="1" Content="Name:" VerticalAlignment="Top" HorizontalAlignment="Right"/>
+          <TextBox x:Name="txtName" Grid.Row="1" KeyUp="Txt_KeyUp" Height="23" Grid.Column="1" Margin="10,4" GotFocus="Txt_GotFocus"/>
+          <Label Content="Value:" VerticalAlignment="Top" HorizontalAlignment="Right" Grid.Row="2"/>
+          <Grid x:Name="gValkey" Grid.Row="2" Grid.Column="1" >
+            <TextBox x:Name="txtValue" Height="23" Margin="10,5" KeyUp="TxtValue_KeyUp" GotFocus="Txt_GotFocus" />
+          </Grid>
+          <Grid x:Name="gValrdo" Grid.Row="2" Grid.Column="1">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+              <RadioButton x:Name="rdoValTrue" Margin="15,5,15,5" Foreground="White" VerticalAlignment="Center" VerticalContentAlignment="Center" Checked="RdoVal_Checked" KeyUp="Txt_KeyUp" >
+                <RadioButton.Content>
+                  <TextBlock VerticalAlignment="Center">True<TextBlock FontSize="12" Margin="5,0,0,0">(On, Yes, 1)</TextBlock></TextBlock>
+                </RadioButton.Content>
+              </RadioButton>
+              <RadioButton x:Name="rdoValFalse" Margin="15,5,15,5" Foreground="White" VerticalAlignment="Center" VerticalContentAlignment="Center" Checked="RdoVal_Checked" KeyUp="Txt_KeyUp" >
+                <RadioButton.Content>
+                  <TextBlock VerticalAlignment="Center">False<TextBlock FontSize="12" Margin="5,0,0,0">(Off, No, 0)</TextBlock></TextBlock>
+                </RadioButton.Content>
+              </RadioButton>
+            </StackPanel>
+          </Grid>
+          <Grid Grid.Row="3" Grid.ColumnSpan="2" >
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition/>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Label Content="Channel:" />
+            <TextBox x:Name="txtChannel" Grid.Column="1" Height="23" Margin="5,0,5,0" TextChanged="TxtChannel_TextChanged" KeyUp="TxtValue_KeyUp" />
+            <Label Content="In/Out:" Grid.Column="2" />
+            <ComboBox x:Name="cmbIO" Grid.Column="3" Height="28" Margin="5,0,5,0" KeyUp="TxtValue_KeyUp" >
+              <ComboBoxItem Content="" />
+              <ComboBoxItem Content="Input" />
+              <ComboBoxItem Content="Output"/>
+            </ComboBox>
+          </Grid>
+          <Label Content="Note:" VerticalAlignment="Top" HorizontalAlignment="Right" Grid.Row="4"/>
+          <TextBox x:Name="txtNote"  KeyUp="Txt_KeyUp" Height="23" Grid.Column="1" Margin="10,5" Grid.Row="4" GotFocus="Txt_GotFocus" />
+        </Grid>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" >
+          <Button x:Name="btnOk" Template="{DynamicResource ButtonBaseControlTemplate}" Padding="5,1" Width="100" Click="OK_Click" Margin="0,0,5,0" >
+            <StackPanel Orientation="Horizontal" Width="90" FlowDirection="LeftToRight">
+              <Canvas Width="26" Height="26">
+                <Canvas.Background>
+                  <ImageBrush ImageSource="include/check.png"/>
+                </Canvas.Background>
+              </Canvas>
+              <Label Foreground="White">OK</Label>
+            </StackPanel>
+          </Button>
+          <Button x:Name="btnCancel" Template="{DynamicResource ButtonBaseControlTemplate}" Padding="5,1" Width="100" Click="Button_Click" Margin="5,0,0,0" >
+            <StackPanel Orientation="Horizontal" Width="90" FlowDirection="LeftToRight">
+              <Canvas Width="26" Height="26">
+                <Canvas.Background>
+                  <ImageBrush ImageSource="include/x.png"/>
+                </Canvas.Background>
+              </Canvas>
+              <Label Foreground="White">Cancel</Label>
+            </StackPanel>
+          </Button>
+        </StackPanel>
+      </Grid>
     </Border>
+  </Border>
 </Window>

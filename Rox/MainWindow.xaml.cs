@@ -19,6 +19,7 @@ namespace Rox
   /// </summary>
   public partial class MainWindow : Window
   {
+    private IoAdams IoAdams; // = new IoAdams(new IoAdams.Settings() { IpAddress = "172.18.3.231", Port = 502, ProtocolType = System.Net.Sockets.ProtocolType.Tcp });
     private ICollection<IPluginContract> plugins;
     private class SequenceEventArgs
     {
@@ -27,6 +28,7 @@ namespace Rox
     private bool highlight;
     private System.Threading.Tasks.Task Seq;
     BindingList<Variable> Vars = new BindingList<Variable>();
+    IEnumerable<Variable> LiveVars = null;
     private static SolidColorBrush treeBackground = new SolidColorBrush(Color.FromRgb(41, 41, 41));
     private static SolidColorBrush treeBackgroundAllowDrop = new SolidColorBrush(Color.FromRgb(71, 125, 30));
     private static SolidColorBrush treeBackgroundAllowDropInSeq = new SolidColorBrush(Colors.LightBlue);
@@ -191,6 +193,8 @@ namespace Rox
       resetForm(true);
       listVars.ItemsSource = Vars;
       Paused = true;
+      IoAdams = new IoAdams(new IoAdams.Settings() { IpAddress = "172.18.3.231", Port = 502, ProtocolType = System.Net.Sockets.ProtocolType.Tcp });
+      UpdateHeader(string.Format("IO module is {0}", IoAdams.IsConnected ? "connected." : string.Format("not connected. Last attempt at {0}.", (IoAdams.LastFailedReconnectTime ?? DateTime.Now).ToShortTimeString())));
     }
     private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
     {
@@ -364,6 +368,7 @@ namespace Rox
           //Console.WriteLine(" ------ START READING ------- ");
           ParseFile(reader, fileRead);
         }
+        LiveVars = Vars.Where(p => p.Channel >= 0);
         Modes = fileRead;
         tree.DataContext = null;
         tree.DataContext = new { Modes };
@@ -392,6 +397,7 @@ namespace Rox
       reader.ReadToFollowing(xmlTag_App);  // get to the first relevant node
       //Console.WriteLine("type: {0}, name: {1}, value: {2}, attr(name): {3}", reader.NodeType, reader.Name, reader.Value, reader.GetAttribute("name"));
       IteNodeViewModel curNode = null;
+      string temp;
       while (reader.Read())
       {
         //Console.WriteLine("type: {0}, name: {1}, value: {2}, attr(name): {3}", reader.NodeType, reader.Name, reader.Value, reader.GetAttribute("name"));
@@ -415,6 +421,9 @@ namespace Rox
                 break;
             }
             v.UsersLastValue = v.Value;
+            temp = reader.GetAttribute("io");
+            v.IsOutput = temp == "1" ? true : temp == "0" ? (bool?)false : null;
+            v.Channel = short.TryParse(reader.GetAttribute("i"), out short s) ? s : (short)-1;
             Vars.Add(v);
           }
           // ----------------------------------------------------- MODE
@@ -709,7 +718,14 @@ namespace Rox
           sw.WriteLine();
           foreach (var v in Vars)
           {
-            sw.WriteLine("<var name='{0}' type='{1}' val='{2}' note='{3}' />", (v.Name ?? string.Empty).Replace('\'', '"'), v.VarType, (v.Value.ToString() ?? string.Empty).Replace('\'', '"'), (v.Note ?? string.Empty).Replace('\'', '"'));
+            sw.WriteLine("<var name='{0}' type='{1}' val='{2}' note='{3}' io='{4}' i='{5}'/>",
+                        (v.Name ?? string.Empty).Replace('\'', '"'),
+                        v.VarType,
+                        (v.Value.ToString() ?? string.Empty).Replace('\'', '"'),
+                        (v.Note ?? string.Empty).Replace('\'', '"'),
+                        v.IsOutput == true ? "1" : v.IsOutput == false ? "0" : "",
+                        v.Channel
+                        );
           }
           sw.WriteLine("</rox>");
         }
@@ -809,6 +825,7 @@ namespace Rox
         listFiles.SelectedItem = null;
         listRecentFiles.SelectedItem = null;
         SetDefaultGuiElements();
+        Vars.Clear();
       }
     }
     private void UpdateHeader(object o)
@@ -1096,13 +1113,11 @@ namespace Rox
     }
     private void Node_PreviewMouseMove(object sender, MouseEventArgs e)
     {
-      Console.WriteLine("first - " + ((TreeViewItem)sender).DataContext);
       Vector diff = startDragPoint - e.GetPosition(null);
       if (e.LeftButton == MouseButtonState.Pressed
         //&& (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance || Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance)
         )
       {
-        Console.WriteLine("second -  " + ((TreeViewItem)sender).DataContext);
         var test = (((TreeViewItem)sender).DataContext).GetType();
         DataObject dragData = null;
         if (test == typeof(IteCONDITION_VM) ||
@@ -1119,7 +1134,7 @@ namespace Rox
         }
         else
         {
-          //return;
+          return;
           //e.Handled = true;
         }
         try
@@ -1266,8 +1281,8 @@ namespace Rox
       try
       {
         // detect if the source is trying to be dropped inside itself
-          if (RecursiveCheckForParentInChild(newOrMoved, dropTo))
-          {
+        if (RecursiveCheckForParentInChild(newOrMoved, dropTo))
+        {
           (new CustomMessageboxWindow("Invalid destination", "Unable to put the selected item here.", MessageBoxButton.OK) { Owner = this }).ShowDialog();
           return false;
         }
@@ -1302,7 +1317,7 @@ namespace Rox
         {
           return true;
         }
-        if( RecursiveCheckForParentInChild(n, child)) { return true; }
+        if (RecursiveCheckForParentInChild(n, child)) { return true; }
       }
       return false;
     }
@@ -1384,7 +1399,8 @@ namespace Rox
       if (d.DialogResult == true && !string.IsNullOrWhiteSpace(d.VarName))
       {
         if (Vars.Where(p => p.Name == d.VarName).Any()) { return; }
-        Vars.Add(new Variable { Name = d.VarName, Note = d.VarNote, Value = d.VarValue, UsersLastValue = d.VarValue });
+        Vars.Add(new Variable { Name = d.VarName, Note = d.VarNote, Value = d.VarValue, UsersLastValue = d.VarValue, Channel = d.Channel, IsOutput = d.IsOutput });
+        LiveVars = Vars.Where(p => p.Channel >= 0);
       }
       AutoSizeVarColumns();
     }
@@ -1406,7 +1422,7 @@ namespace Rox
     {
       var n = ((ListViewItem)sender).Content as Variable;
 
-      var d = new VarParamsWindow() { Owner = this, VarName = n.Name, VarNote = n.Note, VarType = (VarType)n.VarType.Value };
+      var d = new VarParamsWindow() { Owner = this, VarName = n.Name, VarNote = n.Note, VarType = (VarType)n.VarType.Value, Channel = n.Channel, IsOutput = n.IsOutput };
       d.VarValue = n.Value;
       d.ShowDialog();
       if (d.DialogResult == true && !string.IsNullOrWhiteSpace(d.VarName))
@@ -1414,6 +1430,9 @@ namespace Rox
         n.Name = d.VarName;
         n.Note = d.VarNote;
         n.Value = d.VarValue;
+        n.Channel = d.Channel;
+        n.IsOutput = d.IsOutput;
+        LiveVars = Vars.Where(p => p.Channel >= 0);
       }
       //AutoSizeVarColumns();
     }
@@ -1578,9 +1597,51 @@ namespace Rox
     }
     private void AssignCurrentVariableValues()
     {
-      foreach (var v in Vars)
+      if (LiveVars != null)
       {
-
+        if (!IoAdams.IsConnected)
+        {
+          IoAdams.Reconnect();
+          if (!IoAdams.IsConnected)
+          {
+            UpdateHeader(string.Format("IO module not connected! Next attempt in {0:0} sec.", IoAdams.MinReconnectTime.TotalSeconds - (DateTime.Now - (IoAdams.LastFailedReconnectTime ?? DateTime.Now)).TotalSeconds));
+            return;
+          }
+          else
+          {
+            UpdateHeader("IO module reconnected.");
+          }
+        }
+        var ins = IoAdams.GetInputs();
+        var outs = IoAdams.GetOutputs();
+        //Console.WriteLine("IN  | {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7} |  IN",
+        //                  ins[0] ? "1" : "0",
+        //                  ins[1] ? "1" : "0",
+        //                  ins[2] ? "1" : "0",
+        //                  ins[3] ? "1" : "0",
+        //                  ins[4] ? "1" : "0",
+        //                  ins[5] ? "1" : "0",
+        //                  ins[6] ? "1" : "0",
+        //                  ins[7] ? "1" : "0");
+        //Console.WriteLine("OUT | {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7} | OUT",
+        //                  outs[0] ? "1" : "0",
+        //                  outs[1] ? "1" : "0",
+        //                  outs[2] ? "1" : "0",
+        //                  outs[3] ? "1" : "0",
+        //                  outs[4] ? "1" : "0",
+        //                  outs[5] ? "1" : "0",
+        //                  outs[6] ? "1" : "0",
+        //                  outs[7] ? "1" : "0");
+        foreach (var v in LiveVars) //Vars.Where(p=>p.Channel>=0)
+        {
+          try
+          {
+            v.Value = v.IsOutput == true ? outs[v.Channel] : v.IsOutput == false ? ins[v.Channel] : v.Value;
+          }
+          catch (Exception)
+          {
+          }
+        }
       }
     }
     private void RunSequence()
