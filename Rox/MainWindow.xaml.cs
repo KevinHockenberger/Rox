@@ -1,4 +1,4 @@
-﻿using PluginContracts;
+﻿//using PluginContracts;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -20,7 +20,7 @@ namespace Rox
   public partial class MainWindow : Window
   {
     private IoAdams IoAdams; // = new IoAdams(new IoAdams.Settings() { IpAddress = "172.18.3.231", Port = 502, ProtocolType = System.Net.Sockets.ProtocolType.Tcp });
-    private ICollection<IPluginContract> plugins;
+    //private ICollection<IPluginContract> plugins;
     private class SequenceEventArgs
     {
       public bool AbortIteration { get; set; }
@@ -126,60 +126,60 @@ namespace Rox
     public MainWindow()
     {
       InitializeComponent();
-      plugins = LoadPlugins(@"Plugins\");
+      //plugins = LoadPlugins(@"Plugins\");
     }
-    public ICollection<IPluginContract> LoadPlugins(string path)
-    {
-      string[] dllFileNames = null;
-      if (System.IO.Directory.Exists(path))
-      {
-        dllFileNames = System.IO.Directory.GetFiles(path, "*.dll");
-        ICollection<Assembly> assemblies = new List<Assembly>(dllFileNames.Length);
-        foreach (string dllFile in dllFileNames)
-        {
-          AssemblyName an = AssemblyName.GetAssemblyName(dllFile);
-          Assembly assembly = Assembly.Load(an);
-          assemblies.Add(assembly);
-        }
-        Type pluginType = typeof(IPluginContract);
-        ICollection<Type> pluginTypes = new List<Type>();
-        foreach (Assembly assembly in assemblies)
-        {
-          if (assembly != null)
-          {
-            try
-            {
-              Type[] types = assembly.GetTypes();
-              foreach (Type type in types)
-              {
-                if (type.IsInterface || type.IsAbstract)
-                {
-                  continue;
-                }
-                else
-                {
-                  if (type.GetInterface(pluginType.FullName) != null)
-                  {
-                    pluginTypes.Add(type);
-                  }
-                }
-              }
-            }
-            catch (Exception)
-            {
-            }
-          }
-        }
-        ICollection<IPluginContract> plugins = new List<IPluginContract>(pluginTypes.Count);
-        foreach (Type type in pluginTypes)
-        {
-          IPluginContract plugin = (IPluginContract)Activator.CreateInstance(type);
-          plugins.Add(plugin);
-        }
-        return plugins;
-      }
-      return null;
-    }
+    //public ICollection<IPluginContract> LoadPlugins(string path)
+    //{
+    //  string[] dllFileNames = null;
+    //  if (System.IO.Directory.Exists(path))
+    //  {
+    //    dllFileNames = System.IO.Directory.GetFiles(path, "*.dll");
+    //    ICollection<Assembly> assemblies = new List<Assembly>(dllFileNames.Length);
+    //    foreach (string dllFile in dllFileNames)
+    //    {
+    //      AssemblyName an = AssemblyName.GetAssemblyName(dllFile);
+    //      Assembly assembly = Assembly.Load(an);
+    //      assemblies.Add(assembly);
+    //    }
+    //    Type pluginType = typeof(IPluginContract);
+    //    ICollection<Type> pluginTypes = new List<Type>();
+    //    foreach (Assembly assembly in assemblies)
+    //    {
+    //      if (assembly != null)
+    //      {
+    //        try
+    //        {
+    //          Type[] types = assembly.GetTypes();
+    //          foreach (Type type in types)
+    //          {
+    //            if (type.IsInterface || type.IsAbstract)
+    //            {
+    //              continue;
+    //            }
+    //            else
+    //            {
+    //              if (type.GetInterface(pluginType.FullName) != null)
+    //              {
+    //                pluginTypes.Add(type);
+    //              }
+    //            }
+    //          }
+    //        }
+    //        catch (Exception)
+    //        {
+    //        }
+    //      }
+    //    }
+    //    ICollection<IPluginContract> plugins = new List<IPluginContract>(pluginTypes.Count);
+    //    foreach (Type type in pluginTypes)
+    //    {
+    //      IPluginContract plugin = (IPluginContract)Activator.CreateInstance(type);
+    //      plugins.Add(plugin);
+    //    }
+    //    return plugins;
+    //  }
+    //  return null;
+    //}
     private void Window_Loaded(object sender, RoutedEventArgs e)
     {
       //App.splashScreen.LoadComplete();
@@ -189,12 +189,13 @@ namespace Rox
       ApplySettings();
       txtVer.Text = Assembly.GetExecutingAssembly().GetName().Version.ToString();
       closeMnu = new System.Threading.Timer(new System.Threading.TimerCallback(closeMenu), null, 10000, System.Threading.Timeout.Infinite);
+      togglePlugins(null, null);
       PopulateFilelists();
       resetForm(true);
       listVars.ItemsSource = Vars;
       Paused = true;
-      IoAdams = new IoAdams(new IoAdams.Settings() { IpAddress = "172.18.3.231", Port = 502, ProtocolType = System.Net.Sockets.ProtocolType.Tcp });
-      UpdateHeader(string.Format("IO module is {0}", IoAdams.IsConnected ? "connected." : string.Format("not connected. Last attempt at {0}.", (IoAdams.LastFailedReconnectTime ?? DateTime.Now).ToShortTimeString())));
+      //IoAdams = new IoAdams(new IoAdams.ConnectionSettings() { IpAddress = "172.18.3.231", Port = 502, ProtocolType = System.Net.Sockets.ProtocolType.Tcp });
+      //UpdateHeader(string.Format("IO module is {0}", IoAdams.IsConnected ? "connected." : string.Format("not connected. Last attempt at {0}.", (IoAdams.LastFailedReconnectTime ?? DateTime.Now).ToShortTimeString())));
     }
     private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
     {
@@ -340,6 +341,7 @@ namespace Rox
       }
     }
     private string xmlTag_App { get { return "rox"; } }
+    private string xmlTag_IO { get { return "adamsIO"; } }
     private string xmlTag_Var { get { return "var"; } }
     private string xmlTag_Mode { get { return "MX"; } }
     private string xmlTag_Init { get { return "init"; } }
@@ -376,6 +378,7 @@ namespace Rox
         btnLoadFileText.Text = string.Format("Save [{0}]", filename);
         Properties.Settings.Default.MruFiles.Insert(0, filename); PopulateRecentFilelist();
         loadedFile = filename;
+        if (IoAdams != null) { IoAdams.Connect(); }
         UpdateHeader(string.Format("{0} loaded.", filename));
         btnUnloadFile.Visibility = Visibility.Visible;
         Paused = false;
@@ -403,6 +406,18 @@ namespace Rox
         //Console.WriteLine("type: {0}, name: {1}, value: {2}, attr(name): {3}", reader.NodeType, reader.Name, reader.Value, reader.GetAttribute("name"));
         if (reader.NodeType == XmlNodeType.Element)
         {
+          if (reader.Name == xmlTag_IO)
+          {
+            IoAdams.ConnectionSettings settings = new IoAdams.ConnectionSettings()
+            {
+              IpAddress = reader.GetAttribute("ip"),
+              Port = int.TryParse(reader.GetAttribute("p"), out var i) ? i : 502,
+              ProtocolType = (System.Net.Sockets.ProtocolType)(int.TryParse(reader.GetAttribute("t"), out i) ? (Rox.ProtocolTypes)i : Rox.ProtocolTypes.Tcp),
+              Unit = int.TryParse(reader.GetAttribute("u"), out i) ? (SupportedAdvantechUnits)i : SupportedAdvantechUnits.Adam6000
+            };
+            IoAdams = new IoAdams(settings);
+
+          }
           if (reader.Name == xmlTag_Var)
           {
             var v = new Variable() { Name = reader.GetAttribute("name"), Note = reader.GetAttribute("note") };
@@ -700,7 +715,15 @@ namespace Rox
     private void toggleFiles(object sender, RoutedEventArgs e)
     {
       resetCloseMenuTimer();
-      gridFiles.Visibility = gridFiles.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
+      if (gridFiles.Visibility == Visibility.Visible)
+      {
+        gridFiles.Visibility = Visibility.Collapsed;
+      }
+      else
+      {
+        gridFiles.Visibility = Visibility.Visible;
+        gridAddins.Visibility = Visibility.Collapsed;
+      }
     }
     private bool SaveFile(string filespec, bool overwriteIfExist)
     {
@@ -710,15 +733,21 @@ namespace Rox
         if (!Modes.Any()) { return false; }
         using (var sw = new System.IO.StreamWriter(filespec, false))
         {
-          sw.WriteLine("<rox ver='{0}'>", txtVer.Text);
+          sw.WriteLine("<{0} ver='{1}'>", xmlTag_App, txtVer.Text);
+          if (IoAdams == null) { IoAdams = new IoAdams(new IoAdams.ConnectionSettings()); }
+          sw.Write("<{0} ip='{1}' p='{2}' t='{3}' u='{4}' />", xmlTag_IO,
+                      IoAdams.Settings.IpAddress,
+                       IoAdams.Settings.Port,
+                       (int)IoAdams.Settings.ProtocolType,
+                       (int)IoAdams.Settings.Unit
+                      );
           foreach (var mode in Modes)
           {
             AppendNodeData(sw, mode);
           }
-          sw.WriteLine();
           foreach (var v in Vars)
           {
-            sw.WriteLine("<var name='{0}' type='{1}' val='{2}' note='{3}' io='{4}' i='{5}'/>",
+            sw.WriteLine("<{0} name='{1}' type='{2}' val='{3}' note='{4}' io='{5}' i='{6}'/>", xmlTag_Var,
                         (v.Name ?? string.Empty).Replace('\'', '"'),
                         v.VarType,
                         (v.Value.ToString() ?? string.Empty).Replace('\'', '"'),
@@ -727,7 +756,7 @@ namespace Rox
                         v.Channel
                         );
           }
-          sw.WriteLine("</rox>");
+          sw.WriteLine("</{0}>", xmlTag_App);
         }
         return true;
       }
@@ -830,9 +859,9 @@ namespace Rox
     }
     private void UpdateHeader(object o)
     {
-      UpdateHeader((o ?? string.Empty).ToString());
+      UpdateHeader((o ?? string.Empty).ToString(), Colors.White);
     }
-    private void UpdateHeader(string s)
+    private void UpdateHeader(string text, Color textColor)
     {
       if (clrHeader == null)
       {
@@ -844,7 +873,9 @@ namespace Rox
       }
       Dispatcher.Invoke(() =>
       {
-        txtTitle.Text = s ?? string.Empty;
+        txtTitle.Text = text ?? string.Empty;
+        textColor = textColor == null ? Colors.White : textColor;
+        txtTitle.Foreground = new SolidColorBrush(textColor);
       });
     }
     private void SetDefaultGuiElements()
@@ -1599,17 +1630,21 @@ namespace Rox
     {
       if (LiveVars != null)
       {
-        if (!IoAdams.IsConnected)
+        if (IoAdams == null) { UpdateHeader("I/O module is not defined. Live variables are not updated.", Colors.Red); return; }
+        else
         {
-          IoAdams.Reconnect();
           if (!IoAdams.IsConnected)
           {
-            UpdateHeader(string.Format("IO module not connected! Next attempt in {0:0} sec.", IoAdams.MinReconnectTime.TotalSeconds - (DateTime.Now - (IoAdams.LastFailedReconnectTime ?? DateTime.Now)).TotalSeconds));
-            return;
-          }
-          else
-          {
-            UpdateHeader("IO module reconnected.");
+            IoAdams.Connect();
+            if (!IoAdams.IsConnected)
+            {
+              UpdateHeader(string.Format("IO module not connected! Next attempt in {0:0} sec.", IoAdams.MinReconnectTime.TotalSeconds - (DateTime.Now - (IoAdams.LastFailedReconnectTime ?? DateTime.Now)).TotalSeconds));
+              return;
+            }
+            else
+            {
+              UpdateHeader("IO module reconnected.");
+            }
           }
         }
         var ins = IoAdams.GetInputs();
@@ -1963,6 +1998,7 @@ namespace Rox
     }
     private void FindAndRemoveNode(IteNodeViewModel node)
     {
+      if (node == null) { return; }
       if (node.IsLocked) { return; }
       foreach (var n in Modes)
       {
@@ -2072,7 +2108,33 @@ namespace Rox
     }
     private void Button_Click(object sender, RoutedEventArgs e)
     {
-
+    }
+    private void togglePlugins(object sender, RoutedEventArgs e)
+    {
+      if (gridAddins.Visibility == Visibility.Visible)
+      {
+        gridAddins.Visibility = Visibility.Collapsed;
+      }
+      else
+      {
+        gridAddins.Visibility = Visibility.Visible;
+        gridFiles.Visibility = Visibility.Collapsed;
+      }
+    }
+    private void btnAdvantech_Click(object sender, RoutedEventArgs e)
+    {
+      if (IoAdams == null) { IoAdams = new IoAdams(new IoAdams.ConnectionSettings()); }
+      IOConfig d = new IOConfig() { Owner = this, IpAddress = IoAdams.Settings.IpAddress, Port = IoAdams.Settings.Port, Protocol = (ProtocolTypes)IoAdams.Settings.ProtocolType, Unit = IoAdams.Settings.Unit };
+      d.ShowDialog();
+      if (IoAdams.Settings.IpAddress != d.IpAddress || IoAdams.Settings.Port != d.Port || (int)IoAdams.Settings.ProtocolType != (int)d.Protocol || IoAdams.Settings.Unit != d.Unit)
+      {
+        IoAdams.Disconnect();
+        IoAdams.Settings.IpAddress = d.IpAddress;
+        IoAdams.Settings.Port = d.Port;
+        IoAdams.Settings.ProtocolType = (System.Net.Sockets.ProtocolType)d.Protocol;
+        IoAdams.Settings.Unit = d.Unit;
+        IoAdams.Connect();
+      }
     }
   }
 }

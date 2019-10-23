@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Rox"
         mc:Ignorable="d"
-        Title="Parameters" WindowStartupLocation="CenterOwner" ShowInTaskbar="False" WindowStyle="None" Background="#FF292929" Padding="6,5,5,5" Width="480" Height="292" ResizeMode="CanResizeWithGrip" MinWidth="480" MinHeight="320" Loaded="Window_Loaded">
+        Title="Parameters" WindowStartupLocation="CenterOwner" ShowInTaskbar="False" WindowStyle="None" Background="#FF292929" Padding="6,5,5,5" Width="480" Height="375" ResizeMode="CanResizeWithGrip" MinWidth="480" MinHeight="375" Loaded="Window_Loaded">
   <Window.Resources>
     <Style TargetType="{x:Type local:VarParamsWindow}">
       <Setter Property="FontFamily" Value="arial" />
@@ -100,7 +100,7 @@
       </Setter>
     </Style>
   </Window.Resources>
-  <Border BorderBrush="#FFACACAC" Background="#FF404040" BorderThickness="2" Margin="5" Padding="20">
+  <Border BorderBrush="#FFACACAC" Background="#FF404040" BorderThickness="2" Margin="5" Padding="10,10,10,5">
     <Border BorderThickness="1" Padding="5">
       <Grid>
         <Grid.RowDefinitions>
@@ -115,9 +115,7 @@
               <GradientStop Color="#FFDADADA" Offset="1"/>
             </LinearGradientBrush>
           </Border.BorderBrush>
-          <Grid>
             <Label Content="⬐ Variable properties ⬎" Foreground="White" HorizontalContentAlignment="Center"/>
-          </Grid>
         </Border>
         <Grid Grid.Row="1">
           <Grid.RowDefinitions>
@@ -141,10 +139,10 @@
             </Border>
           </Grid>
           <Label Grid.Row="1" Content="Name:" VerticalAlignment="Top" HorizontalAlignment="Right"/>
-          <TextBox x:Name="txtName" Grid.Row="1" KeyUp="Txt_KeyUp" Height="23" Grid.Column="1" Margin="10,4" GotFocus="Txt_GotFocus"/>
+          <TextBox x:Name="txtName" Grid.Row="1" KeyUp="Txt_KeyUp" Height="23" Grid.Column="1" Margin="5,5" GotFocus="Txt_GotFocus"/>
           <Label Content="Value:" VerticalAlignment="Top" HorizontalAlignment="Right" Grid.Row="2"/>
           <Grid x:Name="gValkey" Grid.Row="2" Grid.Column="1" >
-            <TextBox x:Name="txtValue" Height="23" Margin="10,5" KeyUp="TxtValue_KeyUp" GotFocus="Txt_GotFocus" />
+            <TextBox x:Name="txtValue" Height="23" Margin="5,5" KeyUp="TxtValue_KeyUp" GotFocus="Txt_GotFocus" />
           </Grid>
           <Grid x:Name="gValrdo" Grid.Row="2" Grid.Column="1">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
@@ -160,24 +158,55 @@
               </RadioButton>
             </StackPanel>
           </Grid>
-          <Grid Grid.Row="3" Grid.ColumnSpan="2" >
-            <Grid.ColumnDefinitions>
-              <ColumnDefinition Width="Auto"/>
-              <ColumnDefinition/>
-              <ColumnDefinition Width="Auto"/>
-              <ColumnDefinition/>
-            </Grid.ColumnDefinitions>
-            <Label Content="Channel:" />
-            <TextBox x:Name="txtChannel" Grid.Column="1" Height="23" Margin="5,0,5,0" TextChanged="TxtChannel_TextChanged" KeyUp="TxtValue_KeyUp" />
-            <Label Content="In/Out:" Grid.Column="2" />
-            <ComboBox x:Name="cmbIO" Grid.Column="3" Height="28" Margin="5,0,5,0" KeyUp="TxtValue_KeyUp" >
-              <ComboBoxItem Content="" />
-              <ComboBoxItem Content="Input" />
-              <ComboBoxItem Content="Output"/>
-            </ComboBox>
-          </Grid>
-          <Label Content="Note:" VerticalAlignment="Top" HorizontalAlignment="Right" Grid.Row="4"/>
-          <TextBox x:Name="txtNote"  KeyUp="Txt_KeyUp" Height="23" Grid.Column="1" Margin="10,5" Grid.Row="4" GotFocus="Txt_GotFocus" />
+          <Label Content="Note:" VerticalAlignment="Top" HorizontalAlignment="Right" Grid.Row="3"/>
+          <TextBox x:Name="txtNote"  KeyUp="Txt_KeyUp" Height="23" Grid.Column="1" Margin="5,5" Grid.Row="3" GotFocus="Txt_GotFocus" />
+          
+          
+          
+          <Border Grid.Row="4" Grid.ColumnSpan="2" BorderThickness="1" BorderBrush="Black" Margin="0,5,0,0" >
+            <Grid>
+              <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+              </Grid.RowDefinitions>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition/>
+              </Grid.ColumnDefinitions>
+              <Border BorderThickness="1" Background="#FF343434" Grid.ColumnSpan="4">
+                <Border.BorderBrush>
+                  <LinearGradientBrush EndPoint="1,1" StartPoint="1,0">
+                    <GradientStop Color="#FF1B1B1B" Offset="0"/>
+                    <GradientStop Color="#FFDADADA" Offset="1"/>
+                  </LinearGradientBrush>
+                </Border.BorderBrush>
+                <Label Content="use only if external I/O" FontSize="12" HorizontalContentAlignment="Center"  />
+              </Border>
+              <Label Content="Channel:" Grid.Row="1" />
+              <TextBox x:Name="txtChannel" Grid.Column="1" Height="23" Margin="5,0,5,0" TextChanged="TxtChannel_TextChanged" KeyUp="TxtValue_KeyUp" Grid.Row="1" Width="50" HorizontalAlignment="Left" />
+              <Label Content="In/Out:" Grid.Column="2" Grid.Row="1" />
+              <ComboBox x:Name="cmbIO" Grid.Column="3" Height="28" Margin="5,0,5,0" KeyUp="TxtValue_KeyUp" Grid.Row="1" Width="100" HorizontalAlignment="Left" >
+                <ComboBoxItem Content="" />
+                <ComboBoxItem Content="in/read" />
+                <ComboBoxItem Content="out/write"/>
+              </ComboBox>
+              <Grid Grid.ColumnSpan="4" Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <Label Content="Data Length:" />
+                <TextBox x:Name="txtLength" Grid.Column="1" Height="23" Margin="5,0,5,0" TextChanged="TxtChannel_TextChanged" KeyUp="TxtValue_KeyUp" Width="50" HorizontalAlignment="Left" />
+                
+              </Grid>
+            </Grid>
+          </Border>
+          
+          
+          
         </Grid>
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" >
           <Button x:Name="btnOk" Template="{DynamicResource ButtonBaseControlTemplate}" Padding="5,1" Width="100" Click="OK_Click" Margin="0,0,5,0" >

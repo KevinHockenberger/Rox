@@ -15,51 +15,51 @@ namespace Rox
     {
 
     }
-    private Settings _settings = new Settings();
+    public ConnectionSettings Settings { get; set; } = new ConnectionSettings();
 
-    public class Settings
+    public class ConnectionSettings
     {
       public string IpAddress { get; set; } = "127.0.0.1";
       public System.Net.Sockets.ProtocolType ProtocolType { get; set; } = System.Net.Sockets.ProtocolType.Tcp;
       public int Port { get; set; } = 502;
+      public SupportedAdvantechUnits Unit { get; set; } = SupportedAdvantechUnits.Adam6000;
     }
     myAdamsSocket device;
     private myAdamsSocket AdamSocket { get; set; }
-    internal IoAdams(Settings Settings)
+    internal IoAdams(ConnectionSettings Settings)
     {
       if (Settings == null) { return; }
       try
       {
-        _settings.IpAddress = Settings.IpAddress;
-        _settings.ProtocolType = Settings.ProtocolType;
-        _settings.Port = Settings.Port;
-        device = new myAdamsSocket() { AdamSeriesType = AdamType.Adam6000 };
-        //IsConnected = device.Connect(Settings.IpAddress, Settings.ProtocolType, Settings.Port);
-        if (device.Connect(_settings.IpAddress, _settings.ProtocolType, _settings.Port))
-        {
-          IsConnected = true;
-        }
-        else
-        {
-          LastFailedReconnectTime = DateTime.Now;
-          IsConnected = false;
-        }
+        this.Settings.IpAddress = Settings.IpAddress;
+        this.Settings.ProtocolType = Settings.ProtocolType;
+        this.Settings.Port = Settings.Port;
+        this.Settings.Unit = Settings.Unit;
+        device = new myAdamsSocket() { AdamSeriesType = (AdamType)this.Settings.Unit };
+        //if (device.Connect(this.Settings.IpAddress, this.Settings.ProtocolType, this.Settings.Port))
+        //{
+        //  IsConnected = true;
+        //}
+        //else
+        //{
+        //  LastFailedReconnectTime = DateTime.Now;
+        //  IsConnected = false;
+        //}
       }
       catch (System.Exception)
       {
         LastFailedReconnectTime = DateTime.Now;
-        device.Disconnect();
-        IsConnected = false;
+        Disconnect();
       }
     }
-    public bool Reconnect()
+    public bool Connect()
     {
       if (device.Connected) { return IsConnected = true; }
-      if (LastFailedReconnectTime == null) { LastFailedReconnectTime = DateTime.Now; }
-      if (MinReconnectTime.TotalSeconds > 0 && (DateTime.Now - (LastFailedReconnectTime.Value)).TotalSeconds > MinReconnectTime.TotalSeconds)
+      //if (LastFailedReconnectTime == null) { LastFailedReconnectTime = DateTime.Now; }
+      if (LastFailedReconnectTime == null || MinReconnectTime.TotalSeconds > 0 && (DateTime.Now - (LastFailedReconnectTime.Value)).TotalSeconds > MinReconnectTime.TotalSeconds)
       {
         device.Disconnect();
-        if (device.Connect(_settings.IpAddress, _settings.ProtocolType, _settings.Port))
+        if (device.Connect(Settings.IpAddress, Settings.ProtocolType, Settings.Port))
         {
           LastFailedReconnectTime = null;
           return IsConnected = true;
@@ -74,6 +74,12 @@ namespace Rox
       {
         return IsConnected = false;
       }
+    }
+    public void Disconnect()
+    {
+      device.Disconnect();
+      IsConnected = false;
+      LastFailedReconnectTime = null;
     }
     public bool[] GetInputs()
     {

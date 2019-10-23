@@ -19,34 +19,23 @@ namespace Rox
           if (null != value)
           {
             Type enumType = Nullable.GetUnderlyingType(value) ?? value;
-
-            if (!enumType.IsEnum)
-              throw new ArgumentException("Type must be for an Enum.");
+            if (!enumType.IsEnum) { throw new ArgumentException("Type must be for an Enum."); }
           }
-
           this._enumType = value;
         }
       }
     }
-
     public EnumBindingSourceExtension() { }
-
     public EnumBindingSourceExtension(Type enumType)
     {
       this.EnumType = enumType;
     }
-
     public override object ProvideValue(IServiceProvider serviceProvider)
     {
-      if (null == this._enumType)
-        throw new InvalidOperationException("The EnumType must be specified.");
-
+      if (null == this._enumType) { throw new InvalidOperationException("The EnumType must be specified."); }
       Type actualEnumType = Nullable.GetUnderlyingType(this._enumType) ?? this._enumType;
       Array enumValues = Enum.GetValues(actualEnumType);
-
-      if (actualEnumType == this._enumType)
-        return enumValues;
-
+      if (actualEnumType == this._enumType) { return enumValues; }
       Array tempArray = Array.CreateInstance(actualEnumType, enumValues.Length + 1);
       enumValues.CopyTo(tempArray, 1);
       return tempArray;
@@ -54,11 +43,7 @@ namespace Rox
   }
   public class EnumDescriptionTypeConverter : EnumConverter
   {
-    public EnumDescriptionTypeConverter(Type type)
-        : base(type)
-    {
-    }
-
+    public EnumDescriptionTypeConverter(Type type)        : base(type)    {    }
     public override object ConvertTo(ITypeDescriptorContext context, System.Globalization.CultureInfo culture, object value, Type destinationType)
     {
       if (destinationType == typeof(string))
@@ -72,10 +57,8 @@ namespace Rox
             return ((attributes.Length > 0) && (!String.IsNullOrEmpty(attributes[0].Description))) ? attributes[0].Description : value.ToString();
           }
         }
-
         return string.Empty;
       }
-
       return base.ConvertTo(context, culture, value, destinationType);
     }
   }
@@ -721,6 +704,30 @@ namespace Rox
     boolType = 1,
     stringType = 2,
     numberType = 3
+  }
+  [TypeConverter(typeof(EnumDescriptionTypeConverter))]
+  public enum SupportedAdvantechUnits
+  {
+    [Description("Adam 6000")]
+    Adam6000 = Advantech.Adam.AdamType.Adam6000,
+  }
+  [TypeConverter(typeof(EnumDescriptionTypeConverter))]
+  public enum ProtocolTypes
+  {
+    [Description("TCP")]
+    Tcp = System.Net.Sockets.ProtocolType.Tcp,
+    [Description("UDP")]
+    Udp = System.Net.Sockets.ProtocolType.Udp,
+    [Description("IP")]
+    IP = System.Net.Sockets.ProtocolType.IP,
+    [Description("IPv4")]
+    IPv4 = System.Net.Sockets.ProtocolType.IPv4,
+    [Description("IPv6")]
+    IPv6 = System.Net.Sockets.ProtocolType.IPv6,
+    [Description("Unknown")]
+    Unknown = System.Net.Sockets.ProtocolType.Unknown,
+    [Description("Unspecified")]
+    Unspecified = System.Net.Sockets.ProtocolType.Unspecified,
   }
   public struct VariableType
   {

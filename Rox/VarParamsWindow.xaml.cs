@@ -105,8 +105,8 @@ namespace Rox
     }
     public bool? IsOutput
     {
-      get { return cmbIO.Text == "Output" ? (bool?)true : cmbIO.Text == "Input" ? (bool?)false : null; }
-      set { cmbIO.Text = value == true ? "Output" : value == false ? "Input" : ""; }
+      get { return cmbIO.Text == "out/write" ? (bool?)true : cmbIO.Text == "in/read" ? (bool?)false : null; }
+      set { cmbIO.Text = value == true ? "out/write" : value == false ? "in/read" : ""; }
     }
     public VarParamsWindow() : this(null, VarType.boolType, null, false, null, -1)
     {
