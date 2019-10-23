@@ -236,7 +236,7 @@ namespace Rox
       this.Height = Properties.Settings.Default.LastWindowRect.Height;
       this.Top = Properties.Settings.Default.LastWindowRect.Top;
       this.Left = Properties.Settings.Default.LastWindowRect.Left;
-      Properties.Settings.Default.ProgramPath = System.AppDomain.CurrentDomain.BaseDirectory;
+      Properties.Settings.Default.ProgramPath = string.IsNullOrWhiteSpace(Properties.Settings.Default.ProgramPath) ? System.AppDomain.CurrentDomain.BaseDirectory : Properties.Settings.Default.ProgramPath;
       Properties.Settings.Default.MruFiles = Properties.Settings.Default.MruFiles ?? new System.Collections.Specialized.StringCollection();
       colTree.Width = new GridLength(Properties.Settings.Default.TreePanelWidth);
       colOptions.Width = new GridLength(Properties.Settings.Default.OptionPanelWidth);
@@ -1798,6 +1798,11 @@ namespace Rox
               else
               {
                 a.Value = ((IteSetVar)node.Node).OtherwiseValue;
+                if (a.Channel >= 0 && a.IsOutput == true)
+                {
+                  // assign physical output
+                  IoAdams.SetBit(a.Channel, (a.Value == true || a.Value > 0) ? 1 : 0);
+                }
               }
             }
             catch (Exception)
@@ -1944,24 +1949,28 @@ namespace Rox
         case NodeTypes.SetVariable:
           try
           {
-            //var var = Vars.Where(p => p.Name == ((IteSetVar)node.Node).VariableName).FirstOrDefault();
+            var daVar = Vars.Where(p => p.Name == ((IteSetVar)node.Node).VariableName).FirstOrDefault();
             switch (((IteSetVar)node.Node).AssignMethod)
             {
               case AssignMethod.assign:
-                Vars.Where(p => p.Name == ((IteSetVar)node.Node).VariableName).FirstOrDefault().Value = ((IteSetVar)node.Node).Value;
+                daVar.Value = ((IteSetVar)node.Node).Value;
                 break;
               case AssignMethod.invert:
-                var v1 = Vars.Where(p => p.Name == ((IteSetVar)node.Node).VariableName).FirstOrDefault();
-                if (v1.VarType.Value == (int)VarType.boolType) { v1.Value = !v1.Value; }
+                if (daVar.VarType.Value == (int)VarType.boolType) { daVar.Value = !daVar.Value; }
                 break;
               case AssignMethod.increment:
-                Vars.Where(p => p.Name == ((IteSetVar)node.Node).VariableName).FirstOrDefault().Value += ((IteSetVar)node.Node).Value;
+                daVar.Value += ((IteSetVar)node.Node).Value;
                 break;
               case AssignMethod.decrement:
-                Vars.Where(p => p.Name == ((IteSetVar)node.Node).VariableName).FirstOrDefault().Value -= ((IteSetVar)node.Node).Value;
+                daVar.Value -= ((IteSetVar)node.Node).Value;
                 break;
                 //default:
                 //  break;
+            }
+            if (daVar.Channel >= 0 && daVar.IsOutput == true)
+            {
+              // assign physical output
+              IoAdams.SetBit(daVar.Channel, (daVar.Value == true || daVar.Value > 0) ? 1 : 0);
             }
             if (highlight) { node.Background = processedNodeBackground; }
           }
@@ -2106,9 +2115,6 @@ namespace Rox
     {
       txtSelectedNodeInfo.Text = "{ Return } Aborts the current iteration. \nDrag and Drop to add this item.";
     }
-    private void Button_Click(object sender, RoutedEventArgs e)
-    {
-    }
     private void togglePlugins(object sender, RoutedEventArgs e)
     {
       if (gridAddins.Visibility == Visibility.Visible)
@@ -2134,6 +2140,15 @@ namespace Rox
         IoAdams.Settings.ProtocolType = (System.Net.Sockets.ProtocolType)d.Protocol;
         IoAdams.Settings.Unit = d.Unit;
         IoAdams.Connect();
+      }
+    }
+    private void btnChangeDir_Click(object sender, RoutedEventArgs e)
+    {
+      var d = new System.Windows.Forms.FolderBrowserDialog() { Description = "Change working file directory.", ShowNewFolderButton = true, SelectedPath = Properties.Settings.Default.ProgramPath };// , RootFolder = Environment.SpecialFolder.ApplicationData
+      if (d.ShowDialog()==System.Windows.Forms.DialogResult.OK)
+      {
+        Properties.Settings.Default.ProgramPath = d.SelectedPath;
+        PopulateFilelists();
       }
     }
   }

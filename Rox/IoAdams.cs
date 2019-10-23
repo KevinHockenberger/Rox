@@ -101,5 +101,9 @@ namespace Rox
       }
       return _outputVals;
     }
+    public void SetBit(int Index, int Value)
+    {
+      device.Modbus().ForceSingleCoil(Index, Value);
+    }
   }
 }

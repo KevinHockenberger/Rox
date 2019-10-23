@@ -418,7 +418,6 @@
           <CheckBox x:Name="chkHighlight" VerticalContentAlignment="Center" Margin="0,10,0,0" Checked="ChkHighlight_Checked" Unchecked="ChkHighlight_Unchecked" DockPanel.Dock="Bottom">
             <TextBlock Foreground="White" FontSize="10"><Run Text="highlights"/></TextBlock>
           </CheckBox>
-          <Button DockPanel.Dock="Bottom" Content="TEST" Click="Button_Click"/>
         </DockPanel>
       </Grid>
       <Grid x:Name="gridFiles" Margin="2,2,0,2" Width="150" Grid.Column="1">
@@ -430,37 +429,53 @@
             <RowDefinition/>
             <RowDefinition Height="Auto"/>
           </Grid.RowDefinitions>
-          <Button Template="{DynamicResource ButtonBaseControlTemplate}" x:Name="btnLoadFile" Height="40" VerticalAlignment="Top" Click="btnLoadFile_Click" Margin="2" Background="#FF5A5A5A" BorderBrush="White" BorderThickness="2" >
-            <TextBlock x:Name="btnLoadFileText" TextTrimming="CharacterEllipsis" Text="load"/>
+          <Button Template="{DynamicResource ButtonBaseControlTemplate}" x:Name="btnLoadFile" Height="40" VerticalAlignment="Top" Click="btnLoadFile_Click" Margin="2" Background="#FF5A5A5A" BorderBrush="White" BorderThickness="2" HorizontalContentAlignment="Left" Padding="5,0">
+            <StackPanel Orientation="Horizontal">
+              <Image Source="include/load.png" Height="32" Width="32" Margin="5,0"/>
+              <TextBlock x:Name="btnLoadFileText" TextTrimming="CharacterEllipsis" Text="load" VerticalAlignment="Center"/>
+            </StackPanel>
           </Button>
-          <Button Template="{DynamicResource ButtonBaseControlTemplate}" x:Name="btnUnloadFile" Height="40" VerticalAlignment="Top" Click="BtnUnloadFile_Click" Margin="2" Background="#FF5A5A5A" BorderBrush="White" BorderThickness="2" Grid.Row="1" >
-            <TextBlock  TextTrimming="CharacterEllipsis" Text="unload"/>
+          <Button Template="{DynamicResource ButtonBaseControlTemplate}" x:Name="btnUnloadFile" Height="40" VerticalAlignment="Top" Click="BtnUnloadFile_Click" Margin="2" Background="#FF5A5A5A" BorderBrush="White" BorderThickness="2" Grid.Row="1" HorizontalContentAlignment="Left" Padding="5,0">
+            <StackPanel Orientation="Horizontal">
+              <Image Source="include/cancel.png" Height="32" Width="32" Margin="5,0"/>
+              <TextBlock  TextTrimming="CharacterEllipsis" Text="unload" VerticalAlignment="Center"/>
+            </StackPanel>
           </Button>
           <Label Content="recent" Grid.Row="2" Foreground="White" FontSize="12"/>
           <ListBox x:Name="listRecentFiles" Grid.Row="2" Background="#FF343434" Margin="2,20,2,2" Foreground="White" SelectionChanged="Files_SelectionChanged" GotFocus="Files_GotFocus" LostFocus="Files_LostFocus" />
           <ListBox x:Name="listFiles" Background="#FF343434" Margin="2" Foreground="White" SelectionChanged="Files_SelectionChanged" GotFocus="Files_GotFocus" Grid.Row="3" LostFocus="Files_LostFocus"/>
-          <Button Template="{DynamicResource ButtonBaseControlTemplate}" x:Name="btnSaveAs" VerticalAlignment="Bottom" Grid.Row="4" Margin="2,0,2,30" Click="btnSaveAs_Click" BorderBrush="White">
-              <StackPanel Orientation="Horizontal">
-                <Image Width="24" Height="24" Margin="0,0,10,0" Source="include/SaveAs.png" />
-              <TextBlock TextTrimming="CharacterEllipsis" Text="file save as" VerticalAlignment="Center" />
-              </StackPanel>
-          </Button>
-          <Border VerticalAlignment="Bottom" Grid.Row="4" Margin="2" BorderThickness="1">
-            <Border.BorderBrush>
-              <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                <GradientStop Color="Yellow" Offset="0"/>
-                <GradientStop Color="Red" Offset=".4"/>
-                <GradientStop Color="Red" Offset=".6"/>
-                <GradientStop Color="Yellow" Offset="1"/>
-              </LinearGradientBrush>
-            </Border.BorderBrush>
-            <Button Template="{DynamicResource ButtonBaseControlTemplate}" x:Name="btnDelete" Click="btnDelete_Click" Background="Transparent" BorderThickness="1" BorderBrush="Transparent">
-              <StackPanel Orientation="Horizontal">
-                <Image Width="20" Height="20" Margin="0,0,10,0" Source="include/X.png" />
-                <TextBlock TextTrimming="CharacterEllipsis" Text="delete file" FontSize="14" VerticalAlignment="Center" />
-              </StackPanel>
+
+          <StackPanel Grid.Row="5">
+            <Button Template="{DynamicResource ButtonBaseControlTemplate}" x:Name="btnChangeDir" VerticalAlignment="Bottom" Margin="2" Click="btnChangeDir_Click" BorderBrush="White" HorizontalContentAlignment="Left" Padding="5,0">
+                <StackPanel Orientation="Horizontal">
+                  <Image Width="24" Height="24" Margin="0,0,10,0" Source="include/Change.png" />
+                <TextBlock TextTrimming="CharacterEllipsis" Text="change dir" VerticalAlignment="Center" />
+                </StackPanel>
             </Button>
-          </Border>
+            <Button Template="{DynamicResource ButtonBaseControlTemplate}" x:Name="btnSaveAs" VerticalAlignment="Bottom" Margin="2" Click="btnSaveAs_Click" BorderBrush="White" HorizontalContentAlignment="Left" Padding="5,0">
+                <StackPanel Orientation="Horizontal">
+                  <Image Width="24" Height="24" Margin="0,0,10,0" Source="include/SaveAs.png" />
+                <TextBlock TextTrimming="CharacterEllipsis" Text="file save as" VerticalAlignment="Center" />
+                </StackPanel>
+            </Button>
+            <Border VerticalAlignment="Bottom" Margin="2" BorderThickness="1">
+              <Border.BorderBrush>
+                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                  <GradientStop Color="Yellow" Offset="0"/>
+                  <GradientStop Color="Red" Offset=".4"/>
+                  <GradientStop Color="Red" Offset=".6"/>
+                  <GradientStop Color="Yellow" Offset="1"/>
+                </LinearGradientBrush>
+              </Border.BorderBrush>
+              <Button Template="{DynamicResource ButtonBaseControlTemplate}" x:Name="btnDelete" Click="btnDelete_Click" Background="Transparent" BorderThickness="1" BorderBrush="Transparent" HorizontalContentAlignment="Left" Padding="5,0">
+                <StackPanel Orientation="Horizontal">
+                  <Image Width="20" Height="20" Margin="0,0,10,0" Source="include/neon-x.png" />
+                  <TextBlock TextTrimming="CharacterEllipsis" Text="delete file" FontSize="14" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
+            </Border>
+            
+          </StackPanel>
         </Grid>
       </Grid>
       <Grid x:Name="gridAddins" Grid.Column="2" >

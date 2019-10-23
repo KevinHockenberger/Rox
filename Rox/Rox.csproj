@@ -197,6 +197,10 @@
   <ItemGroup>
     <Resource Include="include\GreenDot.png" />
     <Resource Include="include\RedDot.png" />
+    <Resource Include="include\Load.png" />
+    <Resource Include="include\Cancel.png" />
+    <Resource Include="include\Change.png" />
+    <Resource Include="include\neon-x.png" />
     <Content Include="R3P\Advantech.Adam.DLL" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
