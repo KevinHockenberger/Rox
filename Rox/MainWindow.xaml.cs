@@ -329,7 +329,7 @@ namespace Rox
       {
         if (!string.IsNullOrWhiteSpace(d.Filename))
         {
-          SaveFile(d.Filename, true);
+          SaveFile(Properties.Settings.Default.ProgramPath.TrimEnd(new char[] { '\\' }) + "\\" + d.Filename, true);
           Properties.Settings.Default.MruFiles.Insert(0, d.Filename.Substring(0, d.Filename.IndexOf(".rox")));
           PopulateFilelists();
         }
@@ -2145,7 +2145,7 @@ namespace Rox
     private void btnChangeDir_Click(object sender, RoutedEventArgs e)
     {
       var d = new System.Windows.Forms.FolderBrowserDialog() { Description = "Change working file directory.", ShowNewFolderButton = true, SelectedPath = Properties.Settings.Default.ProgramPath };// , RootFolder = Environment.SpecialFolder.ApplicationData
-      if (d.ShowDialog()==System.Windows.Forms.DialogResult.OK)
+      if (d.ShowDialog() == System.Windows.Forms.DialogResult.OK)
       {
         Properties.Settings.Default.ProgramPath = d.SelectedPath;
         PopulateFilelists();

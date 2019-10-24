@@ -390,7 +390,9 @@
         <Button Template="{DynamicResource ButtonBaseControlTemplate}" x:Name="btnMinimize" Content="_" Click="btnMinimize_Click" Foreground="lightgray" VerticalContentAlignment="Stretch" HorizontalContentAlignment="Center"/>
       </Border>
       <Border Grid.Column="3" BorderBrush="White" BorderThickness="1" CornerRadius="2">
-        <Button Template="{DynamicResource ButtonBaseControlTemplate}" x:Name="btnClose" Content="X" Click="btnClose_Click" Foreground="Red" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+        <Button Template="{DynamicResource ButtonBaseControlTemplate}" x:Name="btnClose" Click="btnClose_Click" Foreground="Red" VerticalContentAlignment="Center" HorizontalContentAlignment="Center">
+          <Image Source="include\neon-x.png" Width="22" Height="22"/>
+        </Button>
       </Border>
     </Grid>
     <Grid DockPanel.Dock="Bottom" >
