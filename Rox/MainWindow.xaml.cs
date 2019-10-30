@@ -19,6 +19,7 @@ namespace Rox
   /// </summary>
   public partial class MainWindow : Window
   {
+    private Dictionary<string, AlarmWindow> alarms = new Dictionary<string, AlarmWindow>();
     private IoAdams IoAdams; // = new IoAdams(new IoAdams.Settings() { IpAddress = "172.18.3.231", Port = 502, ProtocolType = System.Net.Sockets.ProtocolType.Tcp });
     //private ICollection<IPluginContract> plugins;
     private class SequenceEventArgs
@@ -40,7 +41,7 @@ namespace Rox
     private static SolidColorBrush trueNodeBackground = new SolidColorBrush(Color.FromRgb(0, 107, 21));
     private static SolidColorBrush falseNodeBackground = new SolidColorBrush(Color.FromRgb(107, 0, 66));
     //private static SolidColorBrush textboxBackgroundAllowDrop = new SolidColorBrush(Color.FromRgb(71, 125, 30));
-    public static List<NodeTypes> SequenceNodes = new List<NodeTypes>() { NodeTypes.Condition, NodeTypes.General, NodeTypes.Timer, NodeTypes.SetVariable, NodeTypes.SetMode, NodeTypes.Return };
+    public static List<NodeTypes> SequenceNodes = new List<NodeTypes>() { NodeTypes.Condition, NodeTypes.General, NodeTypes.Timer, NodeTypes.SetVariable, NodeTypes.SetMode, NodeTypes.Return, NodeTypes.Alarm };
     public List<IteNodeViewModel> Modes;// : INotifyPropertyChanged;
     public List<string> AvailModes { get { return Modes.Where(p => p.NodeType == NodeTypes.Mode).Select(p => p.Name).ToList(); } }
     public IteNodeViewModel selectedNode { get; set; }
@@ -199,6 +200,7 @@ namespace Rox
     }
     private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
     {
+      ClearAlarms();
       Paused = true; // redundant, yes
       FileUnload(false);
       SaveSettings();
@@ -355,6 +357,7 @@ namespace Rox
     private string xmlTag_SetVar { get { return "set"; } }
     private string xmlTag_SetMode { get { return "mode"; } }
     private string xmlTag_Return { get { return "ret"; } }
+    private string xmlTag_Alarm { get { return "alarm"; } }
     private void FileLoad(string filename)
     {
       Paused = true;
@@ -370,7 +373,7 @@ namespace Rox
           //Console.WriteLine(" ------ START READING ------- ");
           ParseFile(reader, fileRead);
         }
-        LiveVars = Vars.Where(p => p.Channel >= 0);
+        AssignLiveVars();
         Modes = fileRead;
         tree.DataContext = null;
         tree.DataContext = new { Modes };
@@ -604,7 +607,7 @@ namespace Rox
               }
 
               curNode.Items.Add(subNode);
-              //curNode = subNode;
+              //curNode = subNode; CANNOT CONTAIN SUBS
             }
           }
           // ----------------------------------------------------- SET MODE
@@ -618,7 +621,7 @@ namespace Rox
               })
               { Parent = curNode, IsExpanded = reader.GetAttribute("exp") != "False" };
               curNode.Items.Add(subNode);
-              //curNode = subNode;
+              //curNode = subNode; CANNOT CONTAIN SUBS
             }
           }
           // ----------------------------------------------------- RETURN
@@ -627,9 +630,29 @@ namespace Rox
             if (curNode != null)
             {
               var subNode = new IteRETURN_VM(new IteReturn(reader.GetAttribute("name")) { })
-              { Parent = curNode, IsExpanded = reader.GetAttribute("exp") != "False" };
+              { Parent = curNode };
               curNode.Items.Add(subNode);
-              //curNode = subNode;
+              //curNode = subNode; CANNOT CONTAIN SUBS
+            }
+          }
+          // ----------------------------------------------------- ALARM
+          else if (reader.Name == xmlTag_Alarm)
+          {
+            if (curNode != null)
+            {
+              //sw.Write("\n<{0} name='{1}' title='{2}' prompt='{3}' c1='{4}' c2='{5}' varname='{6}' val='{7}'/>", xmlTag_Alarm, a.Name, a.Title, a.Prompt, a.Color1, a.Color2, a.VariableName, a.Value);
+              var subNode = new IteALARM_VM(new IteAlarm(reader.GetAttribute("name"))
+              {
+                Title = reader.GetAttribute("title"),
+                Prompt = reader.GetAttribute("prompt"),
+                Color1 = reader.GetAttribute("c1"),
+                Color2 = reader.GetAttribute("c2"),
+                VariableName = reader.GetAttribute("varname"),
+                Value = reader.GetAttribute("val"),
+              })
+              { Parent = curNode };
+              curNode.Items.Add(subNode);
+              //curNode = subNode; CANNOT CONTAIN SUBS
             }
           }
         }
@@ -652,12 +675,33 @@ namespace Rox
     private void ValidateSequenceVariableTypesForNode(IteNodeViewModel node)
     {
       var t = node.GetType();
-      if (t == typeof(IteCONDITION_VM))
+      if (t == typeof(IteALARM_VM))
+      {
+        var a = Vars.Where(p => p.Name == ((IteAlarm)node.Node).VariableName);
+        if (a.Any())
+        {
+          switch (a.First().VarType.enumValue)
+          {
+            case VarType.boolType:
+              ((IteAlarm)node.Node).Value = bool.TryParse(((IteAlarm)node.Node).Value, out bool b) ? b : false;
+              break;
+            case VarType.stringType:
+              ((IteAlarm)node.Node).Value = ((IteAlarm)node.Node).Value.ToString();
+              break;
+            case VarType.numberType:
+              ((IteAlarm)node.Node).Value = decimal.TryParse(((IteAlarm)node.Node).Value, out decimal d) ? d : 0;
+              break;
+            default:
+              break;
+          }
+        }
+      }
+      else if (t == typeof(IteCONDITION_VM))
       {
         var a = Vars.Where(p => p.Name == ((IteCondition)node.Node).VariableName);
         if (a.Any())
         {
-          switch (GetVarTypeFromString(a.First().VarType.ToString()))
+          switch (a.First().VarType.enumValue)
           {
             case VarType.boolType:
               ((IteCondition)node.Node).DesiredValue = bool.TryParse(((IteCondition)node.Node).DesiredValue, out bool b) ? b : false;
@@ -679,6 +723,23 @@ namespace Rox
         if (a.Any())
         {
           ((IteSetVar)node.Node).VarType = a.First().VarType;
+          if (((IteSetVar)node.Node).Value != null && ((IteSetVar)node.Node).Value.GetType() != a.First().Value.GetType())
+          {
+            switch (a.First().VarType.enumValue)
+            {
+              case VarType.boolType:
+                ((IteSetVar)node.Node).Value = bool.TryParse(((IteSetVar)node.Node).Value, out bool b) ? b : false;
+                break;
+              case VarType.stringType:
+                ((IteSetVar)node.Node).Value = ((IteSetVar)node.Node).Value.ToString();
+                break;
+              case VarType.numberType:
+                ((IteSetVar)node.Node).Value = decimal.TryParse(((IteSetVar)node.Node).Value, out decimal d) ? d : 0;
+                break;
+              default:
+                break;
+            }
+          }
           if (((IteSetVar)node.Node).OtherwiseValue != null && ((IteSetVar)node.Node).OtherwiseValue.GetType() != a.First().Value.GetType())
           {
             switch (a.First().VarType.enumValue)
@@ -827,7 +888,11 @@ namespace Rox
           sw.Write("\n<{0} name='{1}' mode='{2}' exp='{3}'/>", xmlTag_SetMode, v1.Name, v1.ModeName, n.IsExpanded);
           break;
         case NodeTypes.Return:
-          sw.Write("\n<{0} name='{1}' exp='{2}'/>", xmlTag_Return, ((IteReturn)n.Node).Name, n.IsExpanded);
+          sw.Write("\n<{0} name='{1}'/>", xmlTag_Return, ((IteReturn)n.Node).Name);
+          break;
+        case NodeTypes.Alarm:
+          var a = (IteAlarm)n.Node;
+          sw.Write("\n<{0} name='{1}' title='{2}' prompt='{3}' c1='{4}' c2='{5}' varname='{6}' val='{7}'/>", xmlTag_Alarm, a.Name, a.Title, a.Prompt, a.Color1, a.Color2, a.VariableName, a.Value);
           break;
         default:
           sw.Write("\n<unknown name='{0}' type='{1}' exp='{2}'/>", n.Name, n.NodeType, n.IsExpanded);
@@ -1055,20 +1120,25 @@ namespace Rox
             SetNodeOptionsPanel("NodeOptionsBasic");
           }
           break;
+        case NodeTypes.Alarm:
+          ClearNodeOptionsPanel();
+          if (!s.IsLocked)
+          {
+            SetNodeOptionsPanel("NodeOptionsPanel_Alarm");
+          }
+          break;
       }
       e.Handled = true;
     }
     private void txtNodeName_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
     {
-      //if (e.Key == System.Windows.Input.Key.Enter)
-      //{
-      //  if (selectedNode == (IteNodeViewModel)((IteNodeViewModel)tree.SelectedItem))
-      //  {
-      //    var T = (TextBox)sender;
-      //    selectedNode.Name = T.Text;
-      //    //tree.SelectedItem(T.Text);
-      //  }
-      //}
+      try
+      {
+        ((IteNodeViewModel)((TextBox)sender).GetBindingExpression(TextBox.TextProperty).ResolvedSource).Name = ((TextBox)sender).Text;
+      }
+      catch (Exception)
+      {
+      }
     }
     private void ClearNodeOptionsPanel()
     {
@@ -1142,6 +1212,16 @@ namespace Rox
         DragDrop.DoDragDrop((StackPanel)sender, dragData, DragDropEffects.Move);
       }
     }
+    private void Alarm_PreviewMouseMove(object sender, MouseEventArgs e)
+    {
+      Vector diff = startDragPoint - e.GetPosition(null);
+      if (e.LeftButton == MouseButtonState.Pressed && (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance || Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance))
+      {
+        // Initialize the drag & drop operation
+        DataObject dragData = new DataObject("iteNode", new IteAlarm("Alarm") { });
+        DragDrop.DoDragDrop((StackPanel)sender, dragData, DragDropEffects.Move);
+      }
+    }
     private void Node_PreviewMouseMove(object sender, MouseEventArgs e)
     {
       Vector diff = startDragPoint - e.GetPosition(null);
@@ -1155,13 +1235,10 @@ namespace Rox
             test == typeof(IteTIMER_VM) ||
             test == typeof(IteSETVAR_VM) ||
             test == typeof(IteSETMODE_VM) ||
-            test == typeof(IteRETURN_VM))
+            test == typeof(IteRETURN_VM) ||
+            test == typeof(IteALARM_VM))
         {
-
-          var test1 = ((dynamic)e.OriginalSource).DataContext;
-
-          dragData = new DataObject("iteNodeVM", (IteNodeViewModel)test1);
-          //dragData = new DataObject("iteNodeVM", (IteNodeViewModel)((TreeViewItem)sender).DataContext);
+          dragData = new DataObject("iteNodeVM", (IteNodeViewModel)((dynamic)e.OriginalSource).DataContext);
         }
         else
         {
@@ -1285,6 +1362,11 @@ namespace Rox
             else if (T == typeof(IteReturn))
             {
               N = N ?? new IteRETURN_VM(sourceNode) { IsSelected = true };
+              success = InsertNode(IsDropInSeq, N, dc, (startDragPoint - e.GetPosition(this)).Y >= 0);
+            }
+            else if (T == typeof(IteAlarm))
+            {
+              N = N ?? new IteALARM_VM(sourceNode) { IsSelected = true };
               success = InsertNode(IsDropInSeq, N, dc, (startDragPoint - e.GetPosition(this)).Y >= 0);
             }
             else
@@ -1431,7 +1513,7 @@ namespace Rox
       {
         if (Vars.Where(p => p.Name == d.VarName).Any()) { return; }
         Vars.Add(new Variable { Name = d.VarName, Note = d.VarNote, Value = d.VarValue, UsersLastValue = d.VarValue, Channel = d.Channel, IsOutput = d.IsOutput });
-        LiveVars = Vars.Where(p => p.Channel >= 0);
+        AssignLiveVars();
       }
       AutoSizeVarColumns();
     }
@@ -1463,19 +1545,26 @@ namespace Rox
         n.Value = d.VarValue;
         n.Channel = d.Channel;
         n.IsOutput = d.IsOutput;
-        LiveVars = Vars.Where(p => p.Channel >= 0);
+        AssignLiveVars();
       }
       //AutoSizeVarColumns();
     }
     private void Logic_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-      if (((ComboBox)sender).SelectedIndex < 0) { return; }
-      var l = ((ComboBoxItem)((ComboBox)sender).SelectedValue).Content.ToString();
-      //Console.WriteLine(l);
-      var o = (selectedNode.Node as IteCondition);
-      o.EvalMethodText = l;
-      o.EvalMethod = GetEvalMethodFromString(l);
-      SetAndEvaluateLogicStatement(o);
+      try
+      {
+        if (((ComboBox)sender).SelectedIndex < 0) { return; }
+        var l = ((ComboBoxItem)((ComboBox)sender).SelectedValue).Content.ToString();
+        //Console.WriteLine(l);
+        //var o = (selectedNode.Node as IteCondition);
+        var o = (((INode)((ComboBox)sender).GetBindingExpression(ComboBox.TextProperty).ResolvedSource) as IteCondition);
+        o.EvalMethodText = l;
+        o.EvalMethod = GetEvalMethodFromString(l);
+        SetAndEvaluateLogicStatement(o);
+      }
+      catch (Exception)
+      {
+      }
     }
     private Func<dynamic, dynamic, bool> GetEvalMethodFromString(string s)
     {
@@ -1530,7 +1619,8 @@ namespace Rox
     }
     private void DesiredValue_TextChanged(object sender, TextChangedEventArgs e)
     {
-      var o = (selectedNode.Node as IteCondition);
+      //var o = (selectedNode.Node as IteCondition);
+      var o = ((ComboBox)sender).GetBindingExpression(ComboBox.TextProperty).ResolvedSource as IteCondition;
       var t = ((ComboBox)sender).Text;
       o.DesiredValue = ((ComboBox)sender).Text;
       SetAndEvaluateLogicStatement(o);
@@ -1587,15 +1677,17 @@ namespace Rox
       {
         var source = (Variable)e.Data.GetData("iteVar");
         ((TextBox)sender).Text = source.Name;
-        if (selectedNode.Node.GetType() == typeof(IteCondition))
+        //var n = selectedNode;
+        var n = (INode)((TextBox)sender).GetBindingExpression(TextBox.TextProperty).ResolvedSource;
+        if (n.GetType() == typeof(IteCondition))
         {
-          var o = (IteCondition)selectedNode.Node;
+          var o = (IteCondition)n;
           o.VariableName = source.Name;
           SetAndEvaluateLogicStatement(o);
         }
-        else if (selectedNode.Node.GetType() == typeof(IteSetVar))
+        else if (n.GetType() == typeof(IteSetVar))
         {
-          ((IteSetVar)selectedNode.Node).VariableName = source.Name;
+          ((IteSetVar)n).VariableName = source.Name;
         }
       }
       e.Handled = true;
@@ -1649,25 +1741,8 @@ namespace Rox
         }
         var ins = IoAdams.GetInputs();
         var outs = IoAdams.GetOutputs();
-        //Console.WriteLine("IN  | {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7} |  IN",
-        //                  ins[0] ? "1" : "0",
-        //                  ins[1] ? "1" : "0",
-        //                  ins[2] ? "1" : "0",
-        //                  ins[3] ? "1" : "0",
-        //                  ins[4] ? "1" : "0",
-        //                  ins[5] ? "1" : "0",
-        //                  ins[6] ? "1" : "0",
-        //                  ins[7] ? "1" : "0");
-        //Console.WriteLine("OUT | {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7} | OUT",
-        //                  outs[0] ? "1" : "0",
-        //                  outs[1] ? "1" : "0",
-        //                  outs[2] ? "1" : "0",
-        //                  outs[3] ? "1" : "0",
-        //                  outs[4] ? "1" : "0",
-        //                  outs[5] ? "1" : "0",
-        //                  outs[6] ? "1" : "0",
-        //                  outs[7] ? "1" : "0");
-        foreach (var v in LiveVars) //Vars.Where(p=>p.Channel>=0)
+        foreach (var v in LiveVars)
+
         {
           try
           {
@@ -1970,7 +2045,7 @@ namespace Rox
             if (daVar.Channel >= 0 && daVar.IsOutput == true)
             {
               // assign physical output
-              IoAdams.SetBit(daVar.Channel, (daVar.Value == true || daVar.Value > 0) ? 1 : 0);
+              IoAdams.SetBit(daVar.Channel, daVar.Value == true ? 1 : 0);
             }
             if (highlight) { node.Background = processedNodeBackground; }
           }
@@ -1986,6 +2061,10 @@ namespace Rox
           if (highlight) { node.Background = processedNodeBackground; }
           e.AbortIteration = true;
           return;
+        case NodeTypes.Alarm:
+          if (highlight) { node.Background = processedNodeBackground; }
+          AddAlarm(((IteAlarm)node.Node).Title, ((IteAlarm)node.Node).Prompt, ((IteAlarm)node.Node).Color1, ((IteAlarm)node.Node).Color2, ((IteAlarm)node.Node).VariableName, ((IteAlarm)node.Node).Value);
+          break;
       }
     }
     private void ChkHighlight_Checked(object sender, RoutedEventArgs e)
@@ -2003,7 +2082,8 @@ namespace Rox
     }
     private void BtnDeleteSelectedNode_Click(object sender, RoutedEventArgs e)
     {
-      FindAndRemoveNode(selectedNode);
+      //FindAndRemoveNode(selectedNode);
+      FindAndRemoveNode((IteNodeViewModel)tree.SelectedItem);
     }
     private void FindAndRemoveNode(IteNodeViewModel node)
     {
@@ -2045,27 +2125,62 @@ namespace Rox
     }
     private void Datatype_TextChanged(object sender, TextChangedEventArgs e)
     {
-      var s = selectedNode;
-      if (s != null && s.GetType() == typeof(IteSETVAR_VM))
+      try
       {
-        var t = ((ComboBox)sender).Text.ToLower().Trim();
-        if (t == "true" || t == "false")
+        //var s = selectedNode;
+        var s = (INode)((ComboBox)sender).GetBindingExpression(ComboBox.TextProperty).ResolvedSource;
+        if (s != null && s.GetType() == typeof(IteSetVar))
         {
-          ((IteSetVar)((IteSETVAR_VM)s).Node).VarType = VariableTypes.boolType;
-          ((IteSetVar)((IteSETVAR_VM)s).Node).Value = t == "true" ? true : false;
+          var t = ((ComboBox)sender).Text.ToLower().Trim();
+          if (t == "true" || t == "false")
+          {
+            ((IteSetVar)s).VarType = VariableTypes.boolType;
+            ((IteSetVar)s).Value = t == "true" ? true : false;
+          }
+          else if (decimal.TryParse(t, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.CurrentCulture, out var d))
+          {
+            ((IteSetVar)s).VarType = VariableTypes.numberType;
+            ((IteSetVar)s).Value = d;
+          }
+          else
+          {
+            ((IteSetVar)s).VarType = VariableTypes.stringType;
+          }
+          //Console.WriteLine("Text: " + ((ComboBox)sender).Text + " | " + ((IteSetVar)((IteSETVAR_VM)s).Node).VarType);
         }
-        else if (decimal.TryParse(t, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.CurrentCulture, out var d))
-        {
-          ((IteSetVar)((IteSETVAR_VM)s).Node).VarType = VariableTypes.numberType;
-          ((IteSetVar)((IteSETVAR_VM)s).Node).Value = d;
-        }
-        else
-        {
-          ((IteSetVar)((IteSETVAR_VM)s).Node).VarType = VariableTypes.stringType;
-        }
-        //Console.WriteLine("Text: " + ((ComboBox)sender).Text + " | " + ((IteSetVar)((IteSETVAR_VM)s).Node).VarType);
       }
-
+      catch (Exception)
+      {
+      }
+    }
+    private void DatatypeAlarm_TextChanged(object sender, TextChangedEventArgs e)
+    {
+      try
+      {
+        //var s = selectedNode;
+        var s = (INode)((ComboBox)sender).GetBindingExpression(ComboBox.TextProperty).ResolvedSource;
+        if (s != null && s.GetType() == typeof(IteAlarm))
+        {
+          var t = ((ComboBox)sender).Text.ToLower().Trim();
+          if (t == "true" || t == "false")
+          {
+            //((IteAlarm)((IteALARM_VM)s).Node).VarType = VariableTypes.boolType;
+            ((IteAlarm)s).Value = t == "true" ? true : false;
+          }
+          else if (decimal.TryParse(t, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.CurrentCulture, out var d))
+          {
+            //((IteAlarm)((IteALARM_VM)s).Node).VarType = VariableTypes.numberType;
+            ((IteAlarm)s).Value = d;
+          }
+          else
+          {
+            //((IteAlarm)((IteALARM_VM)s).Node).VarType = VariableTypes.stringType;
+          }
+        }
+      }
+      catch (Exception)
+      {
+      }
     }
     private void btnDelete_Click(object sender, RoutedEventArgs e)
     {
@@ -2115,6 +2230,10 @@ namespace Rox
     {
       txtSelectedNodeInfo.Text = "{ Return } Aborts the current iteration. \nDrag and Drop to add this item.";
     }
+    private void SeqItemAlarm_MouseEnter(object sender, MouseEventArgs e)
+    {
+      txtSelectedNodeInfo.Text = "{ Return } Aborts the current iteration. \nDrag and Drop to add this item.";
+    }
     private void togglePlugins(object sender, RoutedEventArgs e)
     {
       if (gridAddins.Visibility == Visibility.Visible)
@@ -2150,6 +2269,77 @@ namespace Rox
         Properties.Settings.Default.ProgramPath = d.SelectedPath;
         PopulateFilelists();
       }
+    }
+    private void FocusTextBoxOnLoad(object sender, RoutedEventArgs e)
+    {
+      if (!(sender is TextBox t)) return;
+      t.Focus();
+      t.SelectAll();
+    }
+    private void AddAlarm(string title, string prompt, string color1, string color2, string variable, dynamic value)
+    {
+      if (string.IsNullOrEmpty(title)) { return; }
+      if (!alarms.ContainsKey(title))
+      {
+        Dispatcher.Invoke(() =>
+        {
+          var a = new AlarmWindow(title, prompt, color1, color2, variable, value);
+          a.Closed += Alarm_Closed;
+          alarms.Add(title, a);
+          a.Show();
+        });
+      }
+    }
+    private void Alarm_Closed(object sender, EventArgs e)
+    {
+      if (((AlarmWindow)sender).Result && !string.IsNullOrEmpty(((AlarmWindow)sender).Variable))
+      {
+        try
+        {
+          var daVar = Vars.Where(p => p.Name == ((AlarmWindow)sender).Variable).FirstOrDefault();
+          daVar.Value = ((AlarmWindow)sender).Value;
+          if (daVar.Channel >= 0 && daVar.IsOutput == true)
+          {
+            // assign physical output
+            IoAdams.SetBit(daVar.Channel, daVar.Value == true ? 1 : 0);
+          }
+        }
+        catch (Exception)
+        {
+        }
+      }
+      RemoveAlarm(((AlarmWindow)sender).Title);
+    }
+    private void RemoveAlarm(string title)
+    {
+      if (alarms.TryGetValue(title, out AlarmWindow a)) { RemoveAlarm(a); }
+    }
+    private void RemoveAlarm(AlarmWindow alarm)
+    {
+      alarm.Close();
+      alarms.Remove(alarm.Title);
+    }
+    private void ClearAlarms()
+    {
+      var closed = new List<string>();
+      if (alarms.Any())
+      {
+        foreach (var a in alarms)
+        {
+          a.Value.Close();
+          closed.Add(a.Value.Title);
+        }
+        foreach (var s in closed)
+        {
+          alarms.Remove(s);
+        }
+        if (alarms.Any()) { ClearAlarms(); }
+      }
+    }
+    private void AssignLiveVars()
+    {
+      LiveVars = Vars.Where(p => p.Channel >= 0);
+      if (!LiveVars.Any()) { LiveVars = null; }
     }
   }
 }

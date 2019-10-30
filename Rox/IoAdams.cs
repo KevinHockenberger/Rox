@@ -103,7 +103,22 @@ namespace Rox
     }
     public void SetBit(int Index, int Value)
     {
-      device.Modbus().ForceSingleCoil(Index, Value);
+      //bool m = device.Configuration().GetAccessControl_Config(0,out bool b, out int mode, out byte[] ip);//
+
+      //int lasterror = device.Modbus().ApiLastError;
+
+
+
+
+      device.Modbus().ForceSingleCoil(17 + Index, Value);
+
+
+
+
+
+
+      //device.Modbus().ForceMultiCoils(0, new bool[] { true, true, true, true, true, true, true, true });
+      Console.WriteLine(Value);
     }
   }
 }

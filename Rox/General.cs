@@ -141,6 +141,7 @@ namespace Rox
     SetVariable = 10,
     SetMode = 11,
     Return = 12,
+    Alarm = 13,
   }
   public class IteMode : INode
   {
@@ -313,6 +314,29 @@ namespace Rox
       this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
   }
+  public class IteAlarm : INode, INotifyPropertyChanged
+  {
+    public event PropertyChangedEventHandler PropertyChanged;
+    public NodeTypes NodeType { get; } = NodeTypes.Alarm;
+    public string Name { get; set; }
+    public List<NodeTypes> AllowedNodes { get; } = new List<NodeTypes>() { };
+    public Collection<INode> Items { get; set; } = new Collection<INode>();
+    public string Description() { return "{ Alarm } Shows a dialog with the specified information."; }
+    public string Prompt { get; set; } = "Unknown Alarm";
+    public string VariableName { get; set; }
+    public dynamic Value { get; set; }
+    public string Title { get; set; } = "Unknown Alarm";
+    public string Color1 { get; set; } = "Black";
+    public string Color2 { get; set; } = "White";
+    public IteAlarm(string name)
+    {
+      Name = name;
+    }
+    protected virtual void OnPropertyChanged(string propertyName)
+    {
+      this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+  }
   public class IteTimer : INode, INotifyPropertyChanged
   {
     private double _timeElapsed;
@@ -457,6 +481,9 @@ namespace Rox
           case NodeTypes.Return:
             Items.Add(new IteRETURN_VM(item));
             break;
+          case NodeTypes.Alarm:
+            Items.Add(new IteALARM_VM(item));
+            break;
           default:
             break;
         }
@@ -584,6 +611,10 @@ namespace Rox
   public class IteRETURN_VM : IteNodeViewModel
   {
     public IteRETURN_VM(INode node) : base(node) { }
+  }
+  public class IteALARM_VM : IteNodeViewModel
+  {
+    public IteALARM_VM(INode node) : base(node) { }
   }
   public class Variable : INotifyPropertyChanged
   {

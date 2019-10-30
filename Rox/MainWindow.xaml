@@ -28,7 +28,7 @@
                 <ScrollViewer DockPanel.Dock="Top" 
                                               HorizontalScrollBarVisibility="Hidden" 
                                               VerticalScrollBarVisibility="Hidden" 
-                                              Focusable="false">
+                                              Focusable="False">
                   <GridViewHeaderRowPresenter 
                                         Margin="2,0,2,0" 
                                         Columns="{Binding Path=TemplatedParent.View.Columns, RelativeSource={RelativeSource TemplatedParent}}" 
@@ -142,11 +142,11 @@
       </Style.Triggers>
     </Style>
     <Style x:Key="{x:Type ListView}" TargetType="ListView">
-      <Setter Property="SnapsToDevicePixels" Value="true" />
-      <Setter Property="OverridesDefaultStyle" Value="true" />
+      <Setter Property="SnapsToDevicePixels" Value="True" />
+      <Setter Property="OverridesDefaultStyle" Value="True" />
       <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto" />
       <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
-      <Setter Property="ScrollViewer.CanContentScroll" Value="true" />
+      <Setter Property="ScrollViewer.CanContentScroll" Value="True" />
       <Setter Property="VerticalContentAlignment" Value="Center" />
       <Setter Property="Template">
         <Setter.Value>
@@ -166,10 +166,10 @@
               </ScrollViewer>
             </Border>
             <ControlTemplate.Triggers>
-              <Trigger Property="IsGrouping" Value="true">
-                <Setter Property="ScrollViewer.CanContentScroll" Value="false" />
+              <Trigger Property="IsGrouping" Value="True">
+                <Setter Property="ScrollViewer.CanContentScroll" Value="False" />
               </Trigger>
-              <Trigger Property="IsEnabled" Value="false">
+              <Trigger Property="IsEnabled" Value="False">
                 <Setter TargetName="Border" Property="Background">
                   <Setter.Value>
                     <SolidColorBrush Color="{DynamicResource DisabledBorderLightColor}" />
@@ -182,14 +182,14 @@
       </Setter>
     </Style>
     <Style x:Key="{x:Type ListViewItem}" TargetType="ListViewItem">
-      <Setter Property="SnapsToDevicePixels" Value="true" />
-      <Setter Property="OverridesDefaultStyle" Value="true" />
+      <Setter Property="SnapsToDevicePixels" Value="True" />
+      <Setter Property="OverridesDefaultStyle" Value="True" />
       <Setter Property="Foreground" Value="White"/>
       <Setter Property="FontSize" Value="14"/>
       <Setter Property="Template">
         <Setter.Value>
           <ControlTemplate TargetType="ListBoxItem">
-            <Border x:Name="Border" Padding="5,0,5,0" SnapsToDevicePixels="true" Background="Transparent">
+            <Border x:Name="Border" Padding="5,0,5,0" SnapsToDevicePixels="True" Background="Transparent">
               <VisualStateManager.VisualStateGroups>
                 <VisualStateGroup x:Name="CommonStates">
                   <VisualState x:Name="Normal" />
@@ -247,7 +247,7 @@
         <ScrollViewer VerticalScrollBarVisibility="Auto" >
           <StackPanel>
             <Label Style="{StaticResource lblDescriptor}" Content="Name"/>
-            <TextBox x:Name="txtNodeName"  AllowDrop="True" KeyUp="txtNodeName_KeyUp" Text="{Binding selectedNode.Name, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}"/>
+            <TextBox x:Name="txtNodeName" KeyUp="txtNodeName_KeyUp" Text="{Binding selectedNode.Name, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}"/>
             <Grid>
               <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
@@ -255,7 +255,7 @@
                 <ColumnDefinition/>
               </Grid.ColumnDefinitions>
               <DockPanel Margin="0,5,0,0" >
-                <Label AllowDrop="True" Style="{StaticResource lblDescriptor}" Content="Variable" DockPanel.Dock="Top" />
+                <Label Style="{StaticResource lblDescriptor}" Content="Variable" DockPanel.Dock="Top" />
                 <TextBox Text="{Binding Path=selectedNode.Node.VariableName, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" 
                          VerticalContentAlignment="Center"
                          AllowDrop="True"
@@ -279,8 +279,8 @@
               <StackPanel Grid.Column="2" Margin="0,5,0,0" >
                 <Label Style="{StaticResource lblDescriptor}" Content="Value"/>
                 <ComboBox IsEditable="True" Text="{Binding Path=selectedNode.Node.DesiredValue, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" TextBoxBase.TextChanged="DesiredValue_TextChanged">
-                  <!----><ComboBoxItem Content="true" />
-                  <ComboBoxItem Content="false" />
+                  <!----><ComboBoxItem Content="True" />
+                  <ComboBoxItem Content="False" />
                   <ComboBoxItem Content="0" />
                   <ComboBoxItem Content="1" />
                 </ComboBox>
@@ -297,8 +297,8 @@
         <ScrollViewer VerticalScrollBarVisibility="Auto" >
           <StackPanel>
             <Label Style="{StaticResource lblDescriptor}" Content="Name"/>
-            <TextBox x:Name="txtNodeName"  AllowDrop="True" KeyUp="txtNodeName_KeyUp" Text="{Binding selectedNode.Name, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}"/>
-            <Label AllowDrop="True" Style="{StaticResource lblDescriptor}" Content="Interval" DockPanel.Dock="Top" />
+            <TextBox x:Name="txtNodeName" KeyUp="txtNodeName_KeyUp" Text="{Binding selectedNode.Name, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}"/>
+            <Label Style="{StaticResource lblDescriptor}" Content="Interval" />
             <TextBox Text="{Binding Path=selectedNode.Node.Interval, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" 
                       VerticalContentAlignment="Center" />
             <Label Style="{StaticResource lblDescriptor}" Content="Current Value"/>
@@ -314,8 +314,8 @@
         <ScrollViewer VerticalScrollBarVisibility="Auto" >
           <StackPanel>
             <Label Style="{StaticResource lblDescriptor}" Content="Name" />
-            <TextBox x:Name="txtNodeName"  AllowDrop="True" KeyUp="txtNodeName_KeyUp" Text="{Binding selectedNode.Name, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}"/>
-            <Label AllowDrop="True" Style="{StaticResource lblDescriptor}" Content="Variable" DockPanel.Dock="Top" Margin="0,5,0,0"/>
+            <TextBox x:Name="txtNodeName" KeyUp="txtNodeName_KeyUp" Text="{Binding selectedNode.Name, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}"/>
+            <Label Style="{StaticResource lblDescriptor}" Content="Variable" Margin="0,5,0,0"/>
             <TextBox Text="{Binding Path=selectedNode.Node.VariableName, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" VerticalContentAlignment="Center" 
                      AllowDrop="True"
                      PreviewDragLeave="TextBox_PreviewDragLeave"
@@ -327,16 +327,16 @@
             </ComboBox>
             <Label Style="{StaticResource lblDescriptor}" Content="Value" Margin="0,5,0,0"/>
             <ComboBox IsEditable="True" Text="{Binding Path=selectedNode.Node.Value, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" TextBoxBase.TextChanged="Datatype_TextChanged" >
-              <ComboBoxItem Content="true" />
-              <ComboBoxItem Content="false" />
+              <ComboBoxItem Content="True" />
+              <ComboBoxItem Content="False" />
               <ComboBoxItem Content="0" />
               <ComboBoxItem Content="1" />
             </ComboBox>
             <Label Style="{StaticResource lblDescriptor}" Content="Otherwise set to" Margin="0,5,0,0"/>
             <ComboBox IsEditable="True" Text="{Binding Path=selectedNode.Node.OtherwiseValue, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" >
               <ComboBoxItem Content="" />
-              <ComboBoxItem Content="true" />
-              <ComboBoxItem Content="false" />
+              <ComboBoxItem Content="True" />
+              <ComboBoxItem Content="False" />
               <ComboBoxItem Content="0" />
               <ComboBoxItem Content="1" />
             </ComboBox>
@@ -349,9 +349,72 @@
         <ScrollViewer VerticalScrollBarVisibility="Auto" >
           <StackPanel>
             <Label Style="{StaticResource lblDescriptor}" Content="Name" />
-            <TextBox x:Name="txtNodeName"  AllowDrop="True" KeyUp="txtNodeName_KeyUp" Text="{Binding selectedNode.Name, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}"/>
-            <Label AllowDrop="True" Style="{StaticResource lblDescriptor}" Content="Mode" DockPanel.Dock="Top" Margin="0,5,0,0"/>
+            <TextBox x:Name="txtNodeName" KeyUp="txtNodeName_KeyUp" Text="{Binding selectedNode.Name, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}"/>
+            <Label Style="{StaticResource lblDescriptor}" Content="Mode" Margin="0,5,0,0"/>
             <ComboBox IsEditable="True" Text="{Binding Path=selectedNode.Node.ModeName, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" ItemsSource="{Binding AvailModes, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" />
+          </StackPanel>
+        </ScrollViewer>
+      </Border>
+    </DataTemplate>
+    <DataTemplate x:Key="NodeOptionsPanel_Alarm" >
+      <Border Margin="0,10,0,0" BorderThickness="2" BorderBrush="DarkGray" Padding="5" Background="#424242">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" >
+          <StackPanel>
+            <Label Style="{StaticResource lblDescriptor}" Content="Name" />
+            <TextBox x:Name="txtNodeName" KeyUp="txtNodeName_KeyUp" Text="{Binding selectedNode.Name, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" Loaded="FocusTextBoxOnLoad"/>
+            <Label Style="{StaticResource lblDescriptor}" Content="Title" Margin="0,5,0,0"/>
+            <TextBox Text="{Binding Path=selectedNode.Node.Title, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" VerticalContentAlignment="Center"  />
+            <Label Style="{StaticResource lblDescriptor}" Content="Prompt" Margin="0,5,0,0"/>
+            <TextBox Text="{Binding Path=selectedNode.Node.Prompt, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" VerticalContentAlignment="Center" />
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+              </Grid.ColumnDefinitions>              
+              <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+              </Grid.RowDefinitions>
+              <Label Style="{StaticResource lblDescriptor}" Content="Color" Margin="0,5,0,0"/>
+              <Label Style="{StaticResource lblDescriptor}"  Grid.Column="1" Content="Alternate color" Margin="2,5,0,0"/>
+           <TextBox Grid.Row="2" Text="{Binding Path=selectedNode.Node.Color1, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" VerticalContentAlignment="Center" Margin="0,0,2,0"/>
+              <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Path=selectedNode.Node.Color2, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" VerticalContentAlignment="Center" Margin="2,0,0,0" />
+            </Grid>
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+              </Grid.ColumnDefinitions>              
+              <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+              </Grid.RowDefinitions>
+              <Border  Grid.ColumnSpan="2" BorderThickness="1" >
+                <Border.BorderBrush>
+                  <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                    <GradientStop Color="Transparent" Offset="0.6"/>
+                    <GradientStop Color="White" Offset="1"/>
+                  </LinearGradientBrush>
+                </Border.BorderBrush>
+                <Label Style="{StaticResource lblDescriptor}" HorizontalAlignment="Center" Content="(upon alarm close)" Margin="0,5,0,0"/>
+              </Border>
+              <Label Style="{StaticResource lblDescriptor}" Grid.Row="1" Content="Variable to set" Margin="0,3,0,0"/>
+              <Label Style="{StaticResource lblDescriptor}" Grid.Row="1" Grid.Column="1" Content="Value" Margin="2,3,0,0"/>
+           <TextBox Grid.Row="2" Text="{Binding Path=selectedNode.Node.VariableName, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" VerticalContentAlignment="Center" 
+                     AllowDrop="True"
+                     PreviewDragLeave="TextBox_PreviewDragLeave"
+                     PreviewDragEnter="Var_PreviewDragEnter" 
+                     PreviewDragOver="Var_PreviewDragEnter"
+                     Drop="Var_Drop" Margin="0,0,2,0" />
+              <ComboBox IsEditable="True" Text="{Binding Path=selectedNode.Node.Value, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" TextBoxBase.TextChanged="DatatypeAlarm_TextChanged" Grid.Row="2" Grid.Column="1" >
+                <ComboBoxItem Content="True" />
+                <ComboBoxItem Content="False" />
+                <ComboBoxItem Content="0" />
+                <ComboBoxItem Content="1" />
+              </ComboBox>
+
+            </Grid>
           </StackPanel>
         </ScrollViewer>
       </Border>
@@ -785,6 +848,28 @@
                     </StackPanel>
                   </Border>
                 </HierarchicalDataTemplate>
+                <!-- ALARM STYLE ############################################################# -->
+                <HierarchicalDataTemplate DataType="{x:Type local:IteALARM_VM}" ItemsSource="{Binding Items}" >
+                  <HierarchicalDataTemplate.Resources>
+                    <Style TargetType="{x:Type Border}">
+                      <Setter Property="CornerRadius" Value="4" />
+                      <Setter Property="BorderThickness" Value="1" />
+                      <Setter Property="Background" Value="{Binding Background}" />
+                      <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                          <Setter Property="BorderBrush" Value="White" />
+                          <Setter Property="Background" Value="#FF515151" />
+                        </Trigger>
+                      </Style.Triggers>
+                    </Style>
+                  </HierarchicalDataTemplate.Resources>
+                  <Border>
+                    <StackPanel Orientation="Horizontal" >
+                      <Image Width="20" Height="20" Margin="5,0,0,0" Source="include/Question.png"/>
+                      <TextBlock Text="{Binding Name}" Margin="5,2,5,2" FontSize="16" Foreground="White"/>
+                    </StackPanel>
+                  </Border>
+                </HierarchicalDataTemplate>
               </TreeView.Resources>
               <TreeView.ItemContainerStyle>
                 <Style TargetType="{x:Type TreeViewItem}">
@@ -870,6 +955,14 @@
                   </Canvas.Background>
                 </Canvas>
                 <Label Foreground="White" Content="Return"/>
+              </StackPanel>
+              <StackPanel Orientation="Horizontal" PreviewMouseLeftButtonDown="_PreviewMouseLeftButtonDown" PreviewMouseMove="Alarm_PreviewMouseMove" MouseEnter="SeqItemAlarm_MouseEnter" MouseLeave="SeqItem_MouseLeave">
+                <Canvas Width="26" Height="26">
+                  <Canvas.Background>
+                    <ImageBrush ImageSource="include/Question.png"/>
+                  </Canvas.Background>
+                </Canvas>
+                <Label Foreground="White" Content="Show Alarm"/>
               </StackPanel>
             </StackPanel>
             <Button x:Name="btnDeleteSelectedNode" BorderThickness="1" Click="BtnDeleteSelectedNode_Click" DockPanel.Dock="Bottom">
