@@ -73,7 +73,7 @@ namespace Rox
     {
       try
       {
-        return b > a;
+        return a > b;
       }
       catch (Exception)
       {
@@ -82,13 +82,13 @@ namespace Rox
     }
     public static bool LessThan(dynamic a, dynamic b)
     {
-      return b < a;
+      return a < b;
     }
     public static bool GreaterThanOrEqual(dynamic a, dynamic b)
     {
       try
       {
-        return b >= a;
+        return a >= b;
       }
       catch (Exception)
       {
@@ -99,7 +99,7 @@ namespace Rox
     {
       try
       {
-        return b <= a;
+        return a <= b;
       }
       catch (Exception)
       {
@@ -110,7 +110,7 @@ namespace Rox
     {
       try
       {
-        return b != a;
+        return a != b;
       }
       catch (Exception)
       {
@@ -321,7 +321,7 @@ namespace Rox
     public string Name { get; set; }
     public List<NodeTypes> AllowedNodes { get; } = new List<NodeTypes>() { };
     public Collection<INode> Items { get; set; } = new Collection<INode>();
-    public string Description() { return "{ Alarm } Shows a dialog with the specified information."; }
+    public string Description() { return "{ Alarm } Shows a dialog with the specified information. Title must be unique to the alarm. Prompt will show in the center of the window. Color 1 and 2 is the border color and can easily distinguish different alarms. Colors can be set to common names like red, green, darkblue, lightgray, etc. They can also be in hex format. For example #FFFF0000."; }
     public string Prompt { get; set; } = "Unknown Alarm";
     public string VariableName { get; set; }
     public dynamic Value { get; set; }

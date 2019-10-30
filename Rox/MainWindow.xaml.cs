@@ -200,10 +200,17 @@ namespace Rox
     }
     private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
     {
-      ClearAlarms();
-      Paused = true; // redundant, yes
-      FileUnload(false);
-      SaveSettings();
+      try
+      {
+        ClearAlarms();
+        Paused = true; // redundant, yes
+        FileUnload(false);
+        SaveSettings();
+      }
+      catch (Exception ex)
+      {
+        MessageBox.Show(ex.Message);
+      }
     }
     private void resetCloseMenuTimer(int interval = 10000)
     {
@@ -2279,11 +2286,29 @@ namespace Rox
     private void AddAlarm(string title, string prompt, string color1, string color2, string variable, dynamic value)
     {
       if (string.IsNullOrEmpty(title)) { return; }
-      if (!alarms.ContainsKey(title))
+      //if (!alarms.ContainsKey(title))
+      //{
+      //}
+      //else
+      //{
+      //}
+      AlarmWindow a;
+      if (alarms.TryGetValue(title, out a))
       {
         Dispatcher.Invoke(() =>
         {
-          var a = new AlarmWindow(title, prompt, color1, color2, variable, value);
+          a.Color1 = color1;
+          a.Color2 = color2;
+          a.Prompt = prompt;
+          a.Variable = variable;
+          a.Value = value;
+        });
+      }
+      else
+      {
+        Dispatcher.Invoke(() =>
+        {
+          a = new AlarmWindow(title, prompt, color1, color2, variable, value);
           a.Closed += Alarm_Closed;
           alarms.Add(title, a);
           a.Show();
@@ -2324,10 +2349,16 @@ namespace Rox
       var closed = new List<string>();
       if (alarms.Any())
       {
-        foreach (var a in alarms)
+        try
         {
-          a.Value.Close();
-          closed.Add(a.Value.Title);
+          foreach (var a in alarms)
+          {
+            a.Value.Close();
+            closed.Add(a.Value.Title);
+          }
+        }
+        catch (Exception)
+        {
         }
         foreach (var s in closed)
         {

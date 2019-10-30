@@ -1,5 +1,4 @@
-﻿using System;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 
@@ -14,8 +13,38 @@ namespace Rox
     public bool Result { get; private set; }
     public new string Title { get { return lblTitle.Content.ToString(); } set { lblTitle.Content = value; } }
     public string Prompt { get { return lblPrompt.Content.ToString(); } set { lblPrompt.Content = value; } }
-    private Color Color1 { get; set; }
-    private Color Color2 { get; set; }
+    private Color color1 { get; set; }
+    private Color color2 { get; set; }
+    public string Color1
+    {
+      get { return color1.ToString(); }
+      set
+      {
+        try
+        {
+          color1 = (Color)ColorConverter.ConvertFromString(value ?? "red");
+        }
+        catch (System.Exception)
+        {
+          color1 = Colors.Transparent;
+        }
+      }
+    }
+    public string Color2
+    {
+      get { return color2.ToString(); }
+      set
+      {
+        try
+        {
+          color2 = (Color)ColorConverter.ConvertFromString(value ?? "yellow");
+        }
+        catch (System.Exception)
+        {
+          color2 = Colors.Transparent;
+        }
+      }
+    }
     public string Variable { get; set; }
     public dynamic Value { get; set; }
     private byte direction = 0;
@@ -75,7 +104,7 @@ namespace Rox
               p2 = new Point(1, 0);
               break;
           }
-          border.BorderBrush = new LinearGradientBrush() { StartPoint = p1, EndPoint = p2, GradientStops = new GradientStopCollection() { new GradientStop(Color1, .1), new GradientStop(Color2, .9) } };
+          border.BorderBrush = new LinearGradientBrush() { StartPoint = p1, EndPoint = p2, GradientStops = new GradientStopCollection() { new GradientStop(color1, .1), new GradientStop(color2, .9) } };
         });
       }
       catch (System.Exception)
@@ -90,13 +119,13 @@ namespace Rox
       Prompt = prompt ?? string.Empty;
       Variable = variable ?? string.Empty;
       Value = value;
-      Color1 = (Color)ColorConverter.ConvertFromString(color1 ?? "red");
-      Color2 = (Color)ColorConverter.ConvertFromString(color2 ?? "yellow");
+      Color1 = color1; // (Color)ColorConverter.ConvertFromString(color1 ?? "red");
+      Color2 = color2; // Color2 = (Color)ColorConverter.ConvertFromString(color2 ?? "yellow");
       border.BorderBrush = new LinearGradientBrush()
       {
         StartPoint = new Point(0, 0),
         EndPoint = new Point(0, 1),
-        GradientStops = new GradientStopCollection() { new GradientStop(Color1, .1), new GradientStop(Color2, .9) }
+        GradientStops = new GradientStopCollection() { new GradientStop(this.color1, .1), new GradientStop(this.color2, .9) }
       };
       t = new System.Threading.Timer(new System.Threading.TimerCallback(tmrCallback), null, 0, 100);
     }
