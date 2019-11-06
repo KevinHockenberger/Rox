@@ -40,9 +40,11 @@
             <GradientStop Color="white" Offset="1"/>
           </LinearGradientBrush>
         </Border.BorderBrush>
-        <Label x:Name="lblTitle" Content="title" FontSize="50"/>
+        <TextBlock x:Name="lblTitle" Text="title" FontSize="50" TextWrapping="Wrap" HorizontalAlignment="Center"/>
       </Border>
-      <Label x:Name="lblPrompt" Grid.Row="1" Content="prompt"/>
+      <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" CanContentScroll="True">
+      <TextBlock x:Name="lblPrompt" Text="prompt" TextWrapping="Wrap" HorizontalAlignment="Center" VerticalAlignment="Center" />
+      </ScrollViewer>
       <Grid Grid.Row="2" >
         <Grid.ColumnDefinitions>
           <ColumnDefinition/>

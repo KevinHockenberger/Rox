@@ -11,8 +11,8 @@ namespace Rox
   {
     public bool IsClosed { get; private set; }
     public bool Result { get; private set; }
-    public new string Title { get { return lblTitle.Content.ToString(); } set { lblTitle.Content = value; } }
-    public string Prompt { get { return lblPrompt.Content.ToString(); } set { lblPrompt.Content = value; } }
+    public new string Title { get { return lblTitle.Text.ToString(); } set { lblTitle.Text = value; } }
+    public string Prompt { get { return lblPrompt.Text.ToString(); } set { lblPrompt.Text = value; } }
     private Color color1 { get; set; }
     private Color color2 { get; set; }
     public string Color1
