@@ -97,11 +97,17 @@ namespace Rox
         //}
       }
     }
-    private short _channel = -1;
-    public short Channel
+    private IoControllers _ioController;
+    public IoControllers IoController
+    {
+      get { return _ioController; }
+      set { if (_ioController != value) { _ioController = value; } }
+    }
+    private decimal _channel = -1;
+    public decimal Channel
     {
       get { return _channel; }
-      set { if (value >= 0) { _channel = value; txtChannel.Text = Channel.ToString(); } }
+      set { if (value >= 0) { _channel = value; txtChannel.Text = Channel.ToString("0.00"); } }
     }
     public bool? IsOutput
     {
@@ -114,6 +120,7 @@ namespace Rox
     public VarParamsWindow(string Name, VarType varType, string Note, object Value, bool? IsOutput, short Channel)
     {
       InitializeComponent();
+      this.DataContext = this;
       VarName = Name;
       VarNote = Note;
       VarValue = Value;
@@ -141,15 +148,16 @@ namespace Rox
     {
       LocalVarName = txtName.Text;
       VarNote = txtNote.Text;
+      decimal d;
       if (VarType == VarType.stringType)
       {
         VarValue = txtValue.Text;
       }
       else if (VarType == VarType.numberType)
       {
-        VarValue = decimal.TryParse(txtValue.Text, out var d) ? d : 0;
+        VarValue = decimal.TryParse(txtValue.Text, out d) ? d : 0;
       }
-      Channel = short.TryParse(txtChannel.Text, out short s) ? s : (short)-1;
+      Channel = decimal.TryParse(txtChannel.Text, out d) ? d : -1;
       this.DialogResult = true;
       this.Close();
     }
@@ -202,7 +210,6 @@ namespace Rox
     {
       ((System.Windows.Controls.TextBox)sender).SelectAll();
     }
-
     private void TxtChannel_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
     {
       //Channel =short.TryParse( txtChannel.Text, out short s)?s:(short)-1;

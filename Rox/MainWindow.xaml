@@ -397,17 +397,52 @@
                     <GradientStop Color="White" Offset="1"/>
                   </LinearGradientBrush>
                 </Border.BorderBrush>
-                <Label Style="{StaticResource lblDescriptor}" HorizontalAlignment="Center" Content="(upon alarm close)" Margin="0,5,0,0"/>
+                <Label Style="{StaticResource lblDescriptor}" HorizontalAlignment="Center" Content="(on OK)" Margin="0,5,0,0"/>
               </Border>
               <Label Style="{StaticResource lblDescriptor}" Grid.Row="1" Content="Variable to set" Margin="0,3,0,0"/>
               <Label Style="{StaticResource lblDescriptor}" Grid.Row="1" Grid.Column="1" Content="Value" Margin="2,3,0,0"/>
-           <TextBox Grid.Row="2" Text="{Binding Path=selectedNode.Node.VariableName, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" VerticalContentAlignment="Center" 
+              <TextBox Grid.Row="2" Text="{Binding Path=selectedNode.Node.VariableNameOnOkClick, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" VerticalContentAlignment="Center" 
                      AllowDrop="True"
                      PreviewDragLeave="TextBox_PreviewDragLeave"
                      PreviewDragEnter="Var_PreviewDragEnter" 
                      PreviewDragOver="Var_PreviewDragEnter"
                      Drop="Var_Drop" Margin="0,0,2,0" />
-              <ComboBox IsEditable="True" Text="{Binding Path=selectedNode.Node.Value, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" TextBoxBase.TextChanged="DatatypeAlarm_TextChanged" Grid.Row="2" Grid.Column="1" >
+              <ComboBox IsEditable="True" Text="{Binding Path=selectedNode.Node.OkValue, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" TextBoxBase.TextChanged="AlarmOkVal_TextChanged" Grid.Row="2" Grid.Column="1" >
+                <ComboBoxItem Content="True" />
+                <ComboBoxItem Content="False" />
+                <ComboBoxItem Content="0" />
+                <ComboBoxItem Content="1" />
+              </ComboBox>
+
+            </Grid>
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+              </Grid.ColumnDefinitions>              
+              <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+              </Grid.RowDefinitions>
+              <Border  Grid.ColumnSpan="2" BorderThickness="1" >
+                <Border.BorderBrush>
+                  <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                    <GradientStop Color="Transparent" Offset="0.6"/>
+                    <GradientStop Color="White" Offset="1"/>
+                  </LinearGradientBrush>
+                </Border.BorderBrush>
+                <Label Style="{StaticResource lblDescriptor}" HorizontalAlignment="Center" Content="(on Cancel)" Margin="0,5,0,0"/>
+              </Border>
+              <Label Style="{StaticResource lblDescriptor}" Grid.Row="1" Content="Variable to set" Margin="0,3,0,0"/>
+              <Label Style="{StaticResource lblDescriptor}" Grid.Row="1" Grid.Column="1" Content="Value" Margin="2,3,0,0"/>
+              <TextBox Grid.Row="2" Text="{Binding Path=selectedNode.Node.VariableNameOnCancelClick, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" VerticalContentAlignment="Center" 
+                     AllowDrop="True"
+                     PreviewDragLeave="TextBox_PreviewDragLeave"
+                     PreviewDragEnter="Var_PreviewDragEnter" 
+                     PreviewDragOver="Var_PreviewDragEnter"
+                     Drop="Var_Drop" Margin="0,0,2,0" />
+              <ComboBox IsEditable="True" Text="{Binding Path=selectedNode.Node.CancelValue, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" TextBoxBase.TextChanged="AlarmCancelVal_TextChanged" Grid.Row="2" Grid.Column="1" >
                 <ComboBoxItem Content="True" />
                 <ComboBoxItem Content="False" />
                 <ComboBoxItem Content="0" />
@@ -474,15 +509,25 @@
               <TextBlock x:Name="txtblkRunDefault" TextAlignment="Center"><Run Text="load"/><LineBreak/><Run Text="file"/></TextBlock>
             </Button>
           </Border>
-          <Border DockPanel.Dock="Bottom">
-            <Button x:Name="btnAbort" Template="{DynamicResource ButtonBaseControlTemplate}" Height="35" Click="BtnAbort_Click" Margin="2" Width="60" BorderBrush="#FFFFC500" >
-              <Image x:Name="imgSeq" Source="include/Continuous.png" Width="30" Height="30" Stretch="Fill"/>
-              <!--<TextBlock x:Name="btnAbortText" TextAlignment="Center" Foreground="#FFFFC500" HorizontalAlignment="Center" VerticalAlignment="Center">abort</TextBlock>-->
-            </Button>
-          </Border>
+          <Button DockPanel.Dock="Bottom" x:Name="btnAbort" Template="{DynamicResource ButtonBaseControlTemplate}" Height="35" Click="BtnAbort_Click" Margin="2" Width="60" BorderBrush="#FFFFC500" >
+            <Image x:Name="imgSeq" Source="include/Continuous.png" Width="30" Height="30" Stretch="Fill"/>
+            <!--<TextBlock x:Name="btnAbortText" TextAlignment="Center" Foreground="#FFFFC500" HorizontalAlignment="Center" VerticalAlignment="Center">abort</TextBlock>-->
+          </Button>
           <CheckBox x:Name="chkHighlight" VerticalContentAlignment="Center" Margin="0,10,0,0" Checked="ChkHighlight_Checked" Unchecked="ChkHighlight_Unchecked" DockPanel.Dock="Bottom">
             <TextBlock Foreground="White" FontSize="10"><Run Text="highlights"/></TextBlock>
           </CheckBox>
+          <Button x:Name="btnLogin" DockPanel.Dock="Bottom" Content="login" Click="Login_Click" />
+          <Button x:Name="btnEditPwd" DockPanel.Dock="Bottom" Click="Edit_Click" >
+            <StackPanel Orientation="Horizontal">
+              <Canvas Width="26" Height="26" >
+                <Canvas.Background>
+                  <ImageBrush ImageSource="include/edit.png"/>
+                </Canvas.Background>
+              </Canvas>
+            <Label Content="pwd"/>
+            </StackPanel>
+          </Button>
+
         </DockPanel>
       </Grid>
       <Grid x:Name="gridFiles" Margin="2,2,0,2" Width="150" Grid.Column="1">
@@ -523,7 +568,7 @@
                 <TextBlock TextTrimming="CharacterEllipsis" Text="file save as" VerticalAlignment="Center" />
                 </StackPanel>
             </Button>
-            <Border VerticalAlignment="Bottom" Margin="2" BorderThickness="1">
+            <Border x:Name="btnDeleteBorder" VerticalAlignment="Bottom" Margin="2" BorderThickness="1">
               <Border.BorderBrush>
                 <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
                   <GradientStop Color="Yellow" Offset="0"/>
@@ -546,7 +591,8 @@
       <Grid x:Name="gridAddins" Grid.Column="2" >
        <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel>
-            <Button Content="Advantech" Margin="2" Click="btnAdvantech_Click"/>
+            <Button x:Name="btnAdvantech" Content="Advantech" Margin="2" Click="btnAdvantech_Click"/>
+            <Button x:Name="btnKeyence" Content="Keyence" Margin="2" Click="btnKeyence_Click"/>
         </StackPanel>
       </ScrollViewer>
       </Grid>
@@ -890,7 +936,7 @@
           </Grid>
           <GridSplitter Grid.Column="1" Width="5" Background="#FF555555" HorizontalAlignment="Center" />
           <GridSplitter Grid.Column="3" Width="5" Background="#FF555555" HorizontalAlignment="Center" />
-          <DockPanel Grid.Column="2">
+          <DockPanel x:Name="SequenceOptions" Grid.Column="2">
             <StackPanel DockPanel.Dock="Top">
               <Button x:Name="btnReset" BorderThickness="1" Click="btnReset_Click">
                 <Button.BorderBrush>
@@ -908,7 +954,7 @@
                   <TextBlock TextTrimming="CharacterEllipsis" Text="Reset Sequence" VerticalAlignment="Center" Margin="5,0,0,0"/>
                 </StackPanel>
               </Button>
-              <StackPanel Orientation="Horizontal" PreviewMouseLeftButtonDown="_PreviewMouseLeftButtonDown" PreviewMouseMove="Mode_PreviewMouseMove"  MouseEnter="SeqItemMode_MouseEnter" MouseLeave="SeqItem_MouseLeave">
+              <StackPanel x:Name="seqMode" Orientation="Horizontal" PreviewMouseLeftButtonDown="_PreviewMouseLeftButtonDown" PreviewMouseMove="Mode_PreviewMouseMove"  MouseEnter="SeqItemMode_MouseEnter" MouseLeave="SeqItem_MouseLeave">
                 <Canvas Width="26" Height="26">
                   <Canvas.Background>
                     <ImageBrush ImageSource="include/mode.png"/>
@@ -916,7 +962,7 @@
                 </Canvas>
                 <Label Foreground="White" Content="Mode"/>
               </StackPanel>
-              <StackPanel Orientation="Horizontal" PreviewMouseLeftButtonDown="_PreviewMouseLeftButtonDown" PreviewMouseMove="SetMode_PreviewMouseMove" MouseEnter="SeqItemSetMode_MouseEnter" MouseLeave="SeqItem_MouseLeave">
+              <StackPanel x:Name="seqSetMode" Orientation="Horizontal" PreviewMouseLeftButtonDown="_PreviewMouseLeftButtonDown" PreviewMouseMove="SetMode_PreviewMouseMove" MouseEnter="SeqItemSetMode_MouseEnter" MouseLeave="SeqItem_MouseLeave">
                 <Canvas Width="26" Height="26">
                   <Canvas.Background>
                     <ImageBrush ImageSource="include/set mode.png"/>
@@ -924,7 +970,7 @@
                 </Canvas>
                 <Label Foreground="White" Content="Set Mode"/>
               </StackPanel>
-              <StackPanel Orientation="Horizontal" PreviewMouseLeftButtonDown="_PreviewMouseLeftButtonDown" PreviewMouseMove="Condition_PreviewMouseMove" MouseEnter="SeqItemCondition_MouseEnter" MouseLeave="SeqItem_MouseLeave">
+              <StackPanel x:Name="seqCondition" Orientation="Horizontal" PreviewMouseLeftButtonDown="_PreviewMouseLeftButtonDown" PreviewMouseMove="Condition_PreviewMouseMove" MouseEnter="SeqItemCondition_MouseEnter" MouseLeave="SeqItem_MouseLeave">
                 <Canvas Width="26" Height="26">
                   <Canvas.Background>
                     <ImageBrush ImageSource="include/bandersnatch.png"/>
@@ -932,7 +978,7 @@
                 </Canvas>
                 <Label Foreground="White" Content="Condition"/>
               </StackPanel>
-              <StackPanel Orientation="Horizontal" PreviewMouseLeftButtonDown="_PreviewMouseLeftButtonDown" PreviewMouseMove="Timer_PreviewMouseMove" MouseEnter="SeqItemTimer_MouseEnter" MouseLeave="SeqItem_MouseLeave">
+              <StackPanel x:Name="seqTimer" Orientation="Horizontal" PreviewMouseLeftButtonDown="_PreviewMouseLeftButtonDown" PreviewMouseMove="Timer_PreviewMouseMove" MouseEnter="SeqItemTimer_MouseEnter" MouseLeave="SeqItem_MouseLeave">
                 <Canvas Width="26" Height="26">
                   <Canvas.Background>
                     <ImageBrush ImageSource="include/stopwatch.png"/>
@@ -940,7 +986,7 @@
                 </Canvas>
                 <Label Foreground="White" Content="Timer"/>
               </StackPanel>
-              <StackPanel Orientation="Horizontal" PreviewMouseLeftButtonDown="_PreviewMouseLeftButtonDown" PreviewMouseMove="SetVar_PreviewMouseMove" MouseEnter="SeqItemSetVar_MouseEnter" MouseLeave="SeqItem_MouseLeave">
+              <StackPanel x:Name="seqSetVar" Orientation="Horizontal" PreviewMouseLeftButtonDown="_PreviewMouseLeftButtonDown" PreviewMouseMove="SetVar_PreviewMouseMove" MouseEnter="SeqItemSetVar_MouseEnter" MouseLeave="SeqItem_MouseLeave">
                 <Canvas Width="26" Height="26">
                   <Canvas.Background>
                     <ImageBrush ImageSource="include/IO.png"/>
@@ -948,7 +994,7 @@
                 </Canvas>
                 <Label Foreground="White" Content="Set Variable"/>
               </StackPanel>
-              <StackPanel Orientation="Horizontal" PreviewMouseLeftButtonDown="_PreviewMouseLeftButtonDown" PreviewMouseMove="Return_PreviewMouseMove" MouseEnter="SeqItemReturn_MouseEnter" MouseLeave="SeqItem_MouseLeave">
+              <StackPanel x:Name="seqReturn" Orientation="Horizontal" PreviewMouseLeftButtonDown="_PreviewMouseLeftButtonDown" PreviewMouseMove="Return_PreviewMouseMove" MouseEnter="SeqItemReturn_MouseEnter" MouseLeave="SeqItem_MouseLeave">
                 <Canvas Width="26" Height="26">
                   <Canvas.Background>
                     <ImageBrush ImageSource="include/BackArrow.png"/>
@@ -956,7 +1002,7 @@
                 </Canvas>
                 <Label Foreground="White" Content="Return"/>
               </StackPanel>
-              <StackPanel Orientation="Horizontal" PreviewMouseLeftButtonDown="_PreviewMouseLeftButtonDown" PreviewMouseMove="Alarm_PreviewMouseMove" MouseEnter="SeqItemAlarm_MouseEnter" MouseLeave="SeqItem_MouseLeave">
+              <StackPanel x:Name="seqAlarm" Orientation="Horizontal" PreviewMouseLeftButtonDown="_PreviewMouseLeftButtonDown" PreviewMouseMove="Alarm_PreviewMouseMove" MouseEnter="SeqItemAlarm_MouseEnter" MouseLeave="SeqItem_MouseLeave">
                 <Canvas Width="26" Height="26">
                   <Canvas.Background>
                     <ImageBrush ImageSource="include/Question.png"/>
@@ -993,7 +1039,7 @@
               <ContentPresenter x:Name="NodeOptions" Grid.Row="1"/>
             </Grid>
           </DockPanel>
-          <DockPanel Grid.Column="4" >
+          <DockPanel x:Name="VariableOptions" Grid.Column="4" >
             <StackPanel DockPanel.Dock="Top">
               <Button x:Name="btnAddVariable" BorderThickness="1" Click="BtnAddVariable_Click">
                 <Button.BorderBrush>
@@ -1022,7 +1068,7 @@
                 <ListView.View>
                   <GridView>
                     <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" Width="100"/>
-                    <GridViewColumn Header="Value" DisplayMemberBinding="{Binding Value,StringFormat={}{0:#,##0.######}}" Width="50"/>
+                    <GridViewColumn Header="Value" DisplayMemberBinding="{Binding Value,StringFormat='{}{0:#,##0.######}'}" Width="50"/>
                     <GridViewColumn Header="Type" DisplayMemberBinding="{Binding VarType}" Width="30"/>
                     <GridViewColumn Header="I/O" Width="28">
                       <GridViewColumn.CellTemplate>

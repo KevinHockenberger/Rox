@@ -35,5 +35,11 @@
     <Setting Name="VarColTypeWidth" Type="System.Double" Scope="User">
       <Value Profile="(Default)">30</Value>
     </Setting>
+    <Setting Name="Password" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="FailedLogin" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">0</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

@@ -45,8 +45,10 @@ namespace Rox
         }
       }
     }
-    public string Variable { get; set; }
-    public dynamic Value { get; set; }
+    public string VariableOnOk { get; set; }
+    public string VariableOnCancel { get; set; }
+    public dynamic OkValue { get; set; }
+    public dynamic CancelValue { get; set; }
     private byte direction = 0;
     System.Threading.Timer t;
     private void tmrCallback(object state)
@@ -112,13 +114,15 @@ namespace Rox
       }
 
     }
-    public AlarmWindow(string title, string prompt, string color1, string color2, string variable, dynamic value)
+    public AlarmWindow(string title, string prompt, string color1, string color2, string variableOnOk, string variableOnCancel, dynamic okValue, dynamic cancelValue)
     {
       InitializeComponent();
       Title = title ?? string.Empty;
       Prompt = prompt ?? string.Empty;
-      Variable = variable ?? string.Empty;
-      Value = value;
+      VariableOnOk = variableOnOk ?? string.Empty;
+      VariableOnCancel = variableOnCancel ?? string.Empty;
+      OkValue = okValue;
+      CancelValue = cancelValue;
       Color1 = color1; // (Color)ColorConverter.ConvertFromString(color1 ?? "red");
       Color2 = color2; // Color2 = (Color)ColorConverter.ConvertFromString(color2 ?? "yellow");
       border.BorderBrush = new LinearGradientBrush()

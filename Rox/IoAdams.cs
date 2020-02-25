@@ -5,6 +5,7 @@ namespace Rox
 {
   internal class IoAdams
   {
+    public bool Enabled { get; set; }
     public DateTime? LastFailedReconnectTime { get; private set; }
     public TimeSpan MinReconnectTime { get; set; } = new TimeSpan(0, 0, 60);
     public bool IsConnected { get; set; }
@@ -16,7 +17,6 @@ namespace Rox
 
     }
     public ConnectionSettings Settings { get; set; } = new ConnectionSettings();
-
     public class ConnectionSettings
     {
       public string IpAddress { get; set; } = "127.0.0.1";
@@ -103,22 +103,7 @@ namespace Rox
     }
     public void SetBit(int Index, int Value)
     {
-      //bool m = device.Configuration().GetAccessControl_Config(0,out bool b, out int mode, out byte[] ip);//
-
-      //int lasterror = device.Modbus().ApiLastError;
-
-
-
-
       device.Modbus().ForceSingleCoil(17 + Index, Value);
-
-
-
-
-
-
-      //device.Modbus().ForceMultiCoils(0, new bool[] { true, true, true, true, true, true, true, true });
-      Console.WriteLine(Value);
     }
   }
 }

@@ -1,0 +1,81 @@
+﻿<Window x:Class="Rox.Login"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Rox"
+        mc:Ignorable="d"
+        Title="Login" 
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False" WindowStyle="None" 
+        Background="#FF292929" Padding="6,5,5,5" 
+        Width="480" Height="212" MinWidth="480" MinHeight="212" 
+        ResizeMode="NoResize" Loaded="Window_Loaded">
+  <Window.Resources>
+    <Style TargetType="{x:Type local:Login}">
+      <Setter Property="FontFamily" Value="arial" />
+      <Setter Property="FontSize" Value="18"></Setter>
+      <Setter Property="Background" Value="#FF292929"></Setter>
+      <Setter Property="Foreground" Value="White"></Setter>
+    </Style>
+    <Style TargetType="{x:Type Button}">
+      <Setter Property="Background" Value="#FF292929"></Setter>
+      <Setter Property="Foreground" Value="White"></Setter>
+    </Style>
+  </Window.Resources>
+  <Border BorderBrush="#FFACACAC" Background="#FF404040" BorderThickness="2" Margin="5" Padding="20">
+    <Border BorderThickness="1" Padding="5">
+      <Grid>
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Border BorderThickness="1" Background="#FF343434"  >
+          <Border.BorderBrush>
+            <LinearGradientBrush EndPoint="1,1" StartPoint="1,0">
+              <GradientStop Color="#FF1B1B1B" Offset="0"/>
+              <GradientStop Color="#FFDADADA" Offset="1"/>
+            </LinearGradientBrush>
+          </Border.BorderBrush>
+          <Grid>
+            <Label Content="Login to continue" Foreground="White" HorizontalContentAlignment="Center"/>
+          </Grid>
+        </Border>
+        <Border Grid.Row="1">
+          <StackPanel>
+            <Label Content="password:" Padding="0,10,0,0"/>
+            <PasswordBox x:Name="txtPassword" KeyUp="Txt_KeyUp" />
+            <!--<TextBox x:Name="txtPassword" KeyUp="Txt_KeyUp" />-->
+          </StackPanel>
+        </Border>
+        <Grid Grid.Row="3" >
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+          </Grid.ColumnDefinitions>
+          <Button x:Name="btnOk" Template="{DynamicResource ButtonBaseControlTemplate}" Padding="5,1" Click="OK_Click" Margin="0,0,5,0" >
+            <StackPanel x:Name="btnOkContent" Orientation="Horizontal" Width="90" FlowDirection="LeftToRight">
+              <Canvas Width="26" Height="26">
+                <Canvas.Background>
+                  <ImageBrush ImageSource="include/check.png"/>
+                </Canvas.Background>
+              </Canvas>
+              <Label Foreground="White">OK</Label>
+            </StackPanel>
+          </Button>
+          <Button x:Name="btnCancel" Grid.Column="2" Template="{DynamicResource ButtonBaseControlTemplate}" Padding="5,1" Click="Cancel_Click" Margin="5,0,0,0" >
+            <StackPanel Orientation="Horizontal" Width="90" FlowDirection="LeftToRight">
+              <Canvas Width="26" Height="26">
+                <Canvas.Background>
+                  <ImageBrush ImageSource="include/x.png"/>
+                </Canvas.Background>
+              </Canvas>
+              <Label Foreground="White">Cancel</Label>
+            </StackPanel>
+          </Button>
+        </Grid>
+      </Grid>
+    </Border>
+  </Border>
+</Window>

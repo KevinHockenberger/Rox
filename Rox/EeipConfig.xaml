@@ -4,14 +4,14 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Rox"
-        xmlns:Themes="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2" x:Class="Rox.IOConfig"
+        xmlns:Themes="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2" x:Class="Rox.EeipConfig"
         mc:Ignorable="d"
-        Title="IOConfig" 
+        Title="EeipConfig" 
         Height="265" Width="395"
         WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False" 
         WindowStyle="None" 
-        Background="#FF292929" Padding="6,5,5,5">
+        Background="#FF292929" Padding="6,5,5,5">  
   <!-- bind to enum option: ObjectDataProvider
   add the following to above
         xmlns:sys="clr-namespace:System;assembly=mscorlib"-->
@@ -137,8 +137,8 @@
                         <Setter Property="BorderBrush" TargetName="templateRoot" Value="#FF7EB4EA"/>
                         <Setter Property="Background" TargetName="splitBorder">
                           <Setter.Value>
-                            <SolidColorBrush Color="#FF292929" />
-                            <!--<LinearGradientBrush EndPoint="0,1" StartPoint="0,0">
+                             <SolidColorBrush Color="#FF292929" />
+                           <!--<LinearGradientBrush EndPoint="0,1" StartPoint="0,0">
                               <GradientStop Color="#FFEBF4FC" Offset="0"/>
                               <GradientStop Color="#FFDCECFC" Offset="1"/>
                             </LinearGradientBrush>-->
@@ -243,7 +243,7 @@
       <Border MouseDown="_MouseDown" Grid.Column="1" BorderThickness="1" CornerRadius="2" BorderBrush="White">
         <Grid>
           <Border BorderThickness="2,0" CornerRadius="2" BorderBrush="#FF97B3CB" Margin="2">
-            <TextBlock x:Name="txtTitle" Margin="5,0" Padding="2" Text="Advantech Adams Module Settings" HorizontalAlignment="Center"/>
+            <TextBlock x:Name="txtTitle" Margin="5,0" Padding="2" Text="Keyence Ethernet/IP Settings" HorizontalAlignment="Center"/>
           </Border>
         </Grid>
       </Border>
@@ -278,30 +278,29 @@
       <Border Style="{StaticResource CellBorder}" Grid.Row="0" Grid.Column="1" >
         <CheckBox x:Name="chkEnabled" IsChecked="{Binding Enabled}" HorizontalAlignment="Left"  VerticalAlignment="Center"/>
       </Border>
-
       <Border Style="{StaticResource CellBorder}" Grid.Row="1">
         <Label Content="Ip Address:"/>
       </Border>
       <Border Style="{StaticResource CellBorder}" Grid.Row="1" Grid.Column="1" >
         <TextBox x:Name="txtIpAddress" Text="{Binding IpAddress}"/>
       </Border>
-      <Border Style="{StaticResource CellBorder}" Grid.Row="2">
+      <Border Style="{StaticResource CellBorder}" Grid.Row="2" >
         <Label Content="Port:" />
       </Border>
       <Border Style="{StaticResource CellBorder}" Grid.Row="2" Grid.Column="1" >
         <TextBox x:Name="txtPort" Text="{Binding Port}"/>
       </Border>
       <Border Style="{StaticResource CellBorder}" Grid.Row="3">
-        <Label Content="Protocol:" />
+        <Label Content="Input Assembly Id:" />
       </Border>
       <Border Style="{StaticResource CellBorder}" Grid.Row="3" Grid.Column="1" >
-        <ComboBox x:Name="cmbProtocol" ItemsSource="{Binding Source={local:EnumBindingSource {x:Type local:ProtocolTypes}}}" Template="{DynamicResource cmbStyle}" SelectedItem="{Binding Protocol}"/>
+        <TextBox x:Name="txtAssemblyIn" Text="{Binding AssemblyIn}"/>
       </Border>
       <Border Style="{StaticResource CellBorder}" Grid.Row="4">
-        <Label Content="Unit:" />
+        <Label Content="Output Assembly Id:" />
       </Border>
-      <Border Style="{StaticResource CellBorder}" Grid.Row="4" Grid.Column="1" >
-        <ComboBox x:Name="cmbUnit" ItemsSource="{Binding Source={local:EnumBindingSource {x:Type local:SupportedAdvantechUnits}}}" Template="{DynamicResource cmbStyle}" SelectedItem="{Binding Unit}"/>
+      <Border Style="{StaticResource CellBorder}" Grid.Row="45" Grid.Column="1" >
+        <TextBox x:Name="txtAssemblyOut" Text="{Binding AssemblyOut}"/>
       </Border>
     </Grid>
   </DockPanel>

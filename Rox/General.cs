@@ -43,7 +43,7 @@ namespace Rox
   }
   public class EnumDescriptionTypeConverter : EnumConverter
   {
-    public EnumDescriptionTypeConverter(Type type)        : base(type)    {    }
+    public EnumDescriptionTypeConverter(Type type) : base(type) { }
     public override object ConvertTo(ITypeDescriptorContext context, System.Globalization.CultureInfo culture, object value, Type destinationType)
     {
       if (destinationType == typeof(string))
@@ -142,6 +142,16 @@ namespace Rox
     SetMode = 11,
     Return = 12,
     Alarm = 13,
+  }
+  [TypeConverter(typeof(EnumDescriptionTypeConverter))]
+  public enum IoControllers
+  {
+    [Description(" ")]
+    None = 0,
+    [Description("Advantech")]
+    Advantech = 1,
+    [Description("Keyence")]
+    Keyence = 2,
   }
   public class IteMode : INode
   {
@@ -267,10 +277,12 @@ namespace Rox
     public string VariableName { get; set; }
     public dynamic Value { get; set; }
     public dynamic _otherwise = null;
-    public dynamic OtherwiseValue {
+    public dynamic OtherwiseValue
+    {
       get { return _otherwise; }
-      set {
-        _otherwise = (value==null || string.IsNullOrEmpty(value.ToString())) ? null : value;
+      set
+      {
+        _otherwise = (value == null || string.IsNullOrEmpty(value.ToString())) ? null : value;
       }
     }
     protected virtual void OnPropertyChanged(string propertyName)
@@ -323,8 +335,10 @@ namespace Rox
     public Collection<INode> Items { get; set; } = new Collection<INode>();
     public string Description() { return "{ Alarm } Shows a dialog with the specified information. Title must be unique to the alarm. Prompt will show in the center of the window. Color 1 and 2 is the border color and can easily distinguish different alarms. Colors can be set to common names like red, green, darkblue, lightgray, etc. They can also be in hex format. For example #FFFF0000."; }
     public string Prompt { get; set; } = "Unknown Alarm";
-    public string VariableName { get; set; }
-    public dynamic Value { get; set; }
+    public string VariableNameOnOkClick { get; set; }
+    public string VariableNameOnCancelClick { get; set; }
+    public dynamic OkValue { get; set; }
+    public dynamic CancelValue { get; set; }
     public string Title { get; set; } = "Unknown Alarm";
     public string Color1 { get; set; } = "Black";
     public string Color2 { get; set; } = "White";
@@ -631,6 +645,19 @@ namespace Rox
         }
       }
     }
+    private IoControllers _ioController;
+    public IoControllers IoController
+    {
+      get { return _ioController; }
+      set
+      {
+        if (_ioController != value)
+        {
+          _ioController = value;
+          NotifyPropertyChanged("VarType");
+        }
+      }
+    }
     private dynamic _value;
     public dynamic Value
     {
@@ -638,6 +665,7 @@ namespace Rox
       set
       {
         if (!value.Equals(_value))
+          //if (value != _value)
         {
           var t = value.GetType();
           if (t == typeof(bool))
@@ -645,10 +673,15 @@ namespace Rox
             VarType = VariableTypes.boolType;
             _value = (bool)value;
           }
-          else if (t == typeof(decimal) || t == typeof(double) || t == typeof(int) || t == typeof(long) || t == typeof(short))
+          else if (t == typeof(decimal) || t == typeof(double) || t == typeof(int) || t == typeof(long) || t == typeof(short)|| t == typeof(byte))
           {
-            VarType = VariableTypes.numberType;
-            _value = (decimal)value;
+            t = (_value??(decimal)0).GetType();
+            if ((t != typeof(decimal) && t != typeof(double) && t != typeof(int) && t != typeof(long) && t != typeof(short) && t != typeof(byte)) || value != _value)
+            {
+              VarType = VariableTypes.numberType;
+              _value = value;
+
+            }
           }
           if (t == typeof(string))
           {
@@ -686,8 +719,8 @@ namespace Rox
         }
       }
     }
-    private short _channel;
-    public short Channel
+    private decimal _channel;
+    public decimal Channel
     {
       get { return _channel; }
       set
@@ -695,10 +728,22 @@ namespace Rox
         if (value != _channel)
         {
           _channel = value;
+          try
+          {
+            ChannelWord = (short)Math.Truncate(value);
+            ChannelBit = (short)Math.Truncate(( value - ChannelWord)*100);
+          }
+          catch (Exception)
+          {
+            ChannelWord = 0;
+            ChannelBit = 0;
+          }
           NotifyPropertyChanged("Channel");
         }
       }
     }
+    public short ChannelWord { get; set; }
+    public short ChannelBit { get; set; }
     private bool? _isOutput;
     public bool? IsOutput
     {

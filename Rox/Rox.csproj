@@ -71,9 +71,21 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Login.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="SetPassword.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="FileSavePrompt.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="EeipConfig.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -86,11 +98,21 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Login.xaml.cs">
+      <DependentUpon>Login.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="SetPassword.xaml.cs">
+      <DependentUpon>SetPassword.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="KeyenceEip.cs" />
     <Compile Include="FileSavePrompt.xaml.cs">
       <DependentUpon>FileSavePrompt.xaml</DependentUpon>
     </Compile>
     <Compile Include="General.cs" />
     <Compile Include="IoAdams.cs" />
+    <Compile Include="EeipConfig.xaml.cs">
+      <DependentUpon>EeipConfig.xaml</DependentUpon>
+    </Compile>
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -143,7 +165,12 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\..\EIP\EIP\EIP.csproj">
+      <Project>{b0ccedae-f8d9-420a-b3ec-917e0e6ffd97}</Project>
+      <Name>EIP</Name>
+    </ProjectReference>
+  </ItemGroup>
   <ItemGroup>
     <Resource Include="include\ite.ico" />
   </ItemGroup>
@@ -209,6 +236,7 @@
     <Resource Include="include\Change.png" />
     <Resource Include="include\neon-x.png" />
     <Resource Include="include\Question.png" />
+    <Resource Include="include\Edit.png" />
     <Content Include="R3P\Advantech.Adam.DLL" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

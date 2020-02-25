@@ -21,6 +21,7 @@ namespace Rox
   {
     private Dictionary<string, AlarmWindow> alarms = new Dictionary<string, AlarmWindow>();
     private IoAdams IoAdams; // = new IoAdams(new IoAdams.Settings() { IpAddress = "172.18.3.231", Port = 502, ProtocolType = System.Net.Sockets.ProtocolType.Tcp });
+    private KeyenceEip keyEip;
     //private ICollection<IPluginContract> plugins;
     private class SequenceEventArgs
     {
@@ -45,8 +46,12 @@ namespace Rox
     public List<IteNodeViewModel> Modes;// : INotifyPropertyChanged;
     public List<string> AvailModes { get { return Modes.Where(p => p.NodeType == NodeTypes.Mode).Select(p => p.Name).ToList(); } }
     public IteNodeViewModel selectedNode { get; set; }
+    public bool LoggedIn { get; set; }
+    //public TimeSpan delayToLogin { get; set; }
+    public long delayToLoginAsTicks { get; set; }
     System.Threading.Timer closeMnu;
     System.Threading.Timer clrHeader;
+    System.Threading.Timer tmrLogout;
     public string processingMode { get; set; } = null; // initialize processingMode and curMode to different values so initialize sequence will run on startup
     public string _curMode;
     public string curMode
@@ -188,6 +193,7 @@ namespace Rox
     private void Window_Initialized(object sender, EventArgs e)
     {
       ApplySettings();
+      SetLoginDelay();
       txtVer.Text = Assembly.GetExecutingAssembly().GetName().Version.ToString();
       closeMnu = new System.Threading.Timer(new System.Threading.TimerCallback(closeMenu), null, 10000, System.Threading.Timeout.Infinite);
       togglePlugins(null, null);
@@ -195,6 +201,7 @@ namespace Rox
       resetForm(true);
       listVars.ItemsSource = Vars;
       Paused = true;
+      Logout(null);
       //IoAdams = new IoAdams(new IoAdams.ConnectionSettings() { IpAddress = "172.18.3.231", Port = 502, ProtocolType = System.Net.Sockets.ProtocolType.Tcp });
       //UpdateHeader(string.Format("IO module is {0}", IoAdams.IsConnected ? "connected." : string.Format("not connected. Last attempt at {0}.", (IoAdams.LastFailedReconnectTime ?? DateTime.Now).ToShortTimeString())));
     }
@@ -205,6 +212,7 @@ namespace Rox
         ClearAlarms();
         Paused = true; // redundant, yes
         FileUnload(false);
+        if (keyEip != null) { keyEip.Disconnect(); keyEip = null; }
         SaveSettings();
       }
       catch (Exception ex)
@@ -259,6 +267,7 @@ namespace Rox
     }
     private void SaveSettings()
     {
+      if (delayToLoginAsTicks - DateTime.Now.Ticks <= 0) { Properties.Settings.Default.FailedLogin = 0; }
       Properties.Settings.Default.LastWindowState = this.WindowState;
       Properties.Settings.Default.LastWindowRect = this.RestoreBounds;
       //Properties.Settings.Default.ProgramPath = System.AppDomain.CurrentDomain.BaseDirectory;
@@ -351,6 +360,7 @@ namespace Rox
     }
     private string xmlTag_App { get { return "rox"; } }
     private string xmlTag_IO { get { return "adamsIO"; } }
+    private string xmlTag_KeyenceEip { get { return "keyEip"; } }
     private string xmlTag_Var { get { return "var"; } }
     private string xmlTag_Mode { get { return "MX"; } }
     private string xmlTag_Init { get { return "init"; } }
@@ -377,7 +387,6 @@ namespace Rox
         Vars.Clear();
         using (XmlReader reader = XmlReader.Create(filespec))
         {
-          //Console.WriteLine(" ------ START READING ------- ");
           ParseFile(reader, fileRead);
         }
         AssignLiveVars();
@@ -389,6 +398,7 @@ namespace Rox
         Properties.Settings.Default.MruFiles.Insert(0, filename); PopulateRecentFilelist();
         loadedFile = filename;
         if (IoAdams != null) { IoAdams.Connect(); }
+        if (keyEip != null) { keyEip.Connect(); }
         UpdateHeader(string.Format("{0} loaded.", filename));
         btnUnloadFile.Visibility = Visibility.Visible;
         Paused = false;
@@ -408,29 +418,35 @@ namespace Rox
     {
       if (reader == null || modes == null) { return false; }
       reader.ReadToFollowing(xmlTag_App);  // get to the first relevant node
-      //Console.WriteLine("type: {0}, name: {1}, value: {2}, attr(name): {3}", reader.NodeType, reader.Name, reader.Value, reader.GetAttribute("name"));
       IteNodeViewModel curNode = null;
       string temp;
       while (reader.Read())
       {
-        //Console.WriteLine("type: {0}, name: {1}, value: {2}, attr(name): {3}", reader.NodeType, reader.Name, reader.Value, reader.GetAttribute("name"));
         if (reader.NodeType == XmlNodeType.Element)
         {
           if (reader.Name == xmlTag_IO)
           {
-            IoAdams.ConnectionSettings settings = new IoAdams.ConnectionSettings()
+            IoAdams = new IoAdams(new IoAdams.ConnectionSettings()
             {
               IpAddress = reader.GetAttribute("ip"),
               Port = int.TryParse(reader.GetAttribute("p"), out var i) ? i : 502,
               ProtocolType = (System.Net.Sockets.ProtocolType)(int.TryParse(reader.GetAttribute("t"), out i) ? (Rox.ProtocolTypes)i : Rox.ProtocolTypes.Tcp),
               Unit = int.TryParse(reader.GetAttribute("u"), out i) ? (SupportedAdvantechUnits)i : SupportedAdvantechUnits.Adam6000
-            };
-            IoAdams = new IoAdams(settings);
-
+            })
+            { Enabled = true };
           }
-          if (reader.Name == xmlTag_Var)
+          else if (reader.Name == xmlTag_KeyenceEip)
+          {
+            keyEip = new KeyenceEip() { Enabled = true };
+            keyEip.Settings.IpAddress = reader.GetAttribute("ip");
+            keyEip.Settings.Port = int.TryParse(reader.GetAttribute("p"), out var i) ? i : 44818;
+            keyEip.Settings.AssemblyIn = byte.TryParse(reader.GetAttribute("ain"), out var b) ? b : (byte)100;
+            keyEip.Settings.AssemblyOut = byte.TryParse(reader.GetAttribute("aout"), out b) ? b : (byte)101;
+          }
+          else if (reader.Name == xmlTag_Var)
           {
             var v = new Variable() { Name = reader.GetAttribute("name"), Note = reader.GetAttribute("note") };
+            decimal d;
             switch (GetVarTypeFromString(reader.GetAttribute("type")))
             {
               case VarType.boolType:
@@ -440,7 +456,7 @@ namespace Rox
                 v.Value = reader.GetAttribute("val");
                 break;
               case VarType.numberType:
-                v.Value = decimal.TryParse(reader.GetAttribute("val"), out decimal d) ? d : 0;
+                v.Value = decimal.TryParse(reader.GetAttribute("val"), out d) ? d : 0;
                 break;
               default:
                 break;
@@ -448,11 +464,12 @@ namespace Rox
             v.UsersLastValue = v.Value;
             temp = reader.GetAttribute("io");
             v.IsOutput = temp == "1" ? true : temp == "0" ? (bool?)false : null;
-            v.Channel = short.TryParse(reader.GetAttribute("i"), out short s) ? s : (short)-1;
+            v.Channel = decimal.TryParse(reader.GetAttribute("i"), out d) ? d : -1;
+            v.IoController = (IoControllers)(int.TryParse(reader.GetAttribute("ioc"), out int i) ? i : 0);
             Vars.Add(v);
           }
           // ----------------------------------------------------- MODE
-          if (reader.Name == xmlTag_Mode)
+          else if (reader.Name == xmlTag_Mode)
           {
             var name = reader.GetAttribute("name");
             curNode = new IteMODE_VM(new IteMode(name)) { IsExpanded = reader.GetAttribute("exp") != "False" }; // { Items = { new IteIntialize("Initialize"), new IteContinuous("Continuous") } }
@@ -654,8 +671,10 @@ namespace Rox
                 Prompt = reader.GetAttribute("prompt"),
                 Color1 = reader.GetAttribute("c1"),
                 Color2 = reader.GetAttribute("c2"),
-                VariableName = reader.GetAttribute("varname"),
-                Value = reader.GetAttribute("val"),
+                VariableNameOnOkClick = reader.GetAttribute("varname"),
+                OkValue = reader.GetAttribute("val"),
+                VariableNameOnCancelClick = reader.GetAttribute("altvarname"),
+                CancelValue = reader.GetAttribute("altval"),
               })
               { Parent = curNode };
               curNode.Items.Add(subNode);
@@ -684,19 +703,37 @@ namespace Rox
       var t = node.GetType();
       if (t == typeof(IteALARM_VM))
       {
-        var a = Vars.Where(p => p.Name == ((IteAlarm)node.Node).VariableName);
+        var a = Vars.Where(p => p.Name == ((IteAlarm)node.Node).VariableNameOnOkClick);
         if (a.Any())
         {
           switch (a.First().VarType.enumValue)
           {
             case VarType.boolType:
-              ((IteAlarm)node.Node).Value = bool.TryParse(((IteAlarm)node.Node).Value, out bool b) ? b : false;
+              ((IteAlarm)node.Node).OkValue = bool.TryParse(((IteAlarm)node.Node).OkValue, out bool b) ? b : false;
               break;
             case VarType.stringType:
-              ((IteAlarm)node.Node).Value = ((IteAlarm)node.Node).Value.ToString();
+              ((IteAlarm)node.Node).OkValue = ((IteAlarm)node.Node).OkValue.ToString();
               break;
             case VarType.numberType:
-              ((IteAlarm)node.Node).Value = decimal.TryParse(((IteAlarm)node.Node).Value, out decimal d) ? d : 0;
+              ((IteAlarm)node.Node).OkValue = decimal.TryParse(((IteAlarm)node.Node).OkValue, out decimal d) ? d : 0;
+              break;
+            default:
+              break;
+          }
+        }
+        a = Vars.Where(p => p.Name == ((IteAlarm)node.Node).VariableNameOnCancelClick);
+        if (a.Any())
+        {
+          switch (a.First().VarType.enumValue)
+          {
+            case VarType.boolType:
+              ((IteAlarm)node.Node).CancelValue = bool.TryParse(((IteAlarm)node.Node).CancelValue, out bool b) ? b : false;
+              break;
+            case VarType.stringType:
+              ((IteAlarm)node.Node).CancelValue = ((IteAlarm)node.Node).CancelValue.ToString();
+              break;
+            case VarType.numberType:
+              ((IteAlarm)node.Node).CancelValue = decimal.TryParse(((IteAlarm)node.Node).CancelValue, out decimal d) ? d : 0;
               break;
             default:
               break;
@@ -779,6 +816,7 @@ namespace Rox
       //btnSaveAs.Visibility = Visibility.Collapsed;
       Running = null;
       resetForm(unselectProgram);
+      if (keyEip != null) { keyEip.Disconnect(); keyEip = null; }
     }
     private void toggleFiles(object sender, RoutedEventArgs e)
     {
@@ -801,30 +839,44 @@ namespace Rox
         if (!Modes.Any()) { return false; }
         using (var sw = new System.IO.StreamWriter(filespec, false))
         {
-          sw.WriteLine("<{0} ver='{1}'>", xmlTag_App, txtVer.Text);
-          if (IoAdams == null) { IoAdams = new IoAdams(new IoAdams.ConnectionSettings()); }
-          sw.Write("<{0} ip='{1}' p='{2}' t='{3}' u='{4}' />", xmlTag_IO,
-                      IoAdams.Settings.IpAddress,
-                       IoAdams.Settings.Port,
-                       (int)IoAdams.Settings.ProtocolType,
-                       (int)IoAdams.Settings.Unit
-                      );
+          sw.Write("<{0} ver='{1}'>", xmlTag_App, txtVer.Text);
+          if (IoAdams != null && IoAdams.Enabled)
+          {
+            //IoAdams = new IoAdams(new IoAdams.ConnectionSettings());
+            sw.Write("<{0} ip='{1}' p='{2}' t='{3}' u='{4}' />", xmlTag_IO,
+                        IoAdams.Settings.IpAddress,
+                         IoAdams.Settings.Port,
+                         (int)IoAdams.Settings.ProtocolType,
+                         (int)IoAdams.Settings.Unit
+                        );
+          }
+          if (keyEip != null && keyEip.Enabled)
+          {
+            //keyEip = new KeyenceEip();
+            sw.Write("<{0} ip='{1}' p='{2}' ai='{3}' ao='{4}' />", xmlTag_KeyenceEip,
+                        keyEip.Settings.IpAddress,
+                         keyEip.Settings.Port,
+                         keyEip.Settings.AssemblyIn,
+                         keyEip.Settings.AssemblyOut
+                        );
+          }
           foreach (var mode in Modes)
           {
             AppendNodeData(sw, mode);
           }
           foreach (var v in Vars)
           {
-            sw.WriteLine("<{0} name='{1}' type='{2}' val='{3}' note='{4}' io='{5}' i='{6}'/>", xmlTag_Var,
+            sw.Write("<{0} name='{1}' type='{2}' val='{3}' note='{4}' io='{5}' i='{6}' ioc='{7}'/>", xmlTag_Var,
                         (v.Name ?? string.Empty).Replace('\'', '"'),
                         v.VarType,
                         (v.Value.ToString() ?? string.Empty).Replace('\'', '"'),
                         (v.Note ?? string.Empty).Replace('\'', '"'),
                         v.IsOutput == true ? "1" : v.IsOutput == false ? "0" : "",
-                        v.Channel
+                        v.Channel,
+                        (int)v.IoController
                         );
           }
-          sw.WriteLine("</{0}>", xmlTag_App);
+          sw.Write("</{0}>", xmlTag_App);
         }
         return true;
       }
@@ -835,74 +887,74 @@ namespace Rox
       switch (n.NodeType)
       {
         case NodeTypes.General:
-          sw.Write("\n<general name='{0}' type='{1}' exp='{2}'>", n.Name, n.NodeType, n.IsExpanded);
+          sw.Write("<general name='{0}' type='{1}' exp='{2}'>", n.Name, n.NodeType, n.IsExpanded);
           AppendChildren(sw, n);
-          sw.Write("\n</general>");
+          sw.Write("</general>");
           break;
         case NodeTypes.Mode:
-          sw.Write("\n<{0} name='{1}' type='{2}' exp='{3}'>", xmlTag_Mode, n.Name, n.NodeType, n.IsExpanded);
+          sw.Write("<{0} name='{1}' type='{2}' exp='{3}'>", xmlTag_Mode, n.Name, n.NodeType, n.IsExpanded);
           AppendChildren(sw, n);
-          sw.Write("\n</{0}>", xmlTag_Mode);
+          sw.Write("</{0}>", xmlTag_Mode);
           break;
         case NodeTypes.Condition:
           var p = (IteCondition)n.Node;
-          sw.Write("\n<{0} name='{1}' varname='{2}' method='{3}' desired='{4}' exp='{5}'>", xmlTag_Condition, p.Name, p.VariableName, p.EvalMethodText, p.DesiredValue, n.IsExpanded);
+          sw.Write("<{0} name='{1}' varname='{2}' method='{3}' desired='{4}' exp='{5}'>", xmlTag_Condition, p.Name, p.VariableName, p.EvalMethodText, p.DesiredValue, n.IsExpanded);
           AppendChildren(sw, n);
-          sw.Write("\n</{0}>", xmlTag_Condition);
+          sw.Write("</{0}>", xmlTag_Condition);
           break;
         case NodeTypes.Timer:
           var t = (IteTimer)n.Node;
-          sw.Write("\n<{0} name='{1}' type='{2}' i='{3}' exp='{4}'>", xmlTag_Timer, n.Name, n.NodeType, t.Interval, n.IsExpanded);
+          sw.Write("<{0} name='{1}' type='{2}' i='{3}' exp='{4}'>", xmlTag_Timer, n.Name, n.NodeType, t.Interval, n.IsExpanded);
           AppendChildren(sw, n);
-          sw.Write("\n</{0}>", xmlTag_Timer);
+          sw.Write("</{0}>", xmlTag_Timer);
           break;
         case NodeTypes.Initialized:
-          sw.Write("\n<{0} name='{1}' type='{2}' exp='{3}'>", xmlTag_Init, n.Name, n.NodeType, n.IsExpanded);
+          sw.Write("<{0} name='{1}' type='{2}' exp='{3}'>", xmlTag_Init, n.Name, n.NodeType, n.IsExpanded);
           AppendChildren(sw, n);
-          sw.Write("\n</{0}>", xmlTag_Init);
+          sw.Write("</{0}>", xmlTag_Init);
           break;
         case NodeTypes.Continuous:
-          sw.Write("\n<{0} name='{1}' type='{2}' exp='{3}'>", xmlTag_Continuous, n.Name, n.NodeType, n.IsExpanded);
+          sw.Write("<{0} name='{1}' type='{2}' exp='{3}'>", xmlTag_Continuous, n.Name, n.NodeType, n.IsExpanded);
           AppendChildren(sw, n);
-          sw.Write("\n</{0}>", xmlTag_Continuous);
+          sw.Write("</{0}>", xmlTag_Continuous);
           break;
         case NodeTypes.ConditionTrue1:
-          sw.Write("\n<{0} name='{1}' type='{2}' exp='{3}'>", xmlTag_ConditionTrue1, n.Name, n.NodeType, n.IsExpanded);
+          sw.Write("<{0} name='{1}' type='{2}' exp='{3}'>", xmlTag_ConditionTrue1, n.Name, n.NodeType, n.IsExpanded);
           AppendChildren(sw, n);
-          sw.Write("\n</{0}>", xmlTag_ConditionTrue1);
+          sw.Write("</{0}>", xmlTag_ConditionTrue1);
           break;
         case NodeTypes.ConditionTrue:
-          sw.Write("\n<{0} name='{1}' type='{2}' exp='{3}'>", xmlTag_ConditionTrue, n.Name, n.NodeType, n.IsExpanded);
+          sw.Write("<{0} name='{1}' type='{2}' exp='{3}'>", xmlTag_ConditionTrue, n.Name, n.NodeType, n.IsExpanded);
           AppendChildren(sw, n);
-          sw.Write("\n</{0}>", xmlTag_ConditionTrue);
+          sw.Write("</{0}>", xmlTag_ConditionTrue);
           break;
         case NodeTypes.ConditionFalse1:
-          sw.Write("\n<{0} name='{1}' type='{2}' exp='{3}'>", xmlTag_ConditionFalse1, n.Name, n.NodeType, n.IsExpanded);
+          sw.Write("<{0} name='{1}' type='{2}' exp='{3}'>", xmlTag_ConditionFalse1, n.Name, n.NodeType, n.IsExpanded);
           AppendChildren(sw, n);
-          sw.Write("\n</{0}>", xmlTag_ConditionFalse1);
+          sw.Write("</{0}>", xmlTag_ConditionFalse1);
           break;
         case NodeTypes.ConditionFalse:
-          sw.Write("\n<{0} name='{1}' type='{2}' exp='{3}'>", xmlTag_ConditionFalse, n.Name, n.NodeType, n.IsExpanded);
+          sw.Write("<{0} name='{1}' type='{2}' exp='{3}'>", xmlTag_ConditionFalse, n.Name, n.NodeType, n.IsExpanded);
           AppendChildren(sw, n);
-          sw.Write("\n</{0}>", xmlTag_ConditionFalse);
+          sw.Write("</{0}>", xmlTag_ConditionFalse);
           break;
         case NodeTypes.SetVariable:
           var v = (IteSetVar)n.Node;
-          sw.Write("\n<{0} name='{1}' varname='{2}' type='{3}' val='{4}' method='{5}' other='{6}' exp='{7}'/>", xmlTag_SetVar, v.Name, v.VariableName, v.VarType, v.Value, (int)v.AssignMethod, v.OtherwiseValue, n.IsExpanded);
+          sw.Write("<{0} name='{1}' varname='{2}' type='{3}' val='{4}' method='{5}' other='{6}' exp='{7}'/>", xmlTag_SetVar, v.Name, v.VariableName, v.VarType, v.Value, (int)v.AssignMethod, v.OtherwiseValue, n.IsExpanded);
           break;
         case NodeTypes.SetMode:
           var v1 = (IteSetMode)n.Node;
-          sw.Write("\n<{0} name='{1}' mode='{2}' exp='{3}'/>", xmlTag_SetMode, v1.Name, v1.ModeName, n.IsExpanded);
+          sw.Write("<{0} name='{1}' mode='{2}' exp='{3}'/>", xmlTag_SetMode, v1.Name, v1.ModeName, n.IsExpanded);
           break;
         case NodeTypes.Return:
-          sw.Write("\n<{0} name='{1}'/>", xmlTag_Return, ((IteReturn)n.Node).Name);
+          sw.Write("<{0} name='{1}'/>", xmlTag_Return, ((IteReturn)n.Node).Name);
           break;
         case NodeTypes.Alarm:
           var a = (IteAlarm)n.Node;
-          sw.Write("\n<{0} name='{1}' title='{2}' prompt='{3}' c1='{4}' c2='{5}' varname='{6}' val='{7}'/>", xmlTag_Alarm, a.Name, a.Title, a.Prompt, a.Color1, a.Color2, a.VariableName, a.Value);
+          sw.Write("<{0} name='{1}' title='{2}' prompt='{3}' c1='{4}' c2='{5}' varname='{6}' val='{7}' altvarname='{8}' altval='{9}'/>", xmlTag_Alarm, a.Name, a.Title, a.Prompt, a.Color1, a.Color2, a.VariableNameOnOkClick, a.OkValue, a.VariableNameOnCancelClick, a.CancelValue);
           break;
         default:
-          sw.Write("\n<unknown name='{0}' type='{1}' exp='{2}'/>", n.Name, n.NodeType, n.IsExpanded);
+          sw.Write("<unknown name='{0}' type='{1}' exp='{2}'/>", n.Name, n.NodeType, n.IsExpanded);
           AppendChildren(sw, n);
           break;
       }
@@ -1161,112 +1213,144 @@ namespace Rox
     }
     private void Mode_PreviewMouseMove(object sender, MouseEventArgs e)
     {
-      Vector diff = startDragPoint - e.GetPosition(null);
-      if (e.LeftButton == MouseButtonState.Pressed && (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance || Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance))
+      if (LoggedIn)
       {
-        // Initialize the drag & drop operation
-        DataObject dragData = new DataObject("iteNode", new IteMode("Mode") { Items = { new IteIntialize("Initialize"), new IteContinuous("Continuous") } });
-        DragDrop.DoDragDrop((StackPanel)sender, dragData, DragDropEffects.Move);
+        Vector diff = startDragPoint - e.GetPosition(null);
+        if (e.LeftButton == MouseButtonState.Pressed && (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance || Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance))
+        {
+          // Initialize the drag & drop operation
+          DataObject dragData = new DataObject("iteNode", new IteMode("Mode") { Items = { new IteIntialize("Initialize"), new IteContinuous("Continuous") } });
+          DragDrop.DoDragDrop((StackPanel)sender, dragData, DragDropEffects.Move);
+        }
+        resetLogoutTimer();
       }
     }
     private void Condition_PreviewMouseMove(object sender, MouseEventArgs e)
     {
-      Vector diff = startDragPoint - e.GetPosition(null);
-      if (e.LeftButton == MouseButtonState.Pressed && (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance || Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance))
+      if (LoggedIn)
       {
-        // Initialize the drag & drop operation
-        DataObject dragData = new DataObject("iteNode", new IteCondition("Condition") { Items = { new IteTrue1("0→1"), new IteTrue("True"), new IteFalse1("1→0"), new IteFalse("False") } });
-        DragDrop.DoDragDrop((StackPanel)sender, dragData, DragDropEffects.Move);
+        Vector diff = startDragPoint - e.GetPosition(null);
+        if (e.LeftButton == MouseButtonState.Pressed && (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance || Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance))
+        {
+          // Initialize the drag & drop operation
+          DataObject dragData = new DataObject("iteNode", new IteCondition("Condition") { Items = { new IteTrue1("0→1"), new IteTrue("True"), new IteFalse1("1→0"), new IteFalse("False") } });
+          DragDrop.DoDragDrop((StackPanel)sender, dragData, DragDropEffects.Move);
+        }
+        resetLogoutTimer();
       }
     }
     private void Timer_PreviewMouseMove(object sender, MouseEventArgs e)
     {
-      Vector diff = startDragPoint - e.GetPosition(null);
-      if (e.LeftButton == MouseButtonState.Pressed && (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance || Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance))
+      if (LoggedIn)
       {
-        // Initialize the drag & drop operation
-        DataObject dragData = new DataObject("iteNode", new IteTimer("Timer") { Items = { new IteTrue("Expired"), new IteFalse("Waiting") } });
-        DragDrop.DoDragDrop((StackPanel)sender, dragData, DragDropEffects.Move);
+        Vector diff = startDragPoint - e.GetPosition(null);
+        if (e.LeftButton == MouseButtonState.Pressed && (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance || Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance))
+        {
+          // Initialize the drag & drop operation
+          DataObject dragData = new DataObject("iteNode", new IteTimer("Timer") { Items = { new IteTrue("Expired"), new IteFalse("Waiting") } });
+          DragDrop.DoDragDrop((StackPanel)sender, dragData, DragDropEffects.Move);
+        }
+        resetLogoutTimer();
       }
     }
     private void SetVar_PreviewMouseMove(object sender, MouseEventArgs e)
     {
-      Vector diff = startDragPoint - e.GetPosition(null);
-      if (e.LeftButton == MouseButtonState.Pressed && (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance || Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance))
+      if (LoggedIn)
       {
-        // Initialize the drag & drop operation
-        DataObject dragData = new DataObject("iteNode", new IteSetVar("Assign") { });
-        DragDrop.DoDragDrop((StackPanel)sender, dragData, DragDropEffects.Move);
+        Vector diff = startDragPoint - e.GetPosition(null);
+        if (e.LeftButton == MouseButtonState.Pressed && (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance || Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance))
+        {
+          // Initialize the drag & drop operation
+          DataObject dragData = new DataObject("iteNode", new IteSetVar("Assign") { });
+          DragDrop.DoDragDrop((StackPanel)sender, dragData, DragDropEffects.Move);
+        }
+        resetLogoutTimer();
       }
     }
     private void SetMode_PreviewMouseMove(object sender, MouseEventArgs e)
     {
-      Vector diff = startDragPoint - e.GetPosition(null);
-      if (e.LeftButton == MouseButtonState.Pressed && (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance || Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance))
+      if (LoggedIn)
       {
-        // Initialize the drag & drop operation
-        DataObject dragData = new DataObject("iteNode", new IteSetMode("Set Mode") { });
-        DragDrop.DoDragDrop((StackPanel)sender, dragData, DragDropEffects.Move);
+        Vector diff = startDragPoint - e.GetPosition(null);
+        if (e.LeftButton == MouseButtonState.Pressed && (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance || Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance))
+        {
+          // Initialize the drag & drop operation
+          DataObject dragData = new DataObject("iteNode", new IteSetMode("Set Mode") { });
+          DragDrop.DoDragDrop((StackPanel)sender, dragData, DragDropEffects.Move);
+        }
+        resetLogoutTimer();
       }
     }
     private void Return_PreviewMouseMove(object sender, MouseEventArgs e)
     {
-      Vector diff = startDragPoint - e.GetPosition(null);
-      if (e.LeftButton == MouseButtonState.Pressed && (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance || Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance))
+      if (LoggedIn)
       {
-        // Initialize the drag & drop operation
-        DataObject dragData = new DataObject("iteNode", new IteReturn("Return") { });
-        DragDrop.DoDragDrop((StackPanel)sender, dragData, DragDropEffects.Move);
+        Vector diff = startDragPoint - e.GetPosition(null);
+        if (e.LeftButton == MouseButtonState.Pressed && (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance || Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance))
+        {
+          // Initialize the drag & drop operation
+          DataObject dragData = new DataObject("iteNode", new IteReturn("Return") { });
+          DragDrop.DoDragDrop((StackPanel)sender, dragData, DragDropEffects.Move);
+        }
+        resetLogoutTimer();
       }
     }
     private void Alarm_PreviewMouseMove(object sender, MouseEventArgs e)
     {
-      Vector diff = startDragPoint - e.GetPosition(null);
-      if (e.LeftButton == MouseButtonState.Pressed && (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance || Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance))
+      if (LoggedIn)
       {
-        // Initialize the drag & drop operation
-        DataObject dragData = new DataObject("iteNode", new IteAlarm("Alarm") { });
-        DragDrop.DoDragDrop((StackPanel)sender, dragData, DragDropEffects.Move);
+        Vector diff = startDragPoint - e.GetPosition(null);
+        if (e.LeftButton == MouseButtonState.Pressed && (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance || Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance))
+        {
+          // Initialize the drag & drop operation
+          DataObject dragData = new DataObject("iteNode", new IteAlarm("Alarm") { });
+          DragDrop.DoDragDrop((StackPanel)sender, dragData, DragDropEffects.Move);
+        }
+        resetLogoutTimer();
       }
     }
     private void Node_PreviewMouseMove(object sender, MouseEventArgs e)
     {
-      Vector diff = startDragPoint - e.GetPosition(null);
-      if (e.LeftButton == MouseButtonState.Pressed
-        //&& (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance || Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance)
-        )
+      if (LoggedIn)
       {
-        var test = (((TreeViewItem)sender).DataContext).GetType();
-        DataObject dragData = null;
-        if (test == typeof(IteCONDITION_VM) ||
-            test == typeof(IteTIMER_VM) ||
-            test == typeof(IteSETVAR_VM) ||
-            test == typeof(IteSETMODE_VM) ||
-            test == typeof(IteRETURN_VM) ||
-            test == typeof(IteALARM_VM))
+        Vector diff = startDragPoint - e.GetPosition(null);
+        if (e.LeftButton == MouseButtonState.Pressed
+          //&& (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance || Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance)
+          )
         {
-          dragData = new DataObject("iteNodeVM", (IteNodeViewModel)((dynamic)e.OriginalSource).DataContext);
+          var test = (((TreeViewItem)sender).DataContext).GetType();
+          DataObject dragData = null;
+          if (test == typeof(IteCONDITION_VM) ||
+              test == typeof(IteTIMER_VM) ||
+              test == typeof(IteSETVAR_VM) ||
+              test == typeof(IteSETMODE_VM) ||
+              test == typeof(IteRETURN_VM) ||
+              test == typeof(IteALARM_VM))
+          {
+            dragData = new DataObject("iteNodeVM", (IteNodeViewModel)((dynamic)e.OriginalSource).DataContext);
+          }
+          else
+          {
+            return;
+            //e.Handled = true;
+          }
+          try
+          {
+            // Initialize the drag & drop operation
+            DragDrop.DoDragDrop((TreeViewItem)sender, dragData, DragDropEffects.Move);
+          }
+          catch (Exception)
+          {
+          }
         }
-        else
-        {
-          return;
-          //e.Handled = true;
-        }
-        try
-        {
-          // Initialize the drag & drop operation
-          DragDrop.DoDragDrop((TreeViewItem)sender, dragData, DragDropEffects.Move);
-        }
-        catch (Exception)
-        {
-        }
+        resetLogoutTimer();
       }
     }
     private void tvi_DragEnter(object sender, DragEventArgs e)
     {
       try
       {
-        if (sender != e.Source)
+        if (LoggedIn && sender != e.Source)
         {
           if (e.Data.GetDataPresent("iteNode") || e.Data.GetDataPresent("iteNodeVM"))
           {
@@ -1289,6 +1373,7 @@ namespace Rox
               e.Effects = DragDropEffects.None;
             }
           }
+          resetLogoutTimer();
         }
         else
         {
@@ -1304,9 +1389,10 @@ namespace Rox
     }
     private void tvi_DragOver(object sender, DragEventArgs e)
     {
-      if (sender != e.Source && (e.Data.GetDataPresent("iteNode") || e.Data.GetDataPresent("iteNodeVM")))
+      if (LoggedIn && sender != e.Source && (e.Data.GetDataPresent("iteNode") || e.Data.GetDataPresent("iteNodeVM")))
       {
         e.Effects = DragDropEffects.Copy;
+        resetLogoutTimer();
       }
       else
       {
@@ -1318,7 +1404,7 @@ namespace Rox
     {
       try
       {
-        if (e.Data.GetDataPresent("iteNode") || e.Data.GetDataPresent("iteNodeVM"))
+        if (LoggedIn && (e.Data.GetDataPresent("iteNode") || e.Data.GetDataPresent("iteNodeVM")))
         {
           // test if node can be dropped here
           var target = (TreeViewItem)sender;
@@ -1348,7 +1434,6 @@ namespace Rox
             else if (T == typeof(IteCondition))
             {
               N = N ?? new IteCONDITION_VM(sourceNode) { IsSelected = true };
-              Console.WriteLine(startDragPoint - e.GetPosition(this));
               success = InsertNode(IsDropInSeq, N, dc, (startDragPoint - e.GetPosition(this)).Y >= 0);
             }
             else if (T == typeof(IteTimer))
@@ -1386,6 +1471,7 @@ namespace Rox
             tree.DataContext = null;
             tree.DataContext = new { Modes };
           }
+          resetLogoutTimer();
         }
         e.Handled = true;
         ((TreeViewItem)sender).Background = treeBackground;
@@ -1397,7 +1483,7 @@ namespace Rox
     }
     private bool InsertNode(bool IsDropInSeq, IteNodeViewModel newOrMoved, IteNodeViewModel dropTo, bool insertAbove = true)
     {
-      if (newOrMoved == null || dropTo == null) { return false; }
+      if (!LoggedIn || newOrMoved == null || dropTo == null) { return false; }
       try
       {
         // detect if the source is trying to be dropped inside itself
@@ -1422,6 +1508,7 @@ namespace Rox
           dropTo.Items.Add(newOrMoved);
           newOrMoved.Parent = dropTo;
         }
+        resetLogoutTimer();
         return true;
       }
       catch (Exception)
@@ -1443,12 +1530,16 @@ namespace Rox
     }
     private void btnReset_Click(object sender, RoutedEventArgs e)
     {
-      var f = new CustomMessageboxWindow(string.Format("Start over?", loadedFile), string.Format("Delete the existing sequence and start over?", loadedFile), MessageBoxButton.YesNo) { Owner = this };
-      f.ShowDialog();
-      if (f.DialogResult == true)
+      if (LoggedIn)
       {
-        FileUnload(true);
-        //SetDefaultGuiElements();
+        var f = new CustomMessageboxWindow(string.Format("Start over?", loadedFile), string.Format("Delete the existing sequence and start over?", loadedFile), MessageBoxButton.YesNo) { Owner = this };
+        f.ShowDialog();
+        if (f.DialogResult == true)
+        {
+          FileUnload(true);
+          //SetDefaultGuiElements();
+        }
+        resetLogoutTimer();
       }
     }
     private void tvi_DragLeave(object sender, DragEventArgs e)
@@ -1458,22 +1549,19 @@ namespace Rox
     }
     private void Tree_DragEnter(object sender, DragEventArgs e)
     {
-      //Console.WriteLine(sender != e.Source);
-      if (e.Data.GetDataPresent("iteNode"))
+      if (LoggedIn && e.Data.GetDataPresent("iteNode"))
       {
-        //Console.WriteLine(2);
         // test if node can be dropped here
         if (((INode)e.Data.GetData("iteNode")).NodeType == NodeTypes.Mode)
         {
-          //Console.WriteLine(3);
           e.Effects = DragDropEffects.Copy;
           tree.Background = treeBackgroundAllowDrop;
-          //Console.WriteLine(4);
         }
         else
         {
           e.Effects = DragDropEffects.None;
         }
+        resetLogoutTimer();
       }
       else
       {
@@ -1483,7 +1571,7 @@ namespace Rox
     }
     private void Tree_Drop(object sender, DragEventArgs e)
     {
-      if (e.Data.GetDataPresent("iteNode"))
+      if (LoggedIn && e.Data.GetDataPresent("iteNode"))
       {
         // test if node can be dropped here
         var target = (TreeView)sender;
@@ -1503,6 +1591,7 @@ namespace Rox
           tree.DataContext = null;
           tree.DataContext = new { Modes };
         }
+        resetLogoutTimer();
       }
       e.Handled = true;
       tree.Background = treeBackground;
@@ -1514,15 +1603,19 @@ namespace Rox
     }
     private void BtnAddVariable_Click(object sender, RoutedEventArgs e)
     {
-      var d = new VarParamsWindow() { Owner = this };
-      d.ShowDialog();
-      if (d.DialogResult == true && !string.IsNullOrWhiteSpace(d.VarName))
+      if (LoggedIn)
       {
-        if (Vars.Where(p => p.Name == d.VarName).Any()) { return; }
-        Vars.Add(new Variable { Name = d.VarName, Note = d.VarNote, Value = d.VarValue, UsersLastValue = d.VarValue, Channel = d.Channel, IsOutput = d.IsOutput });
-        AssignLiveVars();
+        var d = new VarParamsWindow() { Owner = this };
+        d.ShowDialog();
+        if (d.DialogResult == true && !string.IsNullOrWhiteSpace(d.VarName))
+        {
+          if (Vars.Where(p => p.Name == d.VarName).Any()) { return; }
+          Vars.Add(new Variable { Name = d.VarName, Note = d.VarNote, Value = d.VarValue, UsersLastValue = d.VarValue, Channel = d.Channel, IsOutput = d.IsOutput, IoController = d.IoController });
+          AssignLiveVars();
+        }
+        AutoSizeVarColumns();
+        resetLogoutTimer();
       }
-      AutoSizeVarColumns();
     }
     public void AutoSizeVarColumns()
     {
@@ -1540,21 +1633,26 @@ namespace Rox
     }
     private void ListViewItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
-      var n = ((ListViewItem)sender).Content as Variable;
-
-      var d = new VarParamsWindow() { Owner = this, VarName = n.Name, VarNote = n.Note, VarType = (VarType)n.VarType.Value, Channel = n.Channel, IsOutput = n.IsOutput };
-      d.VarValue = n.Value;
-      d.ShowDialog();
-      if (d.DialogResult == true && !string.IsNullOrWhiteSpace(d.VarName))
+      if (LoggedIn)
       {
-        n.Name = d.VarName;
-        n.Note = d.VarNote;
-        n.Value = d.VarValue;
-        n.Channel = d.Channel;
-        n.IsOutput = d.IsOutput;
-        AssignLiveVars();
+        var n = ((ListViewItem)sender).Content as Variable;
+
+        var d = new VarParamsWindow() { Owner = this, VarName = n.Name, VarNote = n.Note, VarType = (VarType)n.VarType.Value, Channel = n.Channel, IsOutput = n.IsOutput, IoController = n.IoController };
+        d.VarValue = n.Value;
+        d.ShowDialog();
+        if (d.DialogResult == true && !string.IsNullOrWhiteSpace(d.VarName))
+        {
+          n.Name = d.VarName;
+          n.Note = d.VarNote;
+          n.Value = d.VarValue;
+          n.Channel = d.Channel;
+          n.IsOutput = d.IsOutput;
+          n.IoController = d.IoController;
+          AssignLiveVars();
+        }
+        //AutoSizeVarColumns();
+        resetLogoutTimer();
       }
-      //AutoSizeVarColumns();
     }
     private void Logic_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
@@ -1562,8 +1660,6 @@ namespace Rox
       {
         if (((ComboBox)sender).SelectedIndex < 0) { return; }
         var l = ((ComboBoxItem)((ComboBox)sender).SelectedValue).Content.ToString();
-        //Console.WriteLine(l);
-        //var o = (selectedNode.Node as IteCondition);
         var o = (((INode)((ComboBox)sender).GetBindingExpression(ComboBox.TextProperty).ResolvedSource) as IteCondition);
         o.EvalMethodText = l;
         o.EvalMethod = GetEvalMethodFromString(l);
@@ -1626,7 +1722,6 @@ namespace Rox
     }
     private void DesiredValue_TextChanged(object sender, TextChangedEventArgs e)
     {
-      //var o = (selectedNode.Node as IteCondition);
       var o = ((ComboBox)sender).GetBindingExpression(ComboBox.TextProperty).ResolvedSource as IteCondition;
       var t = ((ComboBox)sender).Text;
       o.DesiredValue = ((ComboBox)sender).Text;
@@ -1654,14 +1749,8 @@ namespace Rox
             o.DesiredValue = o.DesiredValue.ToString();
           }
         }
-        //Console.WriteLine("Compare = {0} | desired value = {1} | current value = {2} | typeof desired = {3} | typeof current = {4}"
-        //  , o.EvalMethod(o.DesiredValue, CurrentValue)
-        //  , o.DesiredValue
-        //  , CurrentValue
-        //  , o.DesiredValue.GetType()
-        //  , CurrentValue.GetType()
-        //  );
         o.Evaluation = o.EvalMethod(o.DesiredValue, CurrentValue);
+        resetLogoutTimer();
       }
       catch (Exception)
       {
@@ -1669,22 +1758,24 @@ namespace Rox
     }
     private void ListViewItem_PreviewMouseMove(object sender, MouseEventArgs e)
     {
-      Vector diff = startDragPoint - e.GetPosition(null);
-      if (e.LeftButton == MouseButtonState.Pressed && (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance || Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance))
+      if (LoggedIn)
       {
-        // Initialize the drag & drop operation
-        DataObject dragData = new DataObject("iteVar", (Variable)((ListViewItem)sender).Content);
-        DragDrop.DoDragDrop((ListViewItem)sender, dragData, DragDropEffects.Move);
+        Vector diff = startDragPoint - e.GetPosition(null);
+        if (e.LeftButton == MouseButtonState.Pressed && (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance || Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance))
+        {
+          // Initialize the drag & drop operation
+          DataObject dragData = new DataObject("iteVar", (Variable)((ListViewItem)sender).Content);
+          DragDrop.DoDragDrop((ListViewItem)sender, dragData, DragDropEffects.Move);
+        }
+        resetLogoutTimer();
       }
     }
     private void Var_Drop(object sender, DragEventArgs e)
     {
-      //Console.WriteLine("drop");
       if (e.Data.GetDataPresent("iteVar"))
       {
         var source = (Variable)e.Data.GetData("iteVar");
         ((TextBox)sender).Text = source.Name;
-        //var n = selectedNode;
         var n = (INode)((TextBox)sender).GetBindingExpression(TextBox.TextProperty).ResolvedSource;
         if (n.GetType() == typeof(IteCondition))
         {
@@ -1724,39 +1815,108 @@ namespace Rox
     private void BtnAbort_Click(object sender, RoutedEventArgs e)
     {
       Paused = !Paused;
+      resetLogoutTimer();
     }
     private void AssignCurrentVariableValues()
     {
       if (LiveVars != null)
       {
-        if (IoAdams == null) { UpdateHeader("I/O module is not defined. Live variables are not updated.", Colors.Red); return; }
+        var AdamsInputs = new bool[0];
+        var AdamsOutputs = new bool[0];
+        var KeyenceInputs = new byte[0];
+        var KeyenceOutputs = new byte[0];
+
+
+        if (IoAdams == null && keyEip == null) { UpdateHeader("I/O module is not defined. Live variables are not updated.", Colors.Red); return; }
         else
         {
-          if (!IoAdams.IsConnected)
+          if (IoAdams != null && IoAdams.Enabled)
           {
-            IoAdams.Connect();
             if (!IoAdams.IsConnected)
             {
-              UpdateHeader(string.Format("IO module not connected! Next attempt in {0:0} sec.", IoAdams.MinReconnectTime.TotalSeconds - (DateTime.Now - (IoAdams.LastFailedReconnectTime ?? DateTime.Now)).TotalSeconds));
-              return;
+              IoAdams.Connect();
+              if (!IoAdams.IsConnected)
+              {
+                UpdateHeader(string.Format("Advantech module not connected! Next attempt in {0:0} sec.", IoAdams.MinReconnectTime.TotalSeconds - (DateTime.Now - (IoAdams.LastFailedReconnectTime ?? DateTime.Now)).TotalSeconds));
+                return;
+              }
+              else
+              {
+                UpdateHeader("Advantech module reconnected.");
+              }
             }
-            else
+            AdamsInputs = IoAdams.GetInputs();
+            AdamsOutputs = IoAdams.GetOutputs();
+          }
+          if (keyEip != null && keyEip.Enabled)
+          {
+            if (!keyEip.IsConnected)
             {
-              UpdateHeader("IO module reconnected.");
+              keyEip.Connect();
+              if (!keyEip.IsConnected)
+              {
+                UpdateHeader("Keyence module not connected!");
+                return;
+              }
+              else
+              {
+                UpdateHeader("Keyence module reconnected.");
+              }
             }
+            KeyenceInputs = keyEip.GetInputs();
+            KeyenceOutputs = keyEip.GetOutputs();
           }
-        }
-        var ins = IoAdams.GetInputs();
-        var outs = IoAdams.GetOutputs();
-        foreach (var v in LiveVars)
+          foreach (var v in LiveVars)
+          {
+            try
+            {
+              switch (v.IoController)
+              {
+                case IoControllers.Advantech:
+                  if (v.VarType.enumValue == VarType.boolType)
+                  {
+                    v.Value = v.IsOutput == true
+                              ? (v.Channel < AdamsOutputs.Length ? AdamsOutputs[v.ChannelBit] : v.Value)
+                              : v.IsOutput == false
+                              ? (v.Channel < AdamsInputs.Length ? AdamsInputs[v.ChannelBit] : v.Value)
+                              : v.Value;
+                  }
+                  else if (v.VarType.enumValue == VarType.numberType)
+                  {
 
-        {
-          try
-          {
-            v.Value = v.IsOutput == true ? outs[v.Channel] : v.IsOutput == false ? ins[v.Channel] : v.Value;
-          }
-          catch (Exception)
-          {
+                  }
+                  else if (v.VarType.enumValue == VarType.stringType)
+                  {
+
+                  }
+                  break;
+                case IoControllers.Keyence:
+                  if (v.VarType.enumValue == VarType.boolType)
+                  {
+                    // using "(b >> bitNumber) & 1" to test bit level value (as num) then converting to bool (n==1) defaulting to false
+                    // (b >> bitNumber) & 1 
+                    // equates to 
+                    // (KeyenceOutputs[v.ChannelByte] >> v.ChannelBit) & 1
+                    v.Value = v.IsOutput == true
+                      ? (v.ChannelWord < KeyenceOutputs.Length ? ((KeyenceOutputs[v.ChannelWord] >> v.ChannelBit) & 1) == 1 : v.Value)
+                      : (v.ChannelWord < KeyenceInputs.Length ? ((KeyenceInputs[v.ChannelWord] >> v.ChannelBit) & 1) == 1 : v.Value);
+                  }
+                  else if (v.VarType.enumValue == VarType.numberType)
+                  {
+                    v.Value = v.IsOutput == true
+                      ? (v.ChannelWord < KeyenceOutputs.Length ? KeyenceOutputs[v.ChannelWord] : v.Value)
+                      : (v.ChannelWord < KeyenceInputs.Length ? KeyenceInputs[v.ChannelWord] : v.Value);
+                  }
+                  else if (v.VarType.enumValue == VarType.stringType)
+                  {
+
+                  }
+                  break;
+              }
+            }
+            catch (Exception)
+            {
+            }
           }
         }
       }
@@ -1767,34 +1927,27 @@ namespace Rox
       {
         while (!Paused)
         {
+          //if (keyEip != null) { Console.WriteLine(keyEip.GetState()); }
           AssignCurrentVariableValues();
           System.Threading.Thread.Sleep(1);
-          //await Task.Delay(1);
-          //bool firstscan = string.IsNullOrEmpty(curMode) || string.IsNullOrEmpty(processingMode);
-          //bool modeChanged = curMode != processingMode;
 
           var e = new SequenceEventArgs();
           foreach (var mode in Modes)
           {
-            //if (highlight) { ResetHighlight(mode); }
             try
             {
               if (
                   (mode.NodeType == NodeTypes.Continuous) ||  // Always
                   (curMode == mode.Name) || // current mode
-                  (mode.NodeType == NodeTypes.Initialized && (string.IsNullOrEmpty(processingMode))) // 1st scan  string.IsNullOrEmpty(curMode) || 
+                  (mode.NodeType == NodeTypes.Initialized && string.IsNullOrEmpty(processingMode)) // 1st scan  string.IsNullOrEmpty(curMode) || 
                   )
               {
-                //Console.WriteLine("name: " + ( mode.Name));
-                //Console.WriteLine((mode.NodeType == NodeTypes.Initialized && (modeChanged || firstscan)) ? "----------------------------------------" : "" );
-                //Console.WriteLine("{0} - {1}",modeChanged,firstscan);
                 ProcessValidNodeSequence(mode, curMode != processingMode, e);
                 if (e.AbortIteration == true) { break; }
               }
               else
               {
                 ProcessInvalidNodeSequence(mode);
-                //Console.WriteLine("SKIP: " + mode.Name);
               }
             }
             catch (Exception)
@@ -1829,7 +1982,6 @@ namespace Rox
       {
         default:
           if (highlight) { node.Background = unprocessedNodeBackground; }
-          //Console.WriteLine(node.Name + " - NOT IMPLEMENTED");
           foreach (var sub in node.Items)
           {
             ProcessInvalidNodeSequence(sub);
@@ -1883,7 +2035,38 @@ namespace Rox
                 if (a.Channel >= 0 && a.IsOutput == true)
                 {
                   // assign physical output
-                  IoAdams.SetBit(a.Channel, (a.Value == true || a.Value > 0) ? 1 : 0);
+                  switch (a.IoController)
+                  {
+                    case IoControllers.Advantech:
+                      switch (a.VarType.enumValue)
+                      {
+                        case VarType.boolType:
+                          if (IoAdams != null && IoAdams.Enabled) { IoAdams.SetBit(a.ChannelBit, a.Value == true ? 1 : 0); }
+                          break;
+                        case VarType.stringType:
+                          break;
+                        case VarType.numberType:
+                          break;
+                        default:
+                          break;
+                      }
+                      break;
+                    case IoControllers.Keyence:
+                      switch (a.VarType.enumValue)
+                      {
+                        case VarType.boolType:
+                          if (keyEip != null && keyEip.Enabled) { keyEip.SetBit(a.ChannelWord, a.ChannelBit, a.Value == true); };
+                          break;
+                        case VarType.stringType:
+                          break;
+                        case VarType.numberType:
+                          break;
+                        default:
+                          break;
+                      }
+                      break;
+                  }
+
                 }
               }
             }
@@ -1898,12 +2081,10 @@ namespace Rox
     private void ProcessValidNodeSequence(IteNodeViewModel node, bool initialize, SequenceEventArgs e)
     {
       if (e.AbortIteration) { return; }
-      //Console.WriteLine("PROCESSING: " + node.Name);
       switch (node.NodeType)
       {
         default: // ############################################################################################ DEFAULT
           if (highlight) { node.Background = processedNodeBackground; }
-          //Console.WriteLine(node.Name + " - NOT IMPLEMENTED");
           foreach (var sub in node.Items)
           {
             ProcessValidNodeSequence(sub, initialize, e);
@@ -1919,13 +2100,11 @@ namespace Rox
             try
             {
               var eval = ((IteCondition)node.Node).EvalMethod(v.Value, ((IteCondition)node.Node).DesiredValue);
-              //Console.WriteLine((node.Parent == null ? "root" : node.Parent.Name) + "." + node.Name + " condition. eval = " + eval);
               if (eval)
               {
                 if (v.Value != v.UsersLastValue)
                 {
                   // initialized true
-                  //Console.WriteLine("{0} - {1}", v.Value, v.UsersLastValue);
                   v.UsersLastValue = v.Value;
                   //node = node.Items.First(p => p.NodeType == NodeTypes.ConditionTrue);
                   if (highlight) { node.Items[0].Background = trueNodeBackground; }
@@ -1955,7 +2134,6 @@ namespace Rox
                 if (!v.Value.Equals(v.UsersLastValue))
                 {
                   // initialized false
-                  //Console.WriteLine("{0} - {1}", v.Value, v.UsersLastValue);
                   v.UsersLastValue = v.Value;
                   if (highlight) { node.Items[2].Background = falseNodeBackground; }
                   foreach (var sub in node.Items[2].Items)
@@ -1994,7 +2172,6 @@ namespace Rox
           if (initialize)
           {
             if (highlight) { node.Background = processedNodeBackground; }
-            //Console.WriteLine((node.Parent == null ? "root" : node.Parent.Name) + "." + node.Name + " diff-up.");
             foreach (var sub in node.Items)
             {
               ProcessValidNodeSequence(sub, initialize, e);
@@ -2052,7 +2229,38 @@ namespace Rox
             if (daVar.Channel >= 0 && daVar.IsOutput == true)
             {
               // assign physical output
-              IoAdams.SetBit(daVar.Channel, daVar.Value == true ? 1 : 0);
+              switch (daVar.IoController)
+              {
+                case IoControllers.Advantech:
+                  switch (daVar.VarType.enumValue)
+                  {
+                    case VarType.boolType:
+                      if (IoAdams != null && IoAdams.Enabled) { IoAdams.SetBit(daVar.ChannelBit, daVar.Value == true ? 1 : 0); }
+                      break;
+                    case VarType.stringType:
+                      break;
+                    case VarType.numberType:
+                      break;
+                    default:
+                      break;
+                  }
+                  break;
+                case IoControllers.Keyence:
+                  switch (daVar.VarType.enumValue)
+                  {
+                    case VarType.boolType:
+                      if (keyEip != null && keyEip.Enabled) { keyEip.SetBit(daVar.ChannelWord, daVar.ChannelBit, daVar.Value == true); };
+                      break;
+                    case VarType.stringType:
+                      break;
+                    case VarType.numberType:
+                      if (keyEip != null && keyEip.Enabled) { keyEip.SetNumber((short)daVar.ChannelWord, (byte)daVar.Value); };
+                      break;
+                    default:
+                      break;
+                  }
+                  break;
+              }
             }
             if (highlight) { node.Background = processedNodeBackground; }
           }
@@ -2070,18 +2278,29 @@ namespace Rox
           return;
         case NodeTypes.Alarm:
           if (highlight) { node.Background = processedNodeBackground; }
-          AddAlarm(((IteAlarm)node.Node).Title, ((IteAlarm)node.Node).Prompt, ((IteAlarm)node.Node).Color1, ((IteAlarm)node.Node).Color2, ((IteAlarm)node.Node).VariableName, ((IteAlarm)node.Node).Value);
+          AddAlarm(
+            ((IteAlarm)node.Node).Title,
+            ((IteAlarm)node.Node).Prompt,
+            ((IteAlarm)node.Node).Color1,
+            ((IteAlarm)node.Node).Color2,
+            ((IteAlarm)node.Node).VariableNameOnOkClick,
+            ((IteAlarm)node.Node).VariableNameOnCancelClick,
+            ((IteAlarm)node.Node).OkValue,
+            ((IteAlarm)node.Node).CancelValue
+            );
           break;
       }
     }
     private void ChkHighlight_Checked(object sender, RoutedEventArgs e)
     {
       highlight = true;
+      resetLogoutTimer();
     }
     private void ChkHighlight_Unchecked(object sender, RoutedEventArgs e)
     {
       highlight = false;
       System.Threading.Thread.Sleep(250);
+      resetLogoutTimer();
       foreach (var mode in Modes)
       {
         ResetHighlight(mode);
@@ -2089,11 +2308,11 @@ namespace Rox
     }
     private void BtnDeleteSelectedNode_Click(object sender, RoutedEventArgs e)
     {
-      //FindAndRemoveNode(selectedNode);
       FindAndRemoveNode((IteNodeViewModel)tree.SelectedItem);
     }
     private void FindAndRemoveNode(IteNodeViewModel node)
     {
+      resetLogoutTimer();
       if (node == null) { return; }
       if (node.IsLocked) { return; }
       foreach (var n in Modes)
@@ -2134,7 +2353,6 @@ namespace Rox
     {
       try
       {
-        //var s = selectedNode;
         var s = (INode)((ComboBox)sender).GetBindingExpression(ComboBox.TextProperty).ResolvedSource;
         if (s != null && s.GetType() == typeof(IteSetVar))
         {
@@ -2153,18 +2371,17 @@ namespace Rox
           {
             ((IteSetVar)s).VarType = VariableTypes.stringType;
           }
-          //Console.WriteLine("Text: " + ((ComboBox)sender).Text + " | " + ((IteSetVar)((IteSETVAR_VM)s).Node).VarType);
         }
+        resetLogoutTimer();
       }
       catch (Exception)
       {
       }
     }
-    private void DatatypeAlarm_TextChanged(object sender, TextChangedEventArgs e)
+    private void AlarmOkVal_TextChanged(object sender, TextChangedEventArgs e)
     {
       try
       {
-        //var s = selectedNode;
         var s = (INode)((ComboBox)sender).GetBindingExpression(ComboBox.TextProperty).ResolvedSource;
         if (s != null && s.GetType() == typeof(IteAlarm))
         {
@@ -2172,12 +2389,12 @@ namespace Rox
           if (t == "true" || t == "false")
           {
             //((IteAlarm)((IteALARM_VM)s).Node).VarType = VariableTypes.boolType;
-            ((IteAlarm)s).Value = t == "true" ? true : false;
+            ((IteAlarm)s).OkValue = t == "true" ? true : false;
           }
           else if (decimal.TryParse(t, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.CurrentCulture, out var d))
           {
             //((IteAlarm)((IteALARM_VM)s).Node).VarType = VariableTypes.numberType;
-            ((IteAlarm)s).Value = d;
+            ((IteAlarm)s).OkValue = d;
           }
           else
           {
@@ -2188,6 +2405,36 @@ namespace Rox
       catch (Exception)
       {
       }
+      resetLogoutTimer();
+    }
+    private void AlarmCancelVal_TextChanged(object sender, TextChangedEventArgs e)
+    {
+      try
+      {
+        var s = (INode)((ComboBox)sender).GetBindingExpression(ComboBox.TextProperty).ResolvedSource;
+        if (s != null && s.GetType() == typeof(IteAlarm))
+        {
+          var t = ((ComboBox)sender).Text.ToLower().Trim();
+          if (t == "true" || t == "false")
+          {
+            //((IteAlarm)((IteALARM_VM)s).Node).VarType = VariableTypes.boolType;
+            ((IteAlarm)s).CancelValue = t == "true" ? true : false;
+          }
+          else if (decimal.TryParse(t, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.CurrentCulture, out var d))
+          {
+            //((IteAlarm)((IteALARM_VM)s).Node).VarType = VariableTypes.numberType;
+            ((IteAlarm)s).CancelValue = d;
+          }
+          else
+          {
+            //((IteAlarm)((IteALARM_VM)s).Node).VarType = VariableTypes.stringType;
+          }
+        }
+      }
+      catch (Exception)
+      {
+      }
+      resetLogoutTimer();
     }
     private void btnDelete_Click(object sender, RoutedEventArgs e)
     {
@@ -2208,6 +2455,7 @@ namespace Rox
           PopulateFilelists();
         }
       }
+      resetLogoutTimer();
     }
     private void SeqItem_MouseLeave(object sender, MouseEventArgs e)
     {
@@ -2256,17 +2504,22 @@ namespace Rox
     private void btnAdvantech_Click(object sender, RoutedEventArgs e)
     {
       if (IoAdams == null) { IoAdams = new IoAdams(new IoAdams.ConnectionSettings()); }
-      IOConfig d = new IOConfig() { Owner = this, IpAddress = IoAdams.Settings.IpAddress, Port = IoAdams.Settings.Port, Protocol = (ProtocolTypes)IoAdams.Settings.ProtocolType, Unit = IoAdams.Settings.Unit };
+      IOConfig d = new IOConfig() { Owner = this, Enabled = IoAdams.Enabled, IpAddress = IoAdams.Settings.IpAddress, Port = IoAdams.Settings.Port, Protocol = (ProtocolTypes)IoAdams.Settings.ProtocolType, Unit = IoAdams.Settings.Unit };
       d.ShowDialog();
-      if (IoAdams.Settings.IpAddress != d.IpAddress || IoAdams.Settings.Port != d.Port || (int)IoAdams.Settings.ProtocolType != (int)d.Protocol || IoAdams.Settings.Unit != d.Unit)
+      if (IoAdams.Enabled != d.Enabled || IoAdams.Settings.IpAddress != d.IpAddress || IoAdams.Settings.Port != d.Port || (int)IoAdams.Settings.ProtocolType != (int)d.Protocol || IoAdams.Settings.Unit != d.Unit)
       {
         IoAdams.Disconnect();
-        IoAdams.Settings.IpAddress = d.IpAddress;
-        IoAdams.Settings.Port = d.Port;
-        IoAdams.Settings.ProtocolType = (System.Net.Sockets.ProtocolType)d.Protocol;
-        IoAdams.Settings.Unit = d.Unit;
-        IoAdams.Connect();
+        IoAdams.Enabled = d.Enabled;
+        if (IoAdams.Enabled)
+        {
+          IoAdams.Settings.IpAddress = d.IpAddress;
+          IoAdams.Settings.Port = d.Port;
+          IoAdams.Settings.ProtocolType = (System.Net.Sockets.ProtocolType)d.Protocol;
+          IoAdams.Settings.Unit = d.Unit;
+          IoAdams.Connect();
+        }
       }
+      resetLogoutTimer();
     }
     private void btnChangeDir_Click(object sender, RoutedEventArgs e)
     {
@@ -2283,7 +2536,7 @@ namespace Rox
       t.Focus();
       t.SelectAll();
     }
-    private void AddAlarm(string title, string prompt, string color1, string color2, string variable, dynamic value)
+    private void AddAlarm(string title, string prompt, string color1, string color2, string variableOnOk, string variableOnCancel, dynamic okValue, dynamic cancelValue)
     {
       if (string.IsNullOrEmpty(title)) { return; }
       //if (!alarms.ContainsKey(title))
@@ -2300,15 +2553,17 @@ namespace Rox
           a.Color1 = color1;
           a.Color2 = color2;
           a.Prompt = prompt;
-          a.Variable = variable;
-          a.Value = value;
+          a.VariableOnOk = variableOnOk;
+          a.VariableOnCancel = variableOnCancel;
+          a.OkValue = okValue;
+          a.CancelValue = cancelValue;
         });
       }
       else
       {
         Dispatcher.Invoke(() =>
         {
-          a = new AlarmWindow(title, prompt, color1, color2, variable, value);
+          a = new AlarmWindow(title, prompt, color1, color2, variableOnOk, variableOnCancel, okValue, cancelValue);
           a.Closed += Alarm_Closed;
           alarms.Add(title, a);
           a.Show();
@@ -2317,22 +2572,53 @@ namespace Rox
     }
     private void Alarm_Closed(object sender, EventArgs e)
     {
-      if (((AlarmWindow)sender).Result && !string.IsNullOrEmpty(((AlarmWindow)sender).Variable))
+      //if (((AlarmWindow)sender).Result && !string.IsNullOrEmpty(((AlarmWindow)sender).Variable))
+      //{
+      string varName = ((AlarmWindow)sender).Result ? ((AlarmWindow)sender).VariableOnOk : ((AlarmWindow)sender).VariableOnCancel;
+      try
       {
-        try
+        var daVar = Vars.Where(p => p.Name == varName).FirstOrDefault();
+        daVar.Value = ((AlarmWindow)sender).Result ? ((AlarmWindow)sender).OkValue : ((AlarmWindow)sender).CancelValue;
+        if (daVar.Channel >= 0 && daVar.IsOutput == true)
         {
-          var daVar = Vars.Where(p => p.Name == ((AlarmWindow)sender).Variable).FirstOrDefault();
-          daVar.Value = ((AlarmWindow)sender).Value;
-          if (daVar.Channel >= 0 && daVar.IsOutput == true)
+          // assign physical output
+          switch (daVar.IoController)
           {
-            // assign physical output
-            IoAdams.SetBit(daVar.Channel, daVar.Value == true ? 1 : 0);
+            case IoControllers.Advantech:
+              switch (daVar.VarType.enumValue)
+              {
+                case VarType.boolType:
+                  if (IoAdams != null && IoAdams.Enabled) { IoAdams.SetBit(daVar.ChannelBit, daVar.Value == true ? 1 : 0); }
+                  break;
+                case VarType.stringType:
+                  break;
+                case VarType.numberType:
+                  break;
+                default:
+                  break;
+              }
+              break;
+            case IoControllers.Keyence:
+              switch (daVar.VarType.enumValue)
+              {
+                case VarType.boolType:
+                  if (keyEip != null && keyEip.Enabled) { keyEip.SetBit(daVar.ChannelWord, daVar.ChannelBit, daVar.Value == true); };
+                  break;
+                case VarType.stringType:
+                  break;
+                case VarType.numberType:
+                  break;
+                default:
+                  break;
+              }
+              break;
           }
         }
-        catch (Exception)
-        {
-        }
       }
+      catch (Exception)
+      {
+      }
+      //}
       RemoveAlarm(((AlarmWindow)sender).Title);
     }
     private void RemoveAlarm(string title)
@@ -2369,8 +2655,164 @@ namespace Rox
     }
     private void AssignLiveVars()
     {
-      LiveVars = Vars.Where(p => p.Channel >= 0);
+      //LiveVars = Vars.Where(p => p.Channel >= 0);
+      LiveVars = Vars.Where(p => p.IoController > 0);
       if (!LiveVars.Any()) { LiveVars = null; }
     }
+    private void btnKeyence_Click(object sender, RoutedEventArgs e)
+    {
+      if (keyEip == null) { keyEip = new KeyenceEip(); }
+      EeipConfig d = new EeipConfig() { Owner = this, Enabled = keyEip.Enabled, IpAddress = keyEip.Settings.IpAddress, Port = keyEip.Settings.Port, AssemblyIn = 100, AssemblyOut = 101 };
+      d.ShowDialog();
+      if (keyEip.Enabled != d.Enabled || keyEip.Settings.IpAddress != d.IpAddress || keyEip.Settings.Port != d.Port || keyEip.Settings.AssemblyIn != d.AssemblyIn || keyEip.Settings.AssemblyOut != d.AssemblyOut)
+      {
+        keyEip.Disconnect();
+        keyEip.Enabled = d.Enabled;
+        if (keyEip.Enabled)
+        {
+          keyEip.Settings.IpAddress = d.IpAddress;
+          keyEip.Settings.Port = d.Port;
+          keyEip.Settings.AssemblyIn = d.AssemblyIn;
+          keyEip.Settings.AssemblyOut = d.AssemblyOut;
+          keyEip.Connect();
+        }
+      }
+      resetLogoutTimer();
+    }
+    private void AttemptLogin()
+    {
+      Login d = new Login(delayToLoginAsTicks - DateTime.Now.Ticks) { Owner = this };
+      d.ShowDialog();
+      if (d.DialogResult == true)
+      {
+        Login(d.PasswordAttempt);
+      }
+    }
+    private void Logout(object state)
+    {
+      Properties.Settings.Default.Save();
+      UpdateHeader("goodbye", Colors.DarkGray);
+      LoggedIn = false;
+
+      // lock form
+      Dispatcher.Invoke(() =>
+      {
+        btnLogin.Content = "login";
+        tree.AllowDrop = false;
+        btnEditPwd.IsEnabled = false; btnEditPwd.Visibility = Visibility.Collapsed;
+        btnPlugins.IsEnabled = false; btnPlugins.Visibility = Visibility.Collapsed;
+        chkHighlight.IsEnabled = false; chkHighlight.Visibility = Visibility.Collapsed;
+        btnAbort.IsEnabled = false; btnAbort.Visibility = Visibility.Collapsed;
+        btnSaveAs.IsEnabled = false; btnSaveAs.Visibility = Visibility.Collapsed;
+        btnDeleteBorder.IsEnabled = false; btnDeleteBorder.Visibility = Visibility.Collapsed;
+        btnAdvantech.IsEnabled = false; btnAdvantech.Visibility = Visibility.Collapsed;
+        btnKeyence.IsEnabled = false; btnKeyence.Visibility = Visibility.Collapsed;
+        btnAddVariable.IsEnabled = false; btnAddVariable.Visibility = Visibility.Collapsed;
+        SequenceOptions.IsEnabled = false; // SequenceOptions.Visibility = Visibility.Collapsed;
+        seqMode.IsEnabled = false; seqMode.Visibility = Visibility.Collapsed;
+        seqSetMode.IsEnabled = false; seqSetMode.Visibility = Visibility.Collapsed;
+        seqCondition.IsEnabled = false; seqCondition.Visibility = Visibility.Collapsed;
+        seqTimer.IsEnabled = false; seqTimer.Visibility = Visibility.Collapsed;
+        seqSetVar.IsEnabled = false; seqSetVar.Visibility = Visibility.Collapsed;
+        seqReturn.IsEnabled = false; seqReturn.Visibility = Visibility.Collapsed;
+        seqAlarm.IsEnabled = false; seqAlarm.Visibility = Visibility.Collapsed;
+        VariableOptions.IsEnabled = false; // VariableOptions.Visibility = Visibility.Collapsed;
+      });
+    }
+    private void Login(string password)
+    {
+      if ((password ?? string.Empty) == (Properties.Settings.Default.Password ?? string.Empty))
+      {
+        btnLogin.Content = "logout";
+        Properties.Settings.Default.FailedLogin = 0;
+        resetLogoutTimer();
+        UpdateHeader("welcome", Colors.LawnGreen);
+        LoggedIn = true;
+        // unlock form
+        tree.AllowDrop = true;
+        btnEditPwd.IsEnabled = true; btnEditPwd.Visibility = Visibility.Visible;
+        btnPlugins.IsEnabled = true; btnPlugins.Visibility = Visibility.Visible;
+        chkHighlight.IsEnabled = true; chkHighlight.Visibility = Visibility.Visible;
+        btnAbort.IsEnabled = true; btnAbort.Visibility = Visibility.Visible;
+        btnSaveAs.IsEnabled = true; btnSaveAs.Visibility = Visibility.Visible;
+        btnDeleteBorder.IsEnabled = true; btnDeleteBorder.Visibility = Visibility.Visible;
+        btnAdvantech.IsEnabled = true; btnAdvantech.Visibility = Visibility.Visible;
+        btnKeyence.IsEnabled = true; btnKeyence.Visibility = Visibility.Visible;
+        btnAddVariable.IsEnabled = true; btnAddVariable.Visibility = Visibility.Visible;
+        SequenceOptions.IsEnabled = true; //SequenceOptions.Visibility = Visibility.Visible;
+        btnDeleteSelectedNode.IsEnabled = true; btnDeleteSelectedNode.Visibility = Visibility.Visible;
+        seqMode.IsEnabled = true; seqMode.Visibility = Visibility.Visible;
+        seqSetMode.IsEnabled = true; seqSetMode.Visibility = Visibility.Visible;
+        seqCondition.IsEnabled = true; seqCondition.Visibility = Visibility.Visible;
+        seqTimer.IsEnabled = true; seqTimer.Visibility = Visibility.Visible;
+        seqSetVar.IsEnabled = true; seqSetVar.Visibility = Visibility.Visible;
+        seqReturn.IsEnabled = true; seqReturn.Visibility = Visibility.Visible;
+        seqAlarm.IsEnabled = true; seqAlarm.Visibility = Visibility.Visible;
+        VariableOptions.IsEnabled = true; // VariableOptions.Visibility = Visibility.Visible;
+      }
+      else
+      {
+        if (LoggedIn) { Logout(null); }
+        Properties.Settings.Default.FailedLogin += 1;
+        SetLoginDelay();
+        UpdateHeader("failed login attempt: " + Properties.Settings.Default.FailedLogin, Colors.Orange);
+      }
+      Properties.Settings.Default.Save();
+    }
+    private void resetLogoutTimer(int interval = 60000)
+    {
+      if (tmrLogout == null)
+      {
+        tmrLogout = new System.Threading.Timer(new System.Threading.TimerCallback(Logout), null, interval, System.Threading.Timeout.Infinite);
+      }
+      else
+      {
+        tmrLogout.Change(interval, System.Threading.Timeout.Infinite);
+      }
+    }
+    private void SetLoginDelay()
+    {
+      if (Properties.Settings.Default.FailedLogin < 0) { Properties.Settings.Default.FailedLogin = 0; }
+      switch (Properties.Settings.Default.FailedLogin)
+      {
+        case 3:
+          delayToLoginAsTicks = DateTime.Now.Ticks + new TimeSpan(0, 0, 10).Ticks;
+          break;
+        case 4:
+          delayToLoginAsTicks = DateTime.Now.Ticks + new TimeSpan(0, 0, 20).Ticks;
+          break;
+        case 5:
+          delayToLoginAsTicks = DateTime.Now.Ticks + new TimeSpan(0, 0, 45).Ticks;
+          break;
+        default:
+          delayToLoginAsTicks = DateTime.Now.Ticks + new TimeSpan(0, 0, (Properties.Settings.Default.FailedLogin - 2) * 60).Ticks;
+          break;
+      }
+    }
+    private void Login_Click(object sender, RoutedEventArgs e)
+    {
+      if (LoggedIn)
+      {
+        Logout(null);
+      }
+      else
+      {
+        AttemptLogin();
+      }
+    }
+    private void Edit_Click(object sender, RoutedEventArgs e)
+    {
+      if (LoggedIn)
+      {
+        var d = new SetPassword() { Owner = this };
+        if (d.ShowDialog() == true)
+        {
+          Properties.Settings.Default.Password = d.NewPassword;
+          Properties.Settings.Default.Save();
+        }
+        resetLogoutTimer();
+      }
+    }
+
   }
 }

@@ -5,9 +5,9 @@ namespace Rox
   /// <summary>
   /// Interaction logic for IOConfig.xaml
   /// </summary>
-  public partial class IOConfig : Window
+  public partial class EeipConfig : Window
   {
-    public IOConfig()
+    public EeipConfig()
     {
       InitializeComponent();
       this.DataContext = this;
@@ -15,8 +15,8 @@ namespace Rox
     public bool Enabled { get; set; }
     public string IpAddress { get; set; }
     public int Port { get; set; }
-    public Rox.SupportedAdvantechUnits Unit { get; set; }
-    public Rox.ProtocolTypes Protocol { get; set; }
+    public byte AssemblyIn { get; set; }
+    public byte AssemblyOut { get; set; }
     private void btnClose_Click(object sender, RoutedEventArgs e)
     {
       this.Close();
