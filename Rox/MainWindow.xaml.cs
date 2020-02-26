@@ -141,6 +141,23 @@ namespace Rox
     {
       InitializeComponent();
       //plugins = LoadPlugins(@"Plugins\");
+      var nimnu = new System.Windows.Forms.ContextMenu();
+      var mnuItem = new System.Windows.Forms.MenuItem() { Text = "Exit" };
+      mnuItem.Click += (object sender, EventArgs e) => { this.Close(); }; ;
+      nimnu.MenuItems.Add(mnuItem);
+
+      mnuItem = new System.Windows.Forms.MenuItem() { Text = "Open" };
+      mnuItem.Click += (object sender, EventArgs e)=> { this.Show(); this.WindowState = WindowState.Normal; };
+      nimnu.MenuItems.Add(mnuItem);
+
+      (new System.Windows.Forms.NotifyIcon
+      {
+        Icon = new System.Drawing.Icon(Application.GetResourceStream(new Uri("pack://application:,,,/ite.ico", UriKind.RelativeOrAbsolute))?.Stream),
+        Visible = true,
+        ContextMenu = nimnu
+      })
+      .DoubleClick += (object sender, EventArgs args) => { this.Show(); this.WindowState = WindowState.Normal; };
+
     }
     //public ICollection<IPluginContract> LoadPlugins(string path)
     //{
@@ -243,6 +260,13 @@ namespace Rox
     private void btnMinimize_Click(object sender, RoutedEventArgs e)
     {
       this.WindowState = WindowState.Minimized;
+    }
+    protected override void OnStateChanged(EventArgs e)
+    {
+      if (WindowState == WindowState.Minimized)
+        this.Hide();
+
+      base.OnStateChanged(e);
     }
     private void btnClose_Click(object sender, RoutedEventArgs e)
     {
@@ -2799,7 +2823,7 @@ namespace Rox
     private void Logout(object state)
     {
       Properties.Settings.Default.Save();
-      UpdateHeader("goodbye", Colors.DarkGray);
+      UpdateHeader("you are logged out", Colors.DarkGray);
       LoggedIn = false;
 
       // lock form

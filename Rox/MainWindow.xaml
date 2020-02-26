@@ -921,16 +921,11 @@
                   </HierarchicalDataTemplate.Resources>
                   <Border>
                     <StackPanel Orientation="Horizontal" >
-                      <Image Width="20" Height="20" Margin="5,0,0,0" Source="include/Question.png"/>
+                      <Image Width="20" Height="20" Margin="5,0,0,0" Source="include/Alarm.png"/>
                       <TextBlock Text="{Binding Name}" Margin="5,2,5,2" FontSize="16" Foreground="White"/>
                     </StackPanel>
                   </Border>
                 </HierarchicalDataTemplate>
-                
-                
-                
-                
-                
                 <!-- ALARM CLOSE STYLE ############################################################# -->
                 <HierarchicalDataTemplate DataType="{x:Type local:IteALARMCLOSE_VM}" ItemsSource="{Binding Items}" >
                   <HierarchicalDataTemplate.Resources>
@@ -948,16 +943,11 @@
                   </HierarchicalDataTemplate.Resources>
                   <Border>
                     <StackPanel Orientation="Horizontal" >
-                      <Image Width="20" Height="20" Margin="5,0,0,0" Source="include/neon-x.png"/>
+                      <Image Width="20" Height="20" Margin="5,0,0,0" Source="include/AlarmX.png"/>
                       <TextBlock Text="{Binding Name}" Margin="5,2,5,2" FontSize="16" Foreground="White"/>
                     </StackPanel>
                   </Border>
                 </HierarchicalDataTemplate>
-                
-                
-                
-                
-                
               </TreeView.Resources>
               <TreeView.ItemContainerStyle>
                 <Style TargetType="{x:Type TreeViewItem}">
@@ -1047,7 +1037,7 @@
               <StackPanel x:Name="seqAlarm" Orientation="Horizontal" PreviewMouseLeftButtonDown="_PreviewMouseLeftButtonDown" PreviewMouseMove="Alarm_PreviewMouseMove" MouseEnter="SeqItemAlarm_MouseEnter" MouseLeave="SeqItem_MouseLeave">
                 <Canvas Width="26" Height="26">
                   <Canvas.Background>
-                    <ImageBrush ImageSource="include/Question.png"/>
+                    <ImageBrush ImageSource="include/Alarm.png"/>
                   </Canvas.Background>
                 </Canvas>
                 <Label Foreground="White" Content="Show Alarm"/>
@@ -1055,7 +1045,7 @@
               <StackPanel x:Name="seqAlarmClose" Orientation="Horizontal" PreviewMouseLeftButtonDown="_PreviewMouseLeftButtonDown" PreviewMouseMove="AlarmClose_PreviewMouseMove" MouseEnter="SeqItemAlarmClose_MouseEnter" MouseLeave="SeqItem_MouseLeave">
                 <Canvas Width="26" Height="26">
                   <Canvas.Background>
-                    <ImageBrush ImageSource="include/neon-x.png"/>
+                    <ImageBrush ImageSource="include/AlarmX.png"/>
                   </Canvas.Background>
                 </Canvas>
                 <Label Foreground="White" Content="Close Alarm"/>
