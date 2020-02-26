@@ -42,7 +42,15 @@ namespace Rox
     private static SolidColorBrush trueNodeBackground = new SolidColorBrush(Color.FromRgb(0, 107, 21));
     private static SolidColorBrush falseNodeBackground = new SolidColorBrush(Color.FromRgb(107, 0, 66));
     //private static SolidColorBrush textboxBackgroundAllowDrop = new SolidColorBrush(Color.FromRgb(71, 125, 30));
-    public static List<NodeTypes> SequenceNodes = new List<NodeTypes>() { NodeTypes.Condition, NodeTypes.General, NodeTypes.Timer, NodeTypes.SetVariable, NodeTypes.SetMode, NodeTypes.Return, NodeTypes.Alarm };
+    public static List<NodeTypes> SequenceNodes = new List<NodeTypes>() {
+      NodeTypes.Condition,
+      NodeTypes.General,
+      NodeTypes.Timer,
+      NodeTypes.SetVariable,
+      NodeTypes.SetMode,
+      NodeTypes.Return,
+      NodeTypes.Alarm,
+      NodeTypes.AlarmClose };
     public List<IteNodeViewModel> Modes;// : INotifyPropertyChanged;
     public List<string> AvailModes { get { return Modes.Where(p => p.NodeType == NodeTypes.Mode).Select(p => p.Name).ToList(); } }
     public IteNodeViewModel selectedNode { get; set; }
@@ -375,6 +383,7 @@ namespace Rox
     private string xmlTag_SetMode { get { return "mode"; } }
     private string xmlTag_Return { get { return "ret"; } }
     private string xmlTag_Alarm { get { return "alarm"; } }
+    private string xmlTag_AlarmClose { get { return "alarmX"; } }
     private void FileLoad(string filename)
     {
       Paused = true;
@@ -953,6 +962,9 @@ namespace Rox
           var a = (IteAlarm)n.Node;
           sw.Write("<{0} name='{1}' title='{2}' prompt='{3}' c1='{4}' c2='{5}' varname='{6}' val='{7}' altvarname='{8}' altval='{9}'/>", xmlTag_Alarm, a.Name, a.Title, a.Prompt, a.Color1, a.Color2, a.VariableNameOnOkClick, a.OkValue, a.VariableNameOnCancelClick, a.CancelValue);
           break;
+        case NodeTypes.AlarmClose:
+          sw.Write("<{0} name='{1}' title='{2}'/>", xmlTag_AlarmClose, ((IteAlarmClose)n.Node).Name, ((IteAlarmClose)n.Node).Title);
+          break;
         default:
           sw.Write("<unknown name='{0}' type='{1}' exp='{2}'/>", n.Name, n.NodeType, n.IsExpanded);
           AppendChildren(sw, n);
@@ -1186,6 +1198,13 @@ namespace Rox
             SetNodeOptionsPanel("NodeOptionsPanel_Alarm");
           }
           break;
+        case NodeTypes.AlarmClose:
+          ClearNodeOptionsPanel();
+          if (!s.IsLocked)
+          {
+            SetNodeOptionsPanel("NodeOptionsPanel_AlarmClose");
+          }
+          break;
       }
       e.Handled = true;
     }
@@ -1309,6 +1328,20 @@ namespace Rox
         resetLogoutTimer();
       }
     }
+    private void AlarmClose_PreviewMouseMove(object sender, MouseEventArgs e)
+    {
+      if (LoggedIn)
+      {
+        Vector diff = startDragPoint - e.GetPosition(null);
+        if (e.LeftButton == MouseButtonState.Pressed && (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance || Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance))
+        {
+          // Initialize the drag & drop operation
+          DataObject dragData = new DataObject("iteNode", new IteAlarmClose("Close Alarm") { });
+          DragDrop.DoDragDrop((StackPanel)sender, dragData, DragDropEffects.Move);
+        }
+        resetLogoutTimer();
+      }
+    }
     private void Node_PreviewMouseMove(object sender, MouseEventArgs e)
     {
       if (LoggedIn)
@@ -1325,7 +1358,8 @@ namespace Rox
               test == typeof(IteSETVAR_VM) ||
               test == typeof(IteSETMODE_VM) ||
               test == typeof(IteRETURN_VM) ||
-              test == typeof(IteALARM_VM))
+              test == typeof(IteALARM_VM) ||
+              test == typeof(IteALARMCLOSE_VM))
           {
             dragData = new DataObject("iteNodeVM", (IteNodeViewModel)((dynamic)e.OriginalSource).DataContext);
           }
@@ -1459,6 +1493,11 @@ namespace Rox
             else if (T == typeof(IteAlarm))
             {
               N = N ?? new IteALARM_VM(sourceNode) { IsSelected = true };
+              success = InsertNode(IsDropInSeq, N, dc, (startDragPoint - e.GetPosition(this)).Y >= 0);
+            }
+            else if (T == typeof(IteAlarmClose))
+            {
+              N = N ?? new IteALARMCLOSE_VM(sourceNode) { IsSelected = true };
               success = InsertNode(IsDropInSeq, N, dc, (startDragPoint - e.GetPosition(this)).Y >= 0);
             }
             else
@@ -1642,7 +1681,19 @@ namespace Rox
         d.ShowDialog();
         if (d.DialogResult == true && !string.IsNullOrWhiteSpace(d.VarName))
         {
-          n.Name = d.VarName;
+          if (n.Name != d.VarName)
+          {
+            var p = new CustomMessageboxWindow("Rename all variables?", string.Format("Variable name has changed. \nUpdate all instances of '{0}' to '{1}'?", n.Name, d.VarName), MessageBoxButton.YesNo) { Owner = this };
+            p.ShowDialog();
+            if (p.DialogResult == true)
+            {
+              foreach (var mode in Modes)
+              {
+                RenameAllVariables(mode, n.Name, d.VarName);
+              }
+            }
+            n.Name = d.VarName;
+          }
           n.Note = d.VarNote;
           n.Value = d.VarValue;
           n.Channel = d.Channel;
@@ -1652,6 +1703,52 @@ namespace Rox
         }
         //AutoSizeVarColumns();
         resetLogoutTimer();
+      }
+    }
+    private void RenameAllVariables( IteNodeViewModel node,string existingName, string newName)
+    {
+      foreach (var n in node.Items)
+      {
+        RenameAllVariables(n, existingName, newName);
+        switch (n.NodeType)
+        {
+          case NodeTypes.General:
+            break;
+          case NodeTypes.Mode:
+            break;
+          case NodeTypes.Condition:
+            if (((IteCondition)n.Node).VariableName == existingName) { ((IteCondition)n.Node).VariableName = newName; }
+            break;
+          case NodeTypes.Timer:
+            break;
+          case NodeTypes.Initialized:
+            break;
+          case NodeTypes.Continuous:
+            break;
+          case NodeTypes.ConditionTrue:
+            break;
+          case NodeTypes.ConditionFalse:
+            break;
+          case NodeTypes.ConditionTrue1:
+            break;
+          case NodeTypes.ConditionFalse1:
+            break;
+          case NodeTypes.SetVariable:
+            if (((IteSetVar)n.Node).VariableName == existingName) { ((IteSetVar)n.Node).VariableName = newName; }
+            break;
+          case NodeTypes.SetMode:
+            break;
+          case NodeTypes.Return:
+            break;
+          case NodeTypes.Alarm:
+            if (((IteAlarm)n.Node).VariableNameOnOkClick == existingName) { ((IteAlarm)n.Node).VariableNameOnOkClick = newName; }
+            if (((IteAlarm)n.Node).VariableNameOnCancelClick == existingName) { ((IteAlarm)n.Node).VariableNameOnCancelClick = newName; }
+            break;
+          case NodeTypes.AlarmClose:
+            break;
+          default:
+            break;
+        }
       }
     }
     private void Logic_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -2289,6 +2386,10 @@ namespace Rox
             ((IteAlarm)node.Node).CancelValue
             );
           break;
+        case NodeTypes.AlarmClose:
+          if (highlight) { node.Background = processedNodeBackground; }
+          RemoveAlarm(((IteAlarmClose)node.Node).Title);
+          break;
       }
     }
     private void ChkHighlight_Checked(object sender, RoutedEventArgs e)
@@ -2463,7 +2564,7 @@ namespace Rox
     }
     private void SeqItemMode_MouseEnter(object sender, MouseEventArgs e)
     {
-      txtSelectedNodeInfo.Text = "{ MODE } A mode can be created to easily abort a running mode and start new sequencing. Stop and Auto modes will run with Start/Stop button. No items can be added directly. Add items to Initialize or Continuous branches. \nDrag and Drop to add this item";
+      txtSelectedNodeInfo.Text = "{ Mode } A mode can be created to easily abort a running mode and start new sequencing. Stop and Auto modes will run with Start/Stop button. No items can be added directly. Add items to Initialize or Continuous branches. \nDrag and Drop to add this item";
     }
     private void SeqItemSetMode_MouseEnter(object sender, MouseEventArgs e)
     {
@@ -2487,7 +2588,11 @@ namespace Rox
     }
     private void SeqItemAlarm_MouseEnter(object sender, MouseEventArgs e)
     {
-      txtSelectedNodeInfo.Text = "{ Return } Aborts the current iteration. \nDrag and Drop to add this item.";
+      txtSelectedNodeInfo.Text = "{ Alarm } Shows a dialog with the specified information. Title must be unique to the alarm. Prompt will show in the center of the window. Color 1 and 2 is the border color and can easily distinguish different alarms. Colors can be set to common names like red, green, darkblue, lightgray, etc. They can also be in hex format. For example #FFFF0000.";
+    }
+    private void SeqItemAlarmClose_MouseEnter(object sender, MouseEventArgs e)
+    {
+      txtSelectedNodeInfo.Text = "{ Close Alarm } Attempts to close all active alarms with the given title.";
     }
     private void togglePlugins(object sender, RoutedEventArgs e)
     {
@@ -2627,8 +2732,11 @@ namespace Rox
     }
     private void RemoveAlarm(AlarmWindow alarm)
     {
-      alarm.Close();
-      alarms.Remove(alarm.Title);
+      Dispatcher.Invoke(() =>
+      {
+        alarm.Close();
+        alarms.Remove(alarm.Title);
+      });
     }
     private void ClearAlarms()
     {
@@ -2716,6 +2824,7 @@ namespace Rox
         seqSetVar.IsEnabled = false; seqSetVar.Visibility = Visibility.Collapsed;
         seqReturn.IsEnabled = false; seqReturn.Visibility = Visibility.Collapsed;
         seqAlarm.IsEnabled = false; seqAlarm.Visibility = Visibility.Collapsed;
+        seqAlarmClose.IsEnabled = false; seqAlarmClose.Visibility = Visibility.Collapsed;
         VariableOptions.IsEnabled = false; // VariableOptions.Visibility = Visibility.Collapsed;
       });
     }
@@ -2748,6 +2857,7 @@ namespace Rox
         seqSetVar.IsEnabled = true; seqSetVar.Visibility = Visibility.Visible;
         seqReturn.IsEnabled = true; seqReturn.Visibility = Visibility.Visible;
         seqAlarm.IsEnabled = true; seqAlarm.Visibility = Visibility.Visible;
+        seqAlarmClose.IsEnabled = true; seqAlarmClose.Visibility = Visibility.Visible;
         VariableOptions.IsEnabled = true; // VariableOptions.Visibility = Visibility.Visible;
       }
       else

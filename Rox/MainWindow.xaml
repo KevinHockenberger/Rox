@@ -413,7 +413,6 @@
                 <ComboBoxItem Content="0" />
                 <ComboBoxItem Content="1" />
               </ComboBox>
-
             </Grid>
             <Grid>
               <Grid.ColumnDefinitions>
@@ -448,8 +447,19 @@
                 <ComboBoxItem Content="0" />
                 <ComboBoxItem Content="1" />
               </ComboBox>
-
             </Grid>
+          </StackPanel>
+        </ScrollViewer>
+      </Border>
+    </DataTemplate>
+    <DataTemplate x:Key="NodeOptionsPanel_AlarmClose" >
+      <Border Margin="0,10,0,0" BorderThickness="2" BorderBrush="DarkGray" Padding="5" Background="#424242">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" >
+          <StackPanel>
+            <Label Style="{StaticResource lblDescriptor}" Content="Name" />
+            <TextBox x:Name="txtNodeName" KeyUp="txtNodeName_KeyUp" Text="{Binding selectedNode.Name, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" Loaded="FocusTextBoxOnLoad"/>
+            <Label Style="{StaticResource lblDescriptor}" Content="Title" Margin="0,5,0,0"/>
+            <TextBox Text="{Binding Path=selectedNode.Node.Title, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" VerticalContentAlignment="Center"  />
           </StackPanel>
         </ScrollViewer>
       </Border>
@@ -916,6 +926,38 @@
                     </StackPanel>
                   </Border>
                 </HierarchicalDataTemplate>
+                
+                
+                
+                
+                
+                <!-- ALARM CLOSE STYLE ############################################################# -->
+                <HierarchicalDataTemplate DataType="{x:Type local:IteALARMCLOSE_VM}" ItemsSource="{Binding Items}" >
+                  <HierarchicalDataTemplate.Resources>
+                    <Style TargetType="{x:Type Border}">
+                      <Setter Property="CornerRadius" Value="4" />
+                      <Setter Property="BorderThickness" Value="1" />
+                      <Setter Property="Background" Value="{Binding Background}" />
+                      <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                          <Setter Property="BorderBrush" Value="White" />
+                          <Setter Property="Background" Value="#FF515151" />
+                        </Trigger>
+                      </Style.Triggers>
+                    </Style>
+                  </HierarchicalDataTemplate.Resources>
+                  <Border>
+                    <StackPanel Orientation="Horizontal" >
+                      <Image Width="20" Height="20" Margin="5,0,0,0" Source="include/neon-x.png"/>
+                      <TextBlock Text="{Binding Name}" Margin="5,2,5,2" FontSize="16" Foreground="White"/>
+                    </StackPanel>
+                  </Border>
+                </HierarchicalDataTemplate>
+                
+                
+                
+                
+                
               </TreeView.Resources>
               <TreeView.ItemContainerStyle>
                 <Style TargetType="{x:Type TreeViewItem}">
@@ -1009,6 +1051,14 @@
                   </Canvas.Background>
                 </Canvas>
                 <Label Foreground="White" Content="Show Alarm"/>
+              </StackPanel>
+              <StackPanel x:Name="seqAlarmClose" Orientation="Horizontal" PreviewMouseLeftButtonDown="_PreviewMouseLeftButtonDown" PreviewMouseMove="AlarmClose_PreviewMouseMove" MouseEnter="SeqItemAlarmClose_MouseEnter" MouseLeave="SeqItem_MouseLeave">
+                <Canvas Width="26" Height="26">
+                  <Canvas.Background>
+                    <ImageBrush ImageSource="include/neon-x.png"/>
+                  </Canvas.Background>
+                </Canvas>
+                <Label Foreground="White" Content="Close Alarm"/>
               </StackPanel>
             </StackPanel>
             <Button x:Name="btnDeleteSelectedNode" BorderThickness="1" Click="BtnDeleteSelectedNode_Click" DockPanel.Dock="Bottom">

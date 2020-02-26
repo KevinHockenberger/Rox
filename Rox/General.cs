@@ -156,6 +156,7 @@ namespace Rox
     SetMode = 11,
     Return = 12,
     Alarm = 13,
+    AlarmClose = 14,
   }
   [TypeConverter(typeof(EnumDescriptionTypeConverter))]
   public enum IoControllers
@@ -173,7 +174,7 @@ namespace Rox
     public string Name { get; set; }
     public List<NodeTypes> AllowedNodes { get; } = new List<NodeTypes>() { };
     public Collection<INode> Items { get; set; } = new Collection<INode>();
-    public string Description() { return "{ MODE } A mode can be created to easily abort a running mode and start new sequencing. Stop and Auto modes will run with Start/Stop button. No items can be added directly. Add items to Initialize or Continuous branches."; }
+    public string Description() { return "{ Mode } A mode can be created to easily abort a running mode and start new sequencing. Stop and Auto modes will run with Start/Stop button. No items can be added directly. Add items to Initialize or Continuous branches."; }
     public IteMode(string name)
     {
       Name = name;
@@ -357,6 +358,25 @@ namespace Rox
     public string Color1 { get; set; } = "Black";
     public string Color2 { get; set; } = "White";
     public IteAlarm(string name)
+    {
+      Name = name;
+    }
+    protected virtual void OnPropertyChanged(string propertyName)
+    {
+      this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+  }
+  public class IteAlarmClose : INode, INotifyPropertyChanged
+  {
+    public event PropertyChangedEventHandler PropertyChanged;
+    public NodeTypes NodeType { get; } = NodeTypes.AlarmClose;
+    public string Name { get; set; }
+    public List<NodeTypes> AllowedNodes { get; } = new List<NodeTypes>() { };
+    public Collection<INode> Items { get; set; } = new Collection<INode>();
+    public string Description() { return "{ Close Alarm } Attempts to close all active alarms with the given title."; }
+    public string Prompt { get; set; } = "Close Alarm";
+    public string Title { get; set; } = string.Empty;
+    public IteAlarmClose(string name)
     {
       Name = name;
     }
@@ -637,6 +657,10 @@ namespace Rox
   public class IteALARM_VM : IteNodeViewModel
   {
     public IteALARM_VM(INode node) : base(node) { }
+  }
+  public class IteALARMCLOSE_VM : IteNodeViewModel
+  {
+    public IteALARMCLOSE_VM(INode node) : base(node) { }
   }
   public class Variable : INotifyPropertyChanged
   {

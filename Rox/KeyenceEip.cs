@@ -13,7 +13,6 @@ namespace Rox
     private byte[] OutputState;
     public bool IsConnected { get; private set; }
     public bool IsPaused { get; private set; }
-
     public KeyenceEip()
     {
       Settings = new ConnectionSettings();
@@ -186,22 +185,6 @@ namespace Rox
     public void SetNumber(short StartWord, byte Value)
     {
       eipClient.O_T_IOData[StartWord] = Value;
-
-      //if (eipClient != null)
-      //{
-      //  eipClient.O_T_IOData[4] = Value;
-
-      //  eipClient.O_T_IOData[0] = 4;
-
-      //  System.Threading.Thread.Sleep(250);
-      //  eipClient.O_T_IOData[0] = 0;
-
-      //}
-
-
-
-
-
     }
   }
 }
