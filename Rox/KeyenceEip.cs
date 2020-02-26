@@ -136,32 +136,72 @@ namespace Rox
     }
     public void SetBit(short Word, short Bit, bool Value)
     {
-      Bit += 1;
-      //Console.WriteLine("setting value: " + Value);
-      if (Value)
+      //int a = 0;
+      //a = TurnBitOn(a, 1);    //  bit 0 =  2^0  =  1
+      //a = TurnBitOn(a, 2);    //  bit 1 =  2^1  =  2
+      //a = TurnBitOn(a, 4);    //  bit 2 =  2^2  =  4
+      //a = TurnBitOn(a, 8);    //  bit 3 =  2^3  =  8
+      //a = TurnBitOn(a, 16);   //  bit 4 =  2^4  =  16
+      //a = TurnBitOn(a, 32);   //  bit 5 =  2^5  =  32
+      //a = TurnBitOn(a, 64);   //  bit 7 =  2^6  =  64
+      //a = TurnBitOn(a, 128);  //  bit 8 =  2^7  =  128
+
+      if (eipClient != null)
       {
-        eipClient.O_T_IOData[Word] = TurnBitOn(eipClient.O_T_IOData[Word], Bit);
+        if (Value)
+        {
+          eipClient.O_T_IOData[Word] = (byte)TurnBitOn(eipClient.O_T_IOData[Word], (int)Math.Pow(2, Bit));
+        }
+        else
+        {
+          eipClient.O_T_IOData[Word] = (byte)TurnBitOff(eipClient.O_T_IOData[Word], (int)Math.Pow(2, Bit));
+        }
       }
-      else
-      {
-        eipClient.O_T_IOData[Word] = TurnBitOff(eipClient.O_T_IOData[Word], Bit);
-      }
+      Console.WriteLine(eipClient.O_T_IOData[0]);
     }
-    private static byte TurnBitOn(byte value, int bitIndex)
+    //private static byte TurnBitOn(byte value, int bitIndex)
+    //{
+    //  return (byte)(value | bitIndex);
+    //}
+    public static int TurnBitOn(int value, int bitToTurnOn)
     {
-      return (byte)(value | bitIndex);
+      return (value | bitToTurnOn);
     }
-    private static byte TurnBitOff(byte value, int bitIndex)
+    //private static byte TurnBitOff(byte value, int bitIndex)
+    //{
+    //  return (byte)(value & ~bitIndex);
+    //}
+    public static int TurnBitOff(int value, int bitToTurnOff)
     {
-      return (byte)(value & ~bitIndex);
+      return (value & ~bitToTurnOff);
     }
-    private static byte FlipBit(byte value, int bitIndex)
+    //private static byte FlipBit(byte value, int bitIndex)
+    //{
+    //  return (byte)(value ^ bitIndex);
+    //}
+    public static int FlipBit(int value, int bitToFlip)
     {
-      return (byte)(value ^ bitIndex);
+      return (value ^ bitToFlip);
     }
     public void SetNumber(short StartWord, byte Value)
     {
       eipClient.O_T_IOData[StartWord] = Value;
+
+      //if (eipClient != null)
+      //{
+      //  eipClient.O_T_IOData[4] = Value;
+
+      //  eipClient.O_T_IOData[0] = 4;
+
+      //  System.Threading.Thread.Sleep(250);
+      //  eipClient.O_T_IOData[0] = 0;
+
+      //}
+
+
+
+
+
     }
   }
 }

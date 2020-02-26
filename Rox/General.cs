@@ -66,7 +66,21 @@ namespace Rox
   {
     public new static bool Equals(dynamic a, dynamic b)
     {
-      if (a.GetType() != b.GetType()) { return false; }
+      var aType = a.GetType();
+      var bType = b.GetType();
+      if (aType != bType)
+      {
+        // type mismatch
+
+        if (aType == typeof(decimal) || aType == typeof(double) || aType == typeof(int) || aType == typeof(long) || aType == typeof(short) || aType == typeof(byte))
+        {
+          if (bType == typeof(decimal) || bType == typeof(double) || bType == typeof(int) || bType == typeof(long) || bType == typeof(short) || bType == typeof(byte))
+          {
+            return a == b;
+          }
+        }
+        return false;
+      }
       return a.Equals(b);
     }
     public static bool GreaterThan(dynamic a, dynamic b)
@@ -567,14 +581,8 @@ namespace Rox
       }
       set
       {
-        //if (!(_background as System.Windows.Media.SolidColorBrush).Equals(value))
-        //{
-        //if (_background.ToString()!=value.ToString())
-        //{
         _background = value;
         this.OnPropertyChanged("Background");
-        //}
-        //}
       }
     }
   }

@@ -2080,7 +2080,7 @@ namespace Rox
     }
     private void ProcessValidNodeSequence(IteNodeViewModel node, bool initialize, SequenceEventArgs e)
     {
-      if (e.AbortIteration) { return; }
+      if (e.AbortIteration || Paused) { return; }
       switch (node.NodeType)
       {
         default: // ############################################################################################ DEFAULT
@@ -2208,7 +2208,7 @@ namespace Rox
         case NodeTypes.SetVariable:
           try
           {
-            var daVar = Vars.Where(p => p.Name == ((IteSetVar)node.Node).VariableName).FirstOrDefault();
+            Rox.Variable daVar = Vars.Where(p => p.Name == ((IteSetVar)node.Node).VariableName).FirstOrDefault();
             switch (((IteSetVar)node.Node).AssignMethod)
             {
               case AssignMethod.assign:
