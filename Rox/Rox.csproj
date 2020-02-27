@@ -239,6 +239,7 @@
     <Resource Include="include\Edit.png" />
     <Resource Include="include\Alarm.png" />
     <Resource Include="include\AlarmX.png" />
+    <Resource Include="include\gear.png" />
     <Content Include="R3P\Advantech.Adam.DLL" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

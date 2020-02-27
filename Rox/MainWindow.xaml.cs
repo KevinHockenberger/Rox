@@ -14,13 +14,21 @@ using System.Xml;
 
 namespace Rox
 {
+  class IoController
+  {
+    public IoControllers ControllerType { get; set; }
+    public string Name { get; set; }
+    public object Details { get; set; }
+
+  }
   /// <summary>
   /// Interaction logic for MainWindow.xaml
   /// </summary>
   public partial class MainWindow : Window
   {
     private Dictionary<string, AlarmWindow> alarms = new Dictionary<string, AlarmWindow>();
-    private IoAdams IoAdams; // = new IoAdams(new IoAdams.Settings() { IpAddress = "172.18.3.231", Port = 502, ProtocolType = System.Net.Sockets.ProtocolType.Tcp });
+    private List<IoController> Controllers = new List<IoController>();
+    private IoAdams IoAdams;
     private KeyenceEip keyEip;
     //private ICollection<IPluginContract> plugins;
     private class SequenceEventArgs
@@ -2829,7 +2837,7 @@ namespace Rox
       // lock form
       Dispatcher.Invoke(() =>
       {
-        btnLogin.Content = "login";
+        btnLoginLabel.Content = "login";
         tree.AllowDrop = false;
         btnEditPwd.IsEnabled = false; btnEditPwd.Visibility = Visibility.Collapsed;
         btnPlugins.IsEnabled = false; btnPlugins.Visibility = Visibility.Collapsed;
@@ -2856,7 +2864,7 @@ namespace Rox
     {
       if ((password ?? string.Empty) == (Properties.Settings.Default.Password ?? string.Empty))
       {
-        btnLogin.Content = "logout";
+        btnLoginLabel.Content = "logout";
         Properties.Settings.Default.FailedLogin = 0;
         resetLogoutTimer();
         UpdateHeader("welcome", Colors.LawnGreen);
