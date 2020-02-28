@@ -1,5 +1,6 @@
 ﻿//using PluginContracts;
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -11,6 +12,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Xml;
+using AddinContracts;
 
 namespace Rox
 {
@@ -19,7 +21,6 @@ namespace Rox
     public IoControllers ControllerType { get; set; }
     public string Name { get; set; }
     public object Details { get; set; }
-
   }
   /// <summary>
   /// Interaction logic for MainWindow.xaml
@@ -65,6 +66,7 @@ namespace Rox
     public bool LoggedIn { get; set; }
     //public TimeSpan delayToLogin { get; set; }
     public long delayToLoginAsTicks { get; set; }
+    ICollection<IAddinConnection> ConnectionAddins;
     System.Threading.Timer closeMnu;
     System.Threading.Timer clrHeader;
     System.Threading.Timer tmrLogout;
@@ -235,8 +237,16 @@ namespace Rox
       listVars.ItemsSource = Vars;
       Paused = true;
       Logout(null);
-      //IoAdams = new IoAdams(new IoAdams.ConnectionSettings() { IpAddress = "172.18.3.231", Port = 502, ProtocolType = System.Net.Sockets.ProtocolType.Tcp });
-      //UpdateHeader(string.Format("IO module is {0}", IoAdams.IsConnected ? "connected." : string.Format("not connected. Last attempt at {0}.", (IoAdams.LastFailedReconnectTime ?? DateTime.Now).ToShortTimeString())));
+      ConnectionAddins = LoadPlugins("addins\\" );
+      if (ConnectionAddins?.Any()==true)
+      {
+        foreach (var addin in ConnectionAddins)
+        {
+          var b = new Button() { Content = addin.Name };
+          b.Click += AddinParameters;
+          AddinContainer.Children.Add(b);
+        }
+      }
     }
     private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
     {
@@ -326,6 +336,99 @@ namespace Rox
       }
       Properties.Settings.Default.Save();
     }
+    public static ICollection<IAddinConnection> LoadPlugins(string path)
+    {
+      if (Directory.Exists(path))
+      {
+        ICollection<IAddinConnection> plugins = new List<IAddinConnection>();
+        foreach (string dllFile in Directory.GetFiles(path, "*.dll"))
+        {
+          AssemblyName an = AssemblyName.GetAssemblyName(dllFile);
+          Assembly assembly = Assembly.Load(an);
+          if (assembly != null)
+          {
+            try
+            {
+              Type[] types = assembly.GetTypes();
+              foreach (Type type in types)
+              {
+                if (type.IsInterface || type.IsAbstract)
+                {
+                  continue;
+                }
+                else
+                {
+                  if (type.GetInterface((typeof(IAddinConnection)).FullName) != null)
+                  {
+                    IAddinConnection plugin = (IAddinConnection)Activator.CreateInstance(type);
+                    plugins.Add(plugin);
+                  }
+                }
+              }
+            }
+            catch (Exception)
+            {
+            }
+          }
+        }
+        if (plugins.Any()) { return plugins; }
+      }
+      return null;
+    }
+    //public static ICollection<IAddinConnection> LoadPlugins(string path)
+    //{
+    //  string[] dllFileNames = null;
+
+    //  if (Directory.Exists(path))
+    //  {
+    //    dllFileNames = Directory.GetFiles(path, "*.dll");
+
+    //    ICollection<Assembly> assemblies = new List<Assembly>(dllFileNames.Length);
+    //    foreach (string dllFile in dllFileNames)
+    //    {
+    //      AssemblyName an = AssemblyName.GetAssemblyName(dllFile);
+    //      Assembly assembly = Assembly.Load(an);
+    //      assemblies.Add(assembly);
+    //    }
+    //    Type pluginType = typeof(IAddinConnection);
+    //    ICollection<Type> pluginTypes = new List<Type>();
+    //    foreach (Assembly assembly in assemblies)
+    //    {
+    //      if (assembly != null)
+    //      {
+    //        try
+    //        {
+    //          Type[] types = assembly.GetTypes();
+    //          foreach (Type type in types)
+    //          {
+    //            if (type.IsInterface || type.IsAbstract)
+    //            {
+    //              continue;
+    //            }
+    //            else
+    //            {
+    //              if (type.GetInterface(pluginType.FullName) != null)
+    //              {
+    //                pluginTypes.Add(type);
+    //              }
+    //            }
+    //          }
+    //        }
+    //        catch (Exception)
+    //        {
+    //        }
+    //      }
+    //    }
+    //    ICollection<IAddinConnection> plugins = new List<IAddinConnection>(pluginTypes.Count);
+    //    foreach (Type type in pluginTypes)
+    //    {
+    //      IAddinConnection plugin = (IAddinConnection)Activator.CreateInstance(type);
+    //      plugins.Add(plugin);
+    //    }
+    //    return plugins;
+    //  }
+    //  return null;
+    //}
     private void toggleMenu(object sender, RoutedEventArgs e)
     {
       if (gridMenu.Visibility == Visibility.Visible)
@@ -391,11 +494,6 @@ namespace Rox
           Properties.Settings.Default.MruFiles.Insert(0, d.Filename.Substring(0, d.Filename.IndexOf(".rox")));
           PopulateFilelists();
         }
-        //    if (SharedMethods.SaveJobAs(pluginsCore, d.Filename))
-        //    {
-        //        FileLoad(d.Filename);
-        //        PopulateFilelist();
-        //    }
       }
     }
     private string xmlTag_App { get { return "rox"; } }
@@ -2955,6 +3053,9 @@ namespace Rox
         resetLogoutTimer();
       }
     }
+    private void AddinParameters(object sender, RoutedEventArgs e)
+    {
 
+    }
   }
 }

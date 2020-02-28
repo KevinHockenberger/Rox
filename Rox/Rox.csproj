@@ -170,6 +170,10 @@
       <Project>{b0ccedae-f8d9-420a-b3ec-917e0e6ffd97}</Project>
       <Name>EIP</Name>
     </ProjectReference>
+    <ProjectReference Include="..\PluginContracts\PluginContracts.csproj">
+      <Project>{7f9b18be-eba0-42a0-9469-6a0ff78cf299}</Project>
+      <Name>PluginContracts</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Resource Include="include\ite.ico" />
@@ -241,6 +245,9 @@
     <Resource Include="include\AlarmX.png" />
     <Resource Include="include\gear.png" />
     <Content Include="R3P\Advantech.Adam.DLL" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Addins\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -519,7 +519,7 @@
               <TextBlock x:Name="txtblkRunDefault" TextAlignment="Center"><Run Text="load"/><LineBreak/><Run Text="file"/></TextBlock>
             </Button>
           </Border>
-          <Button DockPanel.Dock="Bottom" x:Name="btnAbort" Template="{DynamicResource ButtonBaseControlTemplate}" Height="35" Click="BtnAbort_Click" Margin="2" Width="60" BorderBrush="#FFFFC500" >
+          <Button DockPanel.Dock="Bottom" x:Name="btnAbort" Template="{DynamicResource ButtonBaseControlTemplate}" Height="35" Click="BtnAbort_Click" Margin="2" BorderBrush="#FFFFC500" >
             <Image x:Name="imgSeq" Source="include/Continuous.png" Width="30" Height="30" Stretch="Fill"/>
             <!--<TextBlock x:Name="btnAbortText" TextAlignment="Center" Foreground="#FFFFC500" HorizontalAlignment="Center" VerticalAlignment="Center">abort</TextBlock>-->
           </Button>
@@ -609,7 +609,7 @@
       </Grid>
       <Grid x:Name="gridAddins" Grid.Column="2" >
        <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel>
+        <StackPanel x:Name="AddinContainer">
             <Button x:Name="btnAdvantech" Content="Advantech" Margin="2" Click="btnAdvantech_Click"/>
             <Button x:Name="btnKeyence" Content="Keyence" Margin="2" Click="btnKeyence_Click"/>
         </StackPanel>
