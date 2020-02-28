@@ -5,9 +5,9 @@ using System.Windows.Media;
 namespace Rox
 {
   /// <summary>
-  /// Interaction logic for AlarmWindow.xaml
+  /// Interaction logic for winAlarm.xaml
   /// </summary>
-  public partial class AlarmWindow : Window
+  public partial class winAlarm : Window
   {
     public bool IsClosed { get; private set; }
     public bool Result { get; private set; }
@@ -114,7 +114,7 @@ namespace Rox
       }
 
     }
-    public AlarmWindow(string title, string prompt, string color1, string color2, string variableOnOk, string variableOnCancel, dynamic okValue, dynamic cancelValue)
+    public winAlarm(string title, string prompt, string color1, string color2, string variableOnOk, string variableOnCancel, dynamic okValue, dynamic cancelValue)
     {
       InitializeComponent();
       Title = title ?? string.Empty;

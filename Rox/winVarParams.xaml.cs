@@ -6,7 +6,7 @@ namespace Rox
   /// <summary>
   /// Interaction logic for VarParamsWindow.xaml
   /// </summary>
-  public partial class VarParamsWindow : Window
+  public partial class winVarParams : Window
   {
     private dynamic _varValue;
     public dynamic VarValue
@@ -114,10 +114,10 @@ namespace Rox
       get { return cmbIO.Text == "out/write" ? (bool?)true : cmbIO.Text == "in/read" ? (bool?)false : null; }
       set { cmbIO.Text = value == true ? "out/write" : value == false ? "in/read" : ""; }
     }
-    public VarParamsWindow() : this(null, VarType.boolType, null, false, null, -1)
+    public winVarParams() : this(null, VarType.boolType, null, false, null, -1)
     {
     }
-    public VarParamsWindow(string Name, VarType varType, string Note, object Value, bool? IsOutput, short Channel)
+    public winVarParams(string Name, VarType varType, string Note, object Value, bool? IsOutput, short Channel)
     {
       InitializeComponent();
       this.DataContext = this;

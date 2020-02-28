@@ -6,10 +6,10 @@ namespace Rox
   /// <summary>
   /// Interaction logic for SetPassword.xaml
   /// </summary>
-  public partial class SetPassword : Window
+  public partial class winSetPassword : Window
   {
     public string NewPassword { get; set; }
-    public SetPassword()
+    public winSetPassword()
     {
       InitializeComponent();
       this.DataContext = this;

@@ -8,6 +8,7 @@ namespace AddinContracts
   public interface IAddinConnection : INotifyPropertyChanged
   {
     string Name { get; }
-    string ConnectionString { get; }
+    string ConnectionString { get; set; }
+    bool Enabled { get; set; }
   }
 }

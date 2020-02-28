@@ -67,78 +67,85 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Page Include="AlarmWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Login.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="SetPassword.xaml">
+    <Compile Include="winAddinParameters.xaml.cs">
+      <DependentUpon>winAddinParameters.xaml</DependentUpon>
+    </Compile>
+    <Page Include="winAddinParameters.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="FileSavePrompt.xaml">
+    <Page Include="winAlarm.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="EeipConfig.xaml">
+    <Page Include="winLogin.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="MainWindow.xaml">
+    <Page Include="winSetPassword.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Compile Include="AlarmWindow.xaml.cs">
-      <DependentUpon>AlarmWindow.xaml</DependentUpon>
+    <Page Include="winFileSave.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="delete_me_EeipConfig.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="winMain.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="winAlarm.xaml.cs">
+      <DependentUpon>winAlarm.xaml</DependentUpon>
     </Compile>
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Login.xaml.cs">
-      <DependentUpon>Login.xaml</DependentUpon>
+    <Compile Include="winLogin.xaml.cs">
+      <DependentUpon>winLogin.xaml</DependentUpon>
     </Compile>
-    <Compile Include="SetPassword.xaml.cs">
-      <DependentUpon>SetPassword.xaml</DependentUpon>
+    <Compile Include="winSetPassword.xaml.cs">
+      <DependentUpon>winSetPassword.xaml</DependentUpon>
     </Compile>
     <Compile Include="KeyenceEip.cs" />
-    <Compile Include="FileSavePrompt.xaml.cs">
-      <DependentUpon>FileSavePrompt.xaml</DependentUpon>
+    <Compile Include="winFileSave.xaml.cs">
+      <DependentUpon>winFileSave.xaml</DependentUpon>
     </Compile>
     <Compile Include="General.cs" />
     <Compile Include="IoAdams.cs" />
-    <Compile Include="EeipConfig.xaml.cs">
-      <DependentUpon>EeipConfig.xaml</DependentUpon>
+    <Compile Include="delete_me_EeipConfig.xaml.cs">
+      <DependentUpon>delete_me_EeipConfig.xaml</DependentUpon>
     </Compile>
-    <Compile Include="MainWindow.xaml.cs">
-      <DependentUpon>MainWindow.xaml</DependentUpon>
+    <Compile Include="winMain.xaml.cs">
+      <DependentUpon>winMain.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="IOConfig.xaml">
+    <Page Include="delete_me_IOConfig.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="VarParamsWindow.xaml">
+    <Page Include="winVarParams.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="CustomMessageboxWindow.xaml">
+    <Page Include="winCustomMessagebox.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IOConfig.xaml.cs">
-      <DependentUpon>IOConfig.xaml</DependentUpon>
+    <Compile Include="delete_me_IOConfig.xaml.cs">
+      <DependentUpon>delete_me_IOConfig.xaml</DependentUpon>
     </Compile>
-    <Compile Include="VarParamsWindow.xaml.cs">
-      <DependentUpon>VarParamsWindow.xaml</DependentUpon>
+    <Compile Include="winVarParams.xaml.cs">
+      <DependentUpon>winVarParams.xaml</DependentUpon>
     </Compile>
-    <Compile Include="CustomMessageboxWindow.xaml.cs">
-      <DependentUpon>CustomMessageboxWindow.xaml</DependentUpon>
+    <Compile Include="winCustomMessagebox.xaml.cs">
+      <DependentUpon>winCustomMessagebox.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>

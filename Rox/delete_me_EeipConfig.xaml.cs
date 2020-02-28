@@ -5,9 +5,9 @@ namespace Rox
   /// <summary>
   /// Interaction logic for IOConfig.xaml
   /// </summary>
-  public partial class EeipConfig : Window
+  public partial class delete_me_EeipConfig : Window
   {
-    public EeipConfig()
+    public delete_me_EeipConfig()
     {
       InitializeComponent();
       this.DataContext = this;

@@ -184,7 +184,7 @@ namespace Rox
   {
     public NodeTypes NodeType { get; } = NodeTypes.Initialized;
     public string Name { get; set; }
-    public List<NodeTypes> AllowedNodes { get; } = Rox.MainWindow.SequenceNodes;
+    public List<NodeTypes> AllowedNodes { get; } = Rox.winMain.SequenceNodes;
     public Collection<INode> Items { get; set; } = new Collection<INode>();
     public string Description() { return "{ First Scan branch } This sequence will run one time when the program is loaded and can accept any item."; }
     public IteFirstScan(string name)
@@ -196,7 +196,7 @@ namespace Rox
   {
     public NodeTypes NodeType { get; } = NodeTypes.Initialized;
     public string Name { get; set; }
-    public List<NodeTypes> AllowedNodes { get; } = Rox.MainWindow.SequenceNodes;
+    public List<NodeTypes> AllowedNodes { get; } = Rox.winMain.SequenceNodes;
     public Collection<INode> Items { get; set; } = new Collection<INode>();
     public string Description() { return "{ Initialize branch } This sequence will only run one time when the mode is first started and before the continuous branch. This node can accept any item."; }
     public IteIntialize(string name)
@@ -208,7 +208,7 @@ namespace Rox
   {
     public NodeTypes NodeType { get; } = NodeTypes.Continuous;
     public string Name { get; set; }
-    public List<NodeTypes> AllowedNodes { get; } = Rox.MainWindow.SequenceNodes;
+    public List<NodeTypes> AllowedNodes { get; } = Rox.winMain.SequenceNodes;
     public Collection<INode> Items { get; set; } = new Collection<INode>();
     public string Description() { return "{ Continuous branch } This sequence will run repeatedly after the initalize branch has completed and while the mode is active."; }
     public IteContinuous(string name)
@@ -428,7 +428,7 @@ namespace Rox
   {
     public NodeTypes NodeType { get; } = NodeTypes.ConditionTrue;
     public string Name { get; set; }
-    public List<NodeTypes> AllowedNodes { get; } = Rox.MainWindow.SequenceNodes;
+    public List<NodeTypes> AllowedNodes { get; } = Rox.winMain.SequenceNodes;
     public Collection<INode> Items { get; set; } = new Collection<INode>();
     public string Description() { return "{ Condition True branch } This sequence will run while the condition is true."; }
     public IteTrue(string name)
@@ -440,7 +440,7 @@ namespace Rox
   {
     public NodeTypes NodeType { get; } = NodeTypes.ConditionTrue1;
     public string Name { get; set; }
-    public List<NodeTypes> AllowedNodes { get; } = Rox.MainWindow.SequenceNodes;
+    public List<NodeTypes> AllowedNodes { get; } = Rox.winMain.SequenceNodes;
     public Collection<INode> Items { get; set; } = new Collection<INode>();
     public string Description() { return "{ Condition True Initialized branch } This sequence will run when the condition first becomes true."; }
     public IteTrue1(string name)
@@ -452,7 +452,7 @@ namespace Rox
   {
     public NodeTypes NodeType { get; } = NodeTypes.ConditionFalse;
     public string Name { get; set; }
-    public List<NodeTypes> AllowedNodes { get; } = Rox.MainWindow.SequenceNodes;
+    public List<NodeTypes> AllowedNodes { get; } = Rox.winMain.SequenceNodes;
     public Collection<INode> Items { get; set; } = new Collection<INode>();
     public string Description() { return "{ Condition False branch } This sequence will run while the condition is not true."; }
     public IteFalse(string name)
@@ -464,7 +464,7 @@ namespace Rox
   {
     public NodeTypes NodeType { get; } = NodeTypes.ConditionFalse1;
     public string Name { get; set; }
-    public List<NodeTypes> AllowedNodes { get; } = Rox.MainWindow.SequenceNodes;
+    public List<NodeTypes> AllowedNodes { get; } = Rox.winMain.SequenceNodes;
     public Collection<INode> Items { get; set; } = new Collection<INode>();
     public string Description() { return "{ Condition False Initialized branch } This sequence will run when the condition first becomes false."; }
     public IteFalse1(string name)

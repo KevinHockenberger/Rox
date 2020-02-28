@@ -25,9 +25,9 @@ namespace Rox
   /// <summary>
   /// Interaction logic for MainWindow.xaml
   /// </summary>
-  public partial class MainWindow : Window
+  public partial class winMain : Window
   {
-    private Dictionary<string, AlarmWindow> alarms = new Dictionary<string, AlarmWindow>();
+    private Dictionary<string, winAlarm> alarms = new Dictionary<string, winAlarm>();
     private List<IoController> Controllers = new List<IoController>();
     private IoAdams IoAdams;
     private KeyenceEip keyEip;
@@ -147,7 +147,7 @@ namespace Rox
     string loadedFile;
     string fileToBeLoaded;
     Point startDragPoint;
-    public MainWindow()
+    public winMain()
     {
       InitializeComponent();
       //plugins = LoadPlugins(@"Plugins\");
@@ -485,7 +485,7 @@ namespace Rox
     private void btnSaveAs_Click(object sender, RoutedEventArgs e)
     {
       resetCloseMenuTimer();
-      var d = new FileSavePrompt(Properties.Settings.Default.ProgramPath, null) { Owner = this };
+      var d = new winFileSave(Properties.Settings.Default.ProgramPath, null) { Owner = this };
       if (d.ShowDialog() == true)
       {
         if (!string.IsNullOrWhiteSpace(d.Filename))
@@ -1658,7 +1658,7 @@ namespace Rox
         // detect if the source is trying to be dropped inside itself
         if (RecursiveCheckForParentInChild(newOrMoved, dropTo))
         {
-          (new CustomMessageboxWindow("Invalid destination", "Unable to put the selected item here.", MessageBoxButton.OK) { Owner = this }).ShowDialog();
+          (new winCustomMessagebox("Invalid destination", "Unable to put the selected item here.", MessageBoxButton.OK) { Owner = this }).ShowDialog();
           return false;
         }
         if (newOrMoved.Parent != null) { newOrMoved.Parent.Items.Remove(newOrMoved); }
@@ -1701,7 +1701,7 @@ namespace Rox
     {
       if (LoggedIn)
       {
-        var f = new CustomMessageboxWindow(string.Format("Start over?", loadedFile), string.Format("Delete the existing sequence and start over?", loadedFile), MessageBoxButton.YesNo) { Owner = this };
+        var f = new winCustomMessagebox(string.Format("Start over?", loadedFile), string.Format("Delete the existing sequence and start over?", loadedFile), MessageBoxButton.YesNo) { Owner = this };
         f.ShowDialog();
         if (f.DialogResult == true)
         {
@@ -1774,7 +1774,7 @@ namespace Rox
     {
       if (LoggedIn)
       {
-        var d = new VarParamsWindow() { Owner = this };
+        var d = new winVarParams() { Owner = this };
         d.ShowDialog();
         if (d.DialogResult == true && !string.IsNullOrWhiteSpace(d.VarName))
         {
@@ -1806,14 +1806,14 @@ namespace Rox
       {
         var n = ((ListViewItem)sender).Content as Variable;
 
-        var d = new VarParamsWindow() { Owner = this, VarName = n.Name, VarNote = n.Note, VarType = (VarType)n.VarType.Value, Channel = n.Channel, IsOutput = n.IsOutput, IoController = n.IoController };
+        var d = new winVarParams() { Owner = this, VarName = n.Name, VarNote = n.Note, VarType = (VarType)n.VarType.Value, Channel = n.Channel, IsOutput = n.IsOutput, IoController = n.IoController };
         d.VarValue = n.Value;
         d.ShowDialog();
         if (d.DialogResult == true && !string.IsNullOrWhiteSpace(d.VarName))
         {
           if (n.Name != d.VarName)
           {
-            var p = new CustomMessageboxWindow("Rename all variables?", string.Format("Variable name has changed. \nUpdate all instances of '{0}' to '{1}'?", n.Name, d.VarName), MessageBoxButton.YesNo) { Owner = this };
+            var p = new winCustomMessagebox("Rename all variables?", string.Format("Variable name has changed. \nUpdate all instances of '{0}' to '{1}'?", n.Name, d.VarName), MessageBoxButton.YesNo) { Owner = this };
             p.ShowDialog();
             if (p.DialogResult == true)
             {
@@ -2671,10 +2671,10 @@ namespace Rox
     {
       if (string.IsNullOrEmpty(loadedFile))
       {
-        (new CustomMessageboxWindow("No file loaded", "Please load a file to delete. Otherwise, you will need to delete it manually.", MessageBoxButton.OK) { Owner = this }).ShowDialog();
+        (new winCustomMessagebox("No file loaded", "Please load a file to delete. Otherwise, you will need to delete it manually.", MessageBoxButton.OK) { Owner = this }).ShowDialog();
         return;
       }
-      var f = new CustomMessageboxWindow(string.Format("Delete file '{0}'?", loadedFile), string.Format("Please confirm file '{0}' deletion. This cannot be undone.", loadedFile), MessageBoxButton.OKCancel) { Owner = this };
+      var f = new winCustomMessagebox(string.Format("Delete file '{0}'?", loadedFile), string.Format("Please confirm file '{0}' deletion. This cannot be undone.", loadedFile), MessageBoxButton.OKCancel) { Owner = this };
       f.ShowDialog();
       if (f.DialogResult == true)
       {
@@ -2739,7 +2739,7 @@ namespace Rox
     private void btnAdvantech_Click(object sender, RoutedEventArgs e)
     {
       if (IoAdams == null) { IoAdams = new IoAdams(new IoAdams.ConnectionSettings()); }
-      IOConfig d = new IOConfig() { Owner = this, Enabled = IoAdams.Enabled, IpAddress = IoAdams.Settings.IpAddress, Port = IoAdams.Settings.Port, Protocol = (ProtocolTypes)IoAdams.Settings.ProtocolType, Unit = IoAdams.Settings.Unit };
+      delete_me_IOConfig d = new delete_me_IOConfig() { Owner = this, Enabled = IoAdams.Enabled, IpAddress = IoAdams.Settings.IpAddress, Port = IoAdams.Settings.Port, Protocol = (ProtocolTypes)IoAdams.Settings.ProtocolType, Unit = IoAdams.Settings.Unit };
       d.ShowDialog();
       if (IoAdams.Enabled != d.Enabled || IoAdams.Settings.IpAddress != d.IpAddress || IoAdams.Settings.Port != d.Port || (int)IoAdams.Settings.ProtocolType != (int)d.Protocol || IoAdams.Settings.Unit != d.Unit)
       {
@@ -2780,7 +2780,7 @@ namespace Rox
       //else
       //{
       //}
-      AlarmWindow a;
+      winAlarm a;
       if (alarms.TryGetValue(title, out a))
       {
         Dispatcher.Invoke(() =>
@@ -2798,7 +2798,7 @@ namespace Rox
       {
         Dispatcher.Invoke(() =>
         {
-          a = new AlarmWindow(title, prompt, color1, color2, variableOnOk, variableOnCancel, okValue, cancelValue);
+          a = new winAlarm(title, prompt, color1, color2, variableOnOk, variableOnCancel, okValue, cancelValue);
           a.Closed += Alarm_Closed;
           alarms.Add(title, a);
           a.Show();
@@ -2809,11 +2809,11 @@ namespace Rox
     {
       //if (((AlarmWindow)sender).Result && !string.IsNullOrEmpty(((AlarmWindow)sender).Variable))
       //{
-      string varName = ((AlarmWindow)sender).Result ? ((AlarmWindow)sender).VariableOnOk : ((AlarmWindow)sender).VariableOnCancel;
+      string varName = ((winAlarm)sender).Result ? ((winAlarm)sender).VariableOnOk : ((winAlarm)sender).VariableOnCancel;
       try
       {
         var daVar = Vars.Where(p => p.Name == varName).FirstOrDefault();
-        daVar.Value = ((AlarmWindow)sender).Result ? ((AlarmWindow)sender).OkValue : ((AlarmWindow)sender).CancelValue;
+        daVar.Value = ((winAlarm)sender).Result ? ((winAlarm)sender).OkValue : ((winAlarm)sender).CancelValue;
         if (daVar.Channel >= 0 && daVar.IsOutput == true)
         {
           // assign physical output
@@ -2854,13 +2854,13 @@ namespace Rox
       {
       }
       //}
-      RemoveAlarm(((AlarmWindow)sender).Title);
+      RemoveAlarm(((winAlarm)sender).Title);
     }
     private void RemoveAlarm(string title)
     {
-      if (alarms.TryGetValue(title, out AlarmWindow a)) { RemoveAlarm(a); }
+      if (alarms.TryGetValue(title, out winAlarm a)) { RemoveAlarm(a); }
     }
-    private void RemoveAlarm(AlarmWindow alarm)
+    private void RemoveAlarm(winAlarm alarm)
     {
       Dispatcher.Invoke(() =>
       {
@@ -2900,7 +2900,7 @@ namespace Rox
     private void btnKeyence_Click(object sender, RoutedEventArgs e)
     {
       if (keyEip == null) { keyEip = new KeyenceEip(); }
-      EeipConfig d = new EeipConfig() { Owner = this, Enabled = keyEip.Enabled, IpAddress = keyEip.Settings.IpAddress, Port = keyEip.Settings.Port, AssemblyIn = 100, AssemblyOut = 101 };
+      delete_me_EeipConfig d = new delete_me_EeipConfig() { Owner = this, Enabled = keyEip.Enabled, IpAddress = keyEip.Settings.IpAddress, Port = keyEip.Settings.Port, AssemblyIn = 100, AssemblyOut = 101 };
       d.ShowDialog();
       if (keyEip.Enabled != d.Enabled || keyEip.Settings.IpAddress != d.IpAddress || keyEip.Settings.Port != d.Port || keyEip.Settings.AssemblyIn != d.AssemblyIn || keyEip.Settings.AssemblyOut != d.AssemblyOut)
       {
@@ -2919,7 +2919,7 @@ namespace Rox
     }
     private void AttemptLogin()
     {
-      Login d = new Login(delayToLoginAsTicks - DateTime.Now.Ticks) { Owner = this };
+      winLogin d = new winLogin(delayToLoginAsTicks - DateTime.Now.Ticks) { Owner = this };
       d.ShowDialog();
       if (d.DialogResult == true)
       {
@@ -3044,7 +3044,7 @@ namespace Rox
     {
       if (LoggedIn)
       {
-        var d = new SetPassword() { Owner = this };
+        var d = new winSetPassword() { Owner = this };
         if (d.ShowDialog() == true)
         {
           Properties.Settings.Default.Password = d.NewPassword;
@@ -3055,7 +3055,17 @@ namespace Rox
     }
     private void AddinParameters(object sender, RoutedEventArgs e)
     {
-
+      var s = (sender as IAddinConnection);
+      if (s != null)
+      {
+        winAddinParameters d = new winAddinParameters() { Owner = this };
+        d.ShowDialog();
+        if (d.DialogResult == true)
+        {
+          s.ConnectionString = d.ConnString;
+          s.Enabled = d.Enabled;
+        }
+      }
     }
   }
 }

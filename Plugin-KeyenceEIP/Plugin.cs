@@ -12,7 +12,7 @@ namespace Plugin_KeyenceEIP
     public string Name { get { return "Keyence"; } }
 
     public string ConnectionString { get; set; }
-
+    public bool Enabled { get; set; }
     public event PropertyChangedEventHandler PropertyChanged;
   }
 }

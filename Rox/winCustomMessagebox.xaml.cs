@@ -5,12 +5,12 @@ namespace Rox
   /// <summary>
   /// Interaction logic for NodeParamsWindow.xaml
   /// </summary>
-  public partial class CustomMessageboxWindow : Window
+  public partial class winCustomMessagebox : Window
   {
     public new string Title { get { return lblTitle.Content.ToString(); } private set { lblTitle.Content = value; } }
     public string Caption { get { return txtPrompt.Text; } private set { txtPrompt.Text = value; } }
 
-    public CustomMessageboxWindow(string title, string caption, MessageBoxButton messageBoxButton)
+    public winCustomMessagebox(string title, string caption, MessageBoxButton messageBoxButton)
     {
       InitializeComponent();
       this.Title = title;

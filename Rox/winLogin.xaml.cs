@@ -7,13 +7,13 @@ namespace Rox
   /// <summary>
   /// Interaction logic for Login.xaml
   /// </summary>
-  public partial class Login : Window
+  public partial class winLogin : Window
   {
     System.Threading.Timer enableOk;
     private const int tickInterval = 100;
     private TimeSpan enableAfter;
     public string PasswordAttempt { get; set; }
-    public Login(long EnableAfterTicks)
+    public winLogin(long EnableAfterTicks)
     {
       InitializeComponent();
       this.DataContext = this;

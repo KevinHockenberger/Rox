@@ -6,12 +6,12 @@ namespace Rox
   /// <summary>
   /// Interaction logic for FileSavePrompt.xaml
   /// </summary>
-  public partial class FileSavePrompt : Window
+  public partial class winFileSave : Window
   {
     private string _filename;
     public string Filename { get { return _filename; } private set { _filename = value; txtFilename.Text = value; } }
     public string Path { get; private set; }
-    public FileSavePrompt(string path, string filename)
+    public winFileSave(string path, string filename)
     {
       InitializeComponent();
       if (string.IsNullOrWhiteSpace(path) || !System.IO.Directory.Exists(path) || !CanWriteToDirectory(path))

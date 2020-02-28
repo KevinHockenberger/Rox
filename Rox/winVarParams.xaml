@@ -1,4 +1,4 @@
-﻿<Window x:Class="Rox.VarParamsWindow"
+﻿<Window x:Class="Rox.winVarParams"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Title="Parameters" WindowStartupLocation="CenterOwner" ShowInTaskbar="False" WindowStyle="None" Background="#FF292929" Padding="6,5,5,5" Width="480" Height="400" ResizeMode="CanResizeWithGrip" MinWidth="480" MinHeight="375" Loaded="Window_Loaded">
   <Window.Resources>
-    <Style TargetType="{x:Type local:VarParamsWindow}">
+    <Style TargetType="{x:Type local:winVarParams}">
       <Setter Property="FontFamily" Value="arial" />
       <Setter Property="FontSize" Value="18"></Setter>
       <Setter Property="Background" Value="#FF292929"></Setter>
