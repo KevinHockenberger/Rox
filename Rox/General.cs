@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Markup;
+using AddinContracts;
 
 namespace Rox
 {
@@ -686,7 +687,20 @@ namespace Rox
         if (_ioController != value)
         {
           _ioController = value;
-          NotifyPropertyChanged("VarType");
+          NotifyPropertyChanged("IoController");
+        }
+      }
+    }
+    private IoController _ioControllerX;
+    public IoController IoControllerX
+    {
+      get { return _ioControllerX; }
+      set
+      {
+        if (_ioControllerX != value)
+        {
+          _ioControllerX = value;
+          NotifyPropertyChanged("IoControllerX");
         }
       }
     }
@@ -869,4 +883,12 @@ namespace Rox
     public static VariableType stringType = new VariableType(VarType.stringType);
     public static VariableType numberType = new VariableType(VarType.numberType);
   }
+  public class IoController
+  {
+    public IAddinConnection Addin { get; set; }
+    public string Name { get; set; }
+    public string ConnectionString { get; set; }
+    public bool Enabled { get; set; }
+  }
+
 }

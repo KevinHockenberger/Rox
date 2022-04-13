@@ -7,13 +7,19 @@
         xmlns:local="clr-namespace:Rox"
         mc:Ignorable="d"
         Title="winAddinParameters" 
-        Height="325" Width="400"
+        Height="400" Width="500"
         WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False" 
         WindowStyle="None" 
         Background="#FF292929" Padding="6,5,5,5">
   <Window.Resources>
     <Style TargetType="{x:Type Label}" BasedOn="{StaticResource {x:Type Label}}">
+      <Setter Property="FontSize" Value="16"/>
+    </Style>
+    <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource {x:Type TextBox}}">
+      <Setter Property="FontSize" Value="16"/>
+    </Style>
+    <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource {x:Type ComboBox}}">
       <Setter Property="FontSize" Value="16"/>
     </Style>
   </Window.Resources>
@@ -74,14 +80,19 @@
     <Grid DockPanel.Dock="Top" Margin="10">
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto"/>
+        <RowDefinition Height="42"/>
         <RowDefinition Height="*"/>
+        <RowDefinition Height="Auto"/>
       </Grid.RowDefinitions>
-      <StackPanel Orientation="Horizontal">
-        <CheckBox x:Name="chkEnabled" IsChecked="{Binding Enabled}" VerticalAlignment="Center" />
-        <Label Content="enabled" VerticalAlignment="Center"/>
-      </StackPanel>
-      <Label Grid.Row="1" Content="Connection string:"/>
-      <TextBlock x:Name="txtConnString" Grid.Row="1" Text="{Binding ConnString}" Background="White" Foreground="Black" Margin="0,30,0,0" />
+      <Label Grid.Row="0" Content="Addin:"/>
+      <ComboBox IsEditable="False" Grid.Row="0" Margin="0,28,0,0" VerticalAlignment="Top" SelectedItem="{Binding Addin}" ItemsSource="{Binding connectionAddins}" DisplayMemberPath="Name"/>
+      <CheckBox Grid.Row="1" x:Name="chkEnabled" IsChecked="{Binding Enabled}" HorizontalAlignment="Left" VerticalAlignment="Top" Padding="4,-9,0,0" Margin="0,16,0,0" >
+        <Label Content="enabled" />
+      </CheckBox>
+      <Label Grid.Row="2" Content="Connection string:"/>
+      <TextBox Background="White" Foreground="Black" x:Name="txtConnString" Grid.Row="2" Margin="0,28,0,0" Text="{Binding ConnString}" TextWrapping="Wrap" AcceptsReturn="True" SpellCheck.IsEnabled="True" AcceptsTab="True" />
+      <Label Grid.Row="3" Content="Unique Name:"/>
+      <TextBox Grid.Row="3" Margin="0,28,0,0" Text="{Binding AddinName}"/>
     </Grid>
   </DockPanel>
 </Window>

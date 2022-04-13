@@ -1,5 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Input;
+using System.Collections.Generic;
+
 namespace Rox
 {
   /// <summary>
@@ -12,8 +14,11 @@ namespace Rox
       InitializeComponent();
       this.DataContext = this;
     }
+    public ICollection<AddinContracts.IAddinConnection> connectionAddins { get; set; }
     public bool Enabled { get; set; }
     public string ConnString { get; set; }
+    public AddinContracts.IAddinConnection Addin { get; set; }
+    public string AddinName { get; set; }
     private void btnOk_Click(object sender, RoutedEventArgs e)
     {
       Enabled = chkEnabled.IsChecked==true;

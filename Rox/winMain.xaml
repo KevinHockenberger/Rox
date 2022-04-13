@@ -608,10 +608,31 @@
         </Grid>
       </Grid>
       <Grid x:Name="gridAddins" Grid.Column="2" >
-       <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition />
+        </Grid.RowDefinitions>
+        <Button Grid.Row="0" x:Name="btnAddIn" BorderThickness="1" Click="BtnAddIn_Click">
+          <Button.BorderBrush>
+            <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+              <GradientStop Color="#FF292929" Offset="0.6"/>
+              <GradientStop Color="White" Offset="1"/>
+            </LinearGradientBrush>
+          </Button.BorderBrush>
+          <StackPanel Orientation="Horizontal">
+            <Canvas Width="26" Height="26">
+              <Canvas.Background>
+                <ImageBrush ImageSource="include/add.png"/>
+              </Canvas.Background>
+            </Canvas>
+            <TextBlock TextTrimming="CharacterEllipsis" Text="Add Controller" VerticalAlignment="Center" Margin="5,0,0,0"/>
+          </StackPanel>
+        </Button>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="5">
         <StackPanel x:Name="AddinContainer">
-            <Button x:Name="btnAdvantech" Content="Advantech" Margin="2" Click="btnAdvantech_Click"/>
-            <Button x:Name="btnKeyence" Content="Keyence" Margin="2" Click="btnKeyence_Click"/>
+            <!--<Button x:Name="btnAdvantech" Content="Advantech" Margin="2" Click="btnAdvantech_Click"/>
+            <Button x:Name="btnKeyence" Content="Keyence" Margin="2" Click="btnKeyence_Click"/>-->
         </StackPanel>
       </ScrollViewer>
       </Grid>

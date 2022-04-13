@@ -8,6 +8,7 @@ namespace Rox
   /// </summary>
   public partial class winVarParams : Window
   {
+    public System.Collections.Generic.List<IoController> AvailableControllers { get; set; }
     private dynamic _varValue;
     public dynamic VarValue
     {
@@ -97,8 +98,8 @@ namespace Rox
         //}
       }
     }
-    private IoControllers _ioController;
-    public IoControllers IoController
+    private IoController _ioController;
+    public IoController IoController
     {
       get { return _ioController; }
       set { if (_ioController != value) { _ioController = value; } }

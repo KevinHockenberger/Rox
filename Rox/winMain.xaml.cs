@@ -1,8 +1,8 @@
-﻿//using PluginContracts;
+﻿using AddinContracts;
 using System;
-using System.IO;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -12,23 +12,16 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Xml;
-using AddinContracts;
 
 namespace Rox
 {
-  class IoController
-  {
-    public IoControllers ControllerType { get; set; }
-    public string Name { get; set; }
-    public object Details { get; set; }
-  }
   /// <summary>
   /// Interaction logic for MainWindow.xaml
   /// </summary>
   public partial class winMain : Window
   {
     private Dictionary<string, winAlarm> alarms = new Dictionary<string, winAlarm>();
-    private List<IoController> Controllers = new List<IoController>();
+    public List<IoController> Controllers { get; private set; } = new List<IoController>();
     private IoAdams IoAdams;
     private KeyenceEip keyEip;
     //private ICollection<IPluginContract> plugins;
@@ -157,7 +150,7 @@ namespace Rox
       nimnu.MenuItems.Add(mnuItem);
 
       mnuItem = new System.Windows.Forms.MenuItem() { Text = "Open" };
-      mnuItem.Click += (object sender, EventArgs e)=> { this.Show(); this.WindowState = WindowState.Normal; };
+      mnuItem.Click += (object sender, EventArgs e) => { this.Show(); this.WindowState = WindowState.Normal; };
       nimnu.MenuItems.Add(mnuItem);
 
       (new System.Windows.Forms.NotifyIcon
@@ -237,16 +230,10 @@ namespace Rox
       listVars.ItemsSource = Vars;
       Paused = true;
       Logout(null);
-      ConnectionAddins = LoadPlugins("addins\\" );
-      if (ConnectionAddins?.Any()==true)
-      {
-        foreach (var addin in ConnectionAddins)
-        {
-          var b = new Button() { Content = addin.Name };
-          b.Click += AddinParameters;
-          AddinContainer.Children.Add(b);
-        }
-      }
+      ConnectionAddins = LoadPlugins("addins\\");
+#if DEBUG
+      Login(Properties.Settings.Default.Password);
+#endif
     }
     private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
     {
@@ -628,7 +615,7 @@ namespace Rox
             }
             else
             {
-              var subNode = new IteFIRST_VM(new IteIntialize(reader.GetAttribute("name"))) { Parent = curNode, IsExpanded = reader.GetAttribute("exp") != "False" };
+              var subNode = new IteFIRST_VM(new IteIntialize(reader.GetAttribute("name"))) { Parent = curNode, IsLocked = true, IsExpanded = reader.GetAttribute("exp") != "False" };
               curNode.Items.Add(subNode);
               curNode = subNode;
             }
@@ -643,7 +630,7 @@ namespace Rox
             }
             else
             {
-              var subNode = new IteCONTINUOUS_VM(new IteContinuous(reader.GetAttribute("name"))) { Parent = curNode, IsExpanded = reader.GetAttribute("exp") != "False" };
+              var subNode = new IteCONTINUOUS_VM(new IteContinuous(reader.GetAttribute("name"))) { Parent = curNode, IsLocked = true, IsExpanded = reader.GetAttribute("exp") != "False" };
               curNode.Items.Add(subNode);
               curNode = subNode;
             }
@@ -670,7 +657,7 @@ namespace Rox
           {
             if (curNode != null)
             {
-              var subNode = new IteTRUE1_VM(new IteTrue1(reader.GetAttribute("name"))) { Parent = curNode, IsExpanded = reader.GetAttribute("exp") != "False" };
+              var subNode = new IteTRUE1_VM(new IteTrue1(reader.GetAttribute("name"))) { Parent = curNode, IsLocked = true, IsExpanded = reader.GetAttribute("exp") != "False" };
               curNode.Items.Add(subNode);
               curNode = subNode;
             }
@@ -680,7 +667,7 @@ namespace Rox
           {
             if (curNode != null)
             {
-              var subNode = new IteTRUE_VM(new IteTrue(reader.GetAttribute("name"))) { Parent = curNode, IsExpanded = reader.GetAttribute("exp") != "False" };
+              var subNode = new IteTRUE_VM(new IteTrue(reader.GetAttribute("name"))) { Parent = curNode, IsLocked = true, IsExpanded = reader.GetAttribute("exp") != "False" };
               curNode.Items.Add(subNode);
               curNode = subNode;
             }
@@ -690,7 +677,7 @@ namespace Rox
           {
             if (curNode != null)
             {
-              var subNode = new IteFALSE1_VM(new IteFalse1(reader.GetAttribute("name"))) { Parent = curNode, IsExpanded = reader.GetAttribute("exp") != "False" };
+              var subNode = new IteFALSE1_VM(new IteFalse1(reader.GetAttribute("name"))) { Parent = curNode, IsLocked = true, IsExpanded = reader.GetAttribute("exp") != "False" };
               curNode.Items.Add(subNode);
               curNode = subNode;
             }
@@ -700,7 +687,7 @@ namespace Rox
           {
             if (curNode != null)
             {
-              var subNode = new IteFALSE_VM(new IteFalse(reader.GetAttribute("name"))) { Parent = curNode, IsExpanded = reader.GetAttribute("exp") != "False" };
+              var subNode = new IteFALSE_VM(new IteFalse(reader.GetAttribute("name"))) { Parent = curNode, IsLocked = true, IsExpanded = reader.GetAttribute("exp") != "False" };
               curNode.Items.Add(subNode);
               curNode = subNode;
             }
@@ -733,6 +720,7 @@ namespace Rox
               switch (GetVarTypeFromString(reader.GetAttribute("type")))
               {
                 case VarType.boolType:
+                  ((IteSetVar)subNode.Node).VarType = VariableTypes.boolType;
                   ((IteSetVar)subNode.Node).Value = bool.TryParse(reader.GetAttribute("val"), out bool b) ? b : false;
                   if (reader.GetAttribute("other") == string.Empty)
                   {
@@ -744,6 +732,7 @@ namespace Rox
                   }
                   break;
                 case VarType.stringType:
+                  ((IteSetVar)subNode.Node).VarType = VariableTypes.stringType;
                   ((IteSetVar)subNode.Node).Value = reader.GetAttribute("val");
                   if (reader.GetAttribute("other") == string.Empty)
                   {
@@ -755,6 +744,7 @@ namespace Rox
                   }
                   break;
                 case VarType.numberType:
+                  ((IteSetVar)subNode.Node).VarType = VariableTypes.numberType;
                   ((IteSetVar)subNode.Node).Value = decimal.TryParse(reader.GetAttribute("val"), out decimal d) ? d : 0;
                   if (reader.GetAttribute("other") == string.Empty)
                   {
@@ -1771,15 +1761,16 @@ namespace Rox
       tree.Background = treeBackground;
     }
     private void BtnAddVariable_Click(object sender, RoutedEventArgs e)
-    {
+    
+{
       if (LoggedIn)
       {
-        var d = new winVarParams() { Owner = this };
+        var d = new winVarParams() { Owner = this, AvailableControllers = Controllers };
         d.ShowDialog();
         if (d.DialogResult == true && !string.IsNullOrWhiteSpace(d.VarName))
         {
           if (Vars.Where(p => p.Name == d.VarName).Any()) { return; }
-          Vars.Add(new Variable { Name = d.VarName, Note = d.VarNote, Value = d.VarValue, UsersLastValue = d.VarValue, Channel = d.Channel, IsOutput = d.IsOutput, IoController = d.IoController });
+          Vars.Add(new Variable { Name = d.VarName, Note = d.VarNote, Value = d.VarValue, UsersLastValue = d.VarValue, Channel = d.Channel, IsOutput = d.IsOutput, IoControllerX = d.IoController });
           AssignLiveVars();
         }
         AutoSizeVarColumns();
@@ -1806,7 +1797,7 @@ namespace Rox
       {
         var n = ((ListViewItem)sender).Content as Variable;
 
-        var d = new winVarParams() { Owner = this, VarName = n.Name, VarNote = n.Note, VarType = (VarType)n.VarType.Value, Channel = n.Channel, IsOutput = n.IsOutput, IoController = n.IoController };
+        var d = new winVarParams() { Owner = this, AvailableControllers = Controllers, VarName = n.Name, VarNote = n.Note, VarType = (VarType)n.VarType.Value, Channel = n.Channel, IsOutput = n.IsOutput, IoController = n.IoControllerX };
         d.VarValue = n.Value;
         d.ShowDialog();
         if (d.DialogResult == true && !string.IsNullOrWhiteSpace(d.VarName))
@@ -1828,14 +1819,15 @@ namespace Rox
           n.Value = d.VarValue;
           n.Channel = d.Channel;
           n.IsOutput = d.IsOutput;
-          n.IoController = d.IoController;
+          //n.IoController = d.IoController;
+          n.IoControllerX = d.IoController;
           AssignLiveVars();
         }
         //AutoSizeVarColumns();
         resetLogoutTimer();
       }
     }
-    private void RenameAllVariables( IteNodeViewModel node,string existingName, string newName)
+    private void RenameAllVariables(IteNodeViewModel node, string existingName, string newName)
     {
       foreach (var n in node.Items)
       {
@@ -2148,6 +2140,15 @@ namespace Rox
         }
       }
     }
+    private void ResetHighlight(IteNodeViewModel node)
+    {
+      node.Background = new SolidColorBrush(Colors.Transparent);
+      foreach (var sub in node.Items)
+      {
+        node.Background = new SolidColorBrush(Colors.Transparent);
+        ResetHighlight(sub);
+      }
+    }
     private void RunSequence()
     {
       try
@@ -2192,15 +2193,6 @@ namespace Rox
           Paused = true;
           MessageBox.Show("Unhandled error while running the sequence. This is most likely caused from loading a previous version or otherwise unsupported file. The sequence is aborted. You can try to adjust the sequence and restart.", "Sequnce Error", MessageBoxButton.OK, MessageBoxImage.Error);
         });
-      }
-    }
-    private void ResetHighlight(IteNodeViewModel node)
-    {
-      node.Background = new SolidColorBrush(Colors.Transparent);
-      foreach (var sub in node.Items)
-      {
-        node.Background = new SolidColorBrush(Colors.Transparent);
-        ResetHighlight(sub);
       }
     }
     private void ProcessInvalidNodeSequence(IteNodeViewModel node)
@@ -2943,8 +2935,8 @@ namespace Rox
         btnAbort.IsEnabled = false; btnAbort.Visibility = Visibility.Collapsed;
         btnSaveAs.IsEnabled = false; btnSaveAs.Visibility = Visibility.Collapsed;
         btnDeleteBorder.IsEnabled = false; btnDeleteBorder.Visibility = Visibility.Collapsed;
-        btnAdvantech.IsEnabled = false; btnAdvantech.Visibility = Visibility.Collapsed;
-        btnKeyence.IsEnabled = false; btnKeyence.Visibility = Visibility.Collapsed;
+        //btnAdvantech.IsEnabled = false; btnAdvantech.Visibility = Visibility.Collapsed;
+        //btnKeyence.IsEnabled = false; btnKeyence.Visibility = Visibility.Collapsed;
         btnAddVariable.IsEnabled = false; btnAddVariable.Visibility = Visibility.Collapsed;
         SequenceOptions.IsEnabled = false; // SequenceOptions.Visibility = Visibility.Collapsed;
         seqMode.IsEnabled = false; seqMode.Visibility = Visibility.Collapsed;
@@ -2975,8 +2967,8 @@ namespace Rox
         btnAbort.IsEnabled = true; btnAbort.Visibility = Visibility.Visible;
         btnSaveAs.IsEnabled = true; btnSaveAs.Visibility = Visibility.Visible;
         btnDeleteBorder.IsEnabled = true; btnDeleteBorder.Visibility = Visibility.Visible;
-        btnAdvantech.IsEnabled = true; btnAdvantech.Visibility = Visibility.Visible;
-        btnKeyence.IsEnabled = true; btnKeyence.Visibility = Visibility.Visible;
+        //btnAdvantech.IsEnabled = true; btnAdvantech.Visibility = Visibility.Visible;
+        //btnKeyence.IsEnabled = true; btnKeyence.Visibility = Visibility.Visible;
         btnAddVariable.IsEnabled = true; btnAddVariable.Visibility = Visibility.Visible;
         SequenceOptions.IsEnabled = true; //SequenceOptions.Visibility = Visibility.Visible;
         btnDeleteSelectedNode.IsEnabled = true; btnDeleteSelectedNode.Visibility = Visibility.Visible;
@@ -3055,16 +3047,36 @@ namespace Rox
     }
     private void AddinParameters(object sender, RoutedEventArgs e)
     {
-      var s = (sender as IAddinConnection);
-      if (s != null)
+      var s = ((Button)sender).DataContext as IoController;
+      if (s == null) { return; }
+      winAddinParameters d = new winAddinParameters() { Owner = this, connectionAddins = ConnectionAddins, Addin = s.Addin, AddinName = s.Name, Enabled = s.Enabled, ConnString = s.ConnectionString };
+      d.ShowDialog();
+      if (d.DialogResult == true)
       {
-        winAddinParameters d = new winAddinParameters() { Owner = this };
+        s.Name = d.AddinName;
+        s.Enabled = d.Enabled;
+        s.ConnectionString = d.ConnString;
+        ((Button)sender).Content = s.Name;
+      }
+    }
+    private void BtnAddIn_Click(object sender, RoutedEventArgs e)
+    {
+      if (ConnectionAddins?.Any() == true)
+      {
+        winAddinParameters d = new winAddinParameters() { Owner = this, connectionAddins = ConnectionAddins };
         d.ShowDialog();
         if (d.DialogResult == true)
         {
-          s.ConnectionString = d.ConnString;
-          s.Enabled = d.Enabled;
+          IoController controller = new IoController() { Addin = d.Addin, Name = d.AddinName, Enabled = d.Enabled, ConnectionString = d.ConnString };
+          Controllers.Add(controller);
+          var b = new Button() { Content = controller.Name, DataContext = controller };
+          b.Click += AddinParameters;
+          AddinContainer.Children.Add(b);
         }
+      }
+      else
+      {
+        System.Windows.Forms.MessageBox.Show("No addins loaded.");
       }
     }
   }

@@ -188,7 +188,7 @@
                 <Label Content="Source:"/>
                 <!--<ComboBox x:Name="cmbSource" ItemsSource="{Binding Source={local:EnumBindingSource {x:Type local:IoControllers}}}"  >
                 </ComboBox>-->
-                <ComboBox x:Name="cmbSource" Height="26" Margin="5,2,0,3" KeyUp="TxtValue_KeyUp" Width="154" HorizontalAlignment="Left" Grid.Column="1" ItemsSource="{Binding Source={local:EnumBindingSource {x:Type local:IoControllers}}}" SelectedItem="{Binding IoController}"/>
+                <ComboBox x:Name="cmbSource" Height="26" Margin="5,2,0,3" KeyUp="TxtValue_KeyUp" Width="154" HorizontalAlignment="Left" Grid.Column="1" ItemsSource="{Binding AvailableControllers}" SelectedItem="{Binding IoController}" DisplayMemberPath="Name"/>
                 <!--<ComboBox >
                   <ComboBoxItem Content="" />
                   <ComboBoxItem Content="Advantech"/>
